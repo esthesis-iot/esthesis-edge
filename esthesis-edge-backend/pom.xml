@@ -4,11 +4,11 @@
 
     <parent>
         <groupId>esthesis</groupId>
-        <artifactId>esthesis-bom-java</artifactId>
+        <artifactId>esthesis-bom</artifactId>
         <version>1.0.0-SNAPSHOT</version>
     </parent>
 
-    <artifactId>esthesis-edge</artifactId>
+    <artifactId>esthesis-edge-backend</artifactId>
     <version>1.0.0-SNAPSHOT</version>
 
     <dependencies>
@@ -21,19 +21,65 @@
             <artifactId>quarkus-config-yaml</artifactId>
             <groupId>io.quarkus</groupId>
         </dependency>
-<!--        <dependency>-->
-<!--            <groupId>io.quarkus</groupId>-->
-<!--            <artifactId>quarkus-rest</artifactId>-->
-<!--        </dependency>-->
+        <dependency>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-rest</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-rest-jackson</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-hibernate-orm-panache</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-jdbc-h2</artifactId>
+        </dependency>
+        <dependency>
+            <artifactId>quarkus-hibernate-validator</artifactId>
+            <groupId>io.quarkus</groupId>
+        </dependency>
+        <dependency>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-qute</artifactId>
+        </dependency>
+
+        <!-- CAMEL -->
+        <dependency>
+            <artifactId>camel-quarkus-bean</artifactId>
+            <groupId>org.apache.camel.quarkus</groupId>
+        </dependency>
+        <dependency>
+            <artifactId>camel-quarkus-log</artifactId>
+            <groupId>org.apache.camel.quarkus</groupId>
+        </dependency>
+        <dependency>
+            <artifactId>camel-quarkus-seda</artifactId>
+            <groupId>org.apache.camel.quarkus</groupId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.camel.quarkus</groupId>
+            <artifactId>camel-quarkus-quartz</artifactId>
+        </dependency>
 
         <!-- ESTHESIS -->
         <dependency>
             <groupId>esthesis</groupId>
-            <artifactId>esthesis-common-java</artifactId>
+            <artifactId>esthesis-common</artifactId>
             <version>1.0.0-SNAPSHOT</version>
         </dependency>
 
         <!-- THIRD-PARTY -->
+        <dependency>
+            <artifactId>commons-lang3</artifactId>
+            <groupId>org.apache.commons</groupId>
+        </dependency>
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+        </dependency>
 
         <!-- TEST -->
         <dependency>

@@ -1,0 +1,10 @@
+quarkus:
+  live-reload:
+    instrumentation: true
+  http:
+    host: 0.0.0.0
+    cors: false
+  log:
+    category:
+      esthesis:
+        level: DEBUG

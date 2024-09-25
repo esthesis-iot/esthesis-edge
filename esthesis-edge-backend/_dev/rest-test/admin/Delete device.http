@@ -1,0 +1,5 @@
+### Delete device
+// @no-log
+DELETE http://localhost:9080/admin/device/95bd855b-ac65-4d27-84aa-67312fe4346d
+X-ESTHESIS-EDGE-ADMIN-SECRET: {{X-ESTHESIS-EDGE-ADMIN-SECRET}}
+###

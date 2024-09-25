@@ -1,0 +1,5 @@
+### List all devices
+// @no-log
+GET http://localhost:9080/admin/devices
+X-ESTHESIS-EDGE-ADMIN-SECRET: {{X-ESTHESIS-EDGE-ADMIN-SECRET}}
+###
