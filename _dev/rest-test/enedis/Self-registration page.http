@@ -1,0 +1,4 @@
+### List all devices
+// @no-log
+GET http://localhost:9080/enedis/public/self-registration
+###
