@@ -1,8 +1,8 @@
 package esthesis.edge.impl.resource;
 
+import esthesis.edge.api.dto.DeviceDTO;
 import esthesis.edge.api.security.AdminEndpoint;
 import esthesis.edge.api.service.DeviceService;
-import esthesis.edge.impl.model.DeviceEntity;
 import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
@@ -13,26 +13,42 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+/**
+ * AdminResource is a REST resource that provides endpoints for administrative tasks.
+ */
 @Slf4j
 @Path("/admin")
 @RequiredArgsConstructor
 public class AdminResource {
+
   private final DeviceService deviceService;
+
+  /**
+   * Endpoint to check if the admin endpoint is working.
+   *
+   * @return "OK" if the endpoint is working.
+   */
+  @GET
+  @AdminEndpoint
+  @Path("/auth")
+  @Produces("text/plain")
+  public String auth() {
+    return "OK";
+  }
 
   @GET
   @AdminEndpoint
   @Path("/devices")
   @Produces("application/json")
-  public List<DeviceEntity> listDevices() {
-    //return deviceService.listDevices();
-    return null;
+  public List<DeviceDTO> listDevices() {
+    return deviceService.listDevices();
   }
 
   @DELETE
   @AdminEndpoint
-  @Path("/device/{deviceId}")
-  public Response deleteDeviceByDeviceId(@PathParam("deviceId") String deviceId) {
-    deviceService.deleteDeviceById(deviceId);
+  @Path("/device/{hardwareId}")
+  public Response deleteDeviceByDeviceId(@PathParam("hardwareId") String hardwareId) {
+    deviceService.deleteDevice(hardwareId);
 
     return Response.ok().build();
   }

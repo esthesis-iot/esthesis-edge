@@ -24,7 +24,7 @@ esthesis:
         enabled: true
       registration:
         enabled: true
-        url: http://localhost:8080
+        url: http://localhost:59070/api/v1/register
         secret: mysecret
       tags:
         - edge

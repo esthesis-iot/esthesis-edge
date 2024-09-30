@@ -3,6 +3,7 @@ package esthesis.edge.impl.model;
 import static org.hibernate.annotations.OnDeleteAction.CASCADE;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import esthesis.edge.api.util.EdgeConstants;
 import io.quarkus.hibernate.orm.panache.PanacheEntityBase;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
@@ -10,6 +11,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotBlank;
+import java.util.Optional;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -60,5 +62,23 @@ public class DeviceModuleConfigEntity extends PanacheEntityBase {
         .configKey(key)
         .configValue(value)
         .build();
+  }
+
+  public static void deleteConfigForDevice(String hardwareId) {
+    DeviceEntity deviceEntity = DeviceEntity.findByHardwareId(hardwareId).orElseThrow();
+    DeviceModuleConfigEntity.delete(EdgeConstants.DBCOL_DEVICE, deviceEntity);
+  }
+
+  public static Optional<String> findConfigValue(String hardwareId, String configKey) {
+    return getConfig(hardwareId, configKey)
+        .map(DeviceModuleConfigEntity::getConfigValue);
+  }
+
+  public static Optional<DeviceModuleConfigEntity> getConfig(String hardwareId, String configKey) {
+    DeviceEntity deviceEntity = DeviceEntity.findByHardwareId(hardwareId).orElseThrow();
+    return DeviceModuleConfigEntity.find(
+            EdgeConstants.DBCOL_DEVICE + " = ?1 and "+
+            EdgeConstants.DBCOL_CONFIG_KEY + " = ?2", deviceEntity, configKey)
+        .firstResultOptional();
   }
 }

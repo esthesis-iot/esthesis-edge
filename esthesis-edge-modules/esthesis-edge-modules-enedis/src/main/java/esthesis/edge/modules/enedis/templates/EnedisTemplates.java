@@ -4,7 +4,7 @@ public class EnedisTemplates {
   private EnedisTemplates() {
   }
 
-  public static String ERROR =
+  public static final String ERROR =
 """
 <!DOCTYPE html>
 <html lang="en">
@@ -121,7 +121,7 @@ public class EnedisTemplates {
 </html>
 """;
 
-  public static String SELF_REGISTRATION = """
+  public static final String SELF_REGISTRATION = """
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -239,7 +239,7 @@ public class EnedisTemplates {
 </html>
 """;
 
-  public static String REGISTRATION_SUCCESSFUL = """
+  public static final String REGISTRATION_SUCCESSFUL = """
 <!DOCTYPE html>
 <html lang="en">
 <head>

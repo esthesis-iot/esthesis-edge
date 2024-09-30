@@ -1,7 +1,11 @@
 package esthesis.edge.modules.enedis.service;
 
+import static esthesis.edge.modules.enedis.EnedisConstants.MODULE_NAME;
+
+import esthesis.edge.api.dto.DeviceDTO;
 import esthesis.edge.api.dto.TemplateDTO;
 import esthesis.edge.api.service.DeviceService;
+import esthesis.edge.modules.enedis.EnedisConstants;
 import esthesis.edge.modules.enedis.EnedisProperties;
 import esthesis.edge.modules.enedis.dto.EnedisConfigDTO;
 import esthesis.edge.modules.enedis.templates.EnedisTemplates;
@@ -37,35 +41,22 @@ public class EnedisService {
   }
 
   public void createDevice(String usagePointId) {
-//    String hardwareId = MODULE_NAME + "-" + usagePointId;
-//    DeviceEntity device = DeviceEntity.find(DEVICE_COL_HARDWARE_ID, hardwareId).firstResult();
-//
-//    if (device == null) {
-//      for (String enedisId : usagePointId.split(";")) {
-//        Instant now = Instant.now();
-//        deviceService.createDevice(
-//            DeviceEntity.builder()
-//                .id(UUID.randomUUID().toString())
-//                .hardwareId(hardwareId)
-//                .moduleName(MODULE_NAME)
-//                .createdAt(now)
-//                .enabled(true)
-//                .config(
-//                    DeviceModuleConfigEntity.create(EnedisConstants.CONFIG_RPM, enedisId))
-//                .config(DeviceModuleConfigEntity.create(EnedisConstants.CONFIG_RPM_ENABLED_AT,
-//                    now.toString()))
-//                .config(DeviceModuleConfigEntity.create(EnedisConstants.CONFIG_RPM_EXPIRES_AT,
-//                    calculateRPMExpiration(now).toString()))
-//                .build());
-//        log.info("Device with hardwareId '{}' created.", hardwareId);
-//      }
-//    } else {
-//      deviceService.updateDeviceConfig(device.getId(),
-//          Map.of(EnedisConstants.CONFIG_RPM_EXPIRES_AT,
-//              calculateRPMExpiration(Instant.now()).toString()));
-//      log.info("Device with hardwareId '{}' already registered, updated RPM expiration date only.",
-//          hardwareId);
-//    }
+    String hardwareId = MODULE_NAME + "-" + usagePointId;
+
+    for (String enedisId : usagePointId.split(";")) {
+      Instant now = Instant.now();
+      DeviceDTO deviceDTO = deviceService.get().createDevice(
+          DeviceDTO.builder()
+              .hardwareId(hardwareId)
+              .moduleName(MODULE_NAME)
+              .createdAt(now)
+              .enabled(true)
+              .config(EnedisConstants.CONFIG_RPM, enedisId)
+              .config(EnedisConstants.CONFIG_RPM_ENABLED_AT, now.toString())
+              .config(EnedisConstants.CONFIG_RPM_EXPIRES_AT, calculateRPMExpiration(now).toString())
+              .build());
+      log.info("Device with hardwareId '{}' created.", deviceDTO.getHardwareId());
+    }
   }
 
   public EnedisConfigDTO getConfig() {

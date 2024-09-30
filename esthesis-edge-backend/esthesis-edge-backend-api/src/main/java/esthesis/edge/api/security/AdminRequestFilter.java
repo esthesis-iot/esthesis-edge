@@ -13,7 +13,7 @@ import org.eclipse.microprofile.config.inject.ConfigProperty;
 @AdminEndpoint
 public class AdminRequestFilter implements ContainerRequestFilter {
 
-  private static final String ADMIN_SECRET_HEADER_NAME = "X-ESTHESIS-EDGE-ADMIN-SECRET";
+  public static final String ADMIN_SECRET_HEADER_NAME = "X-ESTHESIS-EDGE-ADMIN-SECRET";
   @ConfigProperty(name = "esthesis.edge.admin-secret")
   Optional<String> adminSecret;
 
