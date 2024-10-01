@@ -37,6 +37,8 @@ public class EsthesisCoreServiceImpl implements EsthesisCoreService {
           .hardwareId(hardwareId)
           .type(Type.EDGE)
           .capability(Capability.PING)
+          .capability(Capability.TELEMETRY)
+          .capability(Capability.METADATA)
           .tags(tags.isEmpty() ? null : String.join(",", tags))
           .build();
       AgentRegistrationResponse response = agentResource.register(request);
