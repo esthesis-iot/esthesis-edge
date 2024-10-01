@@ -48,6 +48,7 @@ public class DeviceDTO {
   @NotNull
   private Boolean enabled;
 
+  // The configuration for the module that created this device.
   @Singular("config")
   private Map<String, String> moduleConfig;
 

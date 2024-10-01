@@ -43,6 +43,12 @@ public class EnedisPublicResource {
   @ModuleEndpoint(enabledProperty = "esthesis.edge.modules.enedis.enabled")
   public Response selfRegistration() {
     if (cfg.selfRegistration().enabled()) {
+      // Check if the maximum allowed number of devices has been reached.
+      if (enedisService.countDevices() >= cfg.maxDevices()) {
+        return Response.status(Status.TOO_MANY_REQUESTS)
+            .entity("No more Enedis devices allowed.").build();
+      }
+
       if (StringUtils.isNotBlank(cfg.selfRegistration().welcomeUrl().orElse(""))) {
         return Response.status(Status.FOUND).header("Location", cfg.selfRegistration().welcomeUrl()).build();
       } else {
@@ -68,6 +74,13 @@ public class EnedisPublicResource {
       return Response.status(Response.Status.BAD_REQUEST).entity("Invalid state.").build();
     }
 
+    // Check if the maximum allowed number of devices has been reached.
+    if (enedisService.countDevices() >= cfg.maxDevices()) {
+      return Response.status(Status.TOO_MANY_REQUESTS)
+          .entity("No more Enedis devices allowed.").build();
+    }
+
+    // Create the device.
     try {
       enedisService.createDevice(usagePointId);
       return Response.ok(enedisService.getRegistrationSuccessfulPage()).build();

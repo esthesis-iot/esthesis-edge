@@ -13,10 +13,6 @@
     <dependencies>
         <!-- QUARKUS -->
         <dependency>
-            <artifactId>quarkus-hibernate-validator</artifactId>
-            <groupId>io.quarkus</groupId>
-        </dependency>
-        <dependency>
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-qute</artifactId>
         </dependency>

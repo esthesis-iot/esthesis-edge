@@ -2,6 +2,8 @@ package esthesis.edge.impl.service;
 
 import esthesis.edge.api.dto.DeviceDTO;
 import esthesis.edge.api.service.DeviceService;
+import esthesis.edge.api.service.EsthesisCoreService;
+import esthesis.edge.api.util.EdgeProperties;
 import esthesis.edge.impl.mapper.DeviceMapper;
 import esthesis.edge.impl.model.DeviceEntity;
 import esthesis.edge.impl.model.DeviceModuleConfigEntity;
@@ -21,16 +23,18 @@ import lombok.RequiredArgsConstructor;
 public class DeviceServiceImpl implements DeviceService {
 
   private final DeviceMapper deviceMapper;
+  private final EdgeProperties edgeProperties;
+  private final EsthesisCoreService esthesisCoreService;
 
   /**
-   * Create a new device. If a device with the same hardwareId already exists, it will be updated
-   * (updates only include the module's configuration, any existing configuration will be deleted).
+   * A variation of {@link #createDevice(DeviceDTO)} that allows for the association of tags with
+   * the device in CORE.
    *
    * @param deviceDTO The device to create.
+   * @param tags      The tags to associate with the device in CORE.
    * @return The created device.
    */
-  @Override
-  public DeviceDTO createDevice(DeviceDTO deviceDTO) {
+  public DeviceDTO createDevice(DeviceDTO deviceDTO, List<String> tags) {
     DeviceEntity deviceEntity =
         DeviceEntity.findByHardwareId(deviceDTO.getHardwareId()).orElse(null);
 
@@ -63,7 +67,24 @@ public class DeviceServiceImpl implements DeviceService {
     // Persist the device.
     deviceEntity.persist();
 
+    // Register the device with esthesis CORE.
+    if (edgeProperties.core().registration().enabled()) {
+      esthesisCoreService.registerDevice(deviceDTO.getHardwareId(), tags);
+    }
+
     return deviceMapper.toDTO(deviceEntity);
+  }
+
+  /**
+   * Create a new device. If a device with the same hardwareId already exists, it will be updated
+   * (updates only include the module's configuration, any existing configuration will be deleted).
+   *
+   * @param deviceDTO The device to create.
+   * @return The created device.
+   */
+  @Override
+  public DeviceDTO createDevice(DeviceDTO deviceDTO) {
+    return createDevice(deviceDTO, null);
   }
 
   @Override

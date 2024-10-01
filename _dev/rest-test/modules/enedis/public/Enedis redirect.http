@@ -1,7 +1,7 @@
 ### Simulate a redirect from Enedis. You need to disable state-checking.
 // @no-log
 GET localhost:9080/enedis/public/redirect-handler?
-    usage_point_id=abc
+    usage_point_id={{$uuid}}
     &code=123
     &State=8ae1de52-770c-4bee-a6ac-3c7a6ea45b6f
 ###

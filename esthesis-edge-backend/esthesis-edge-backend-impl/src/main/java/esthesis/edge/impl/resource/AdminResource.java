@@ -47,7 +47,7 @@ public class AdminResource {
   @DELETE
   @AdminEndpoint
   @Path("/device/{hardwareId}")
-  public Response deleteDeviceByDeviceId(@PathParam("hardwareId") String hardwareId) {
+  public Response deleteDeviceByHardwareId(@PathParam("hardwareId") String hardwareId) {
     deviceService.deleteDevice(hardwareId);
 
     return Response.ok().build();

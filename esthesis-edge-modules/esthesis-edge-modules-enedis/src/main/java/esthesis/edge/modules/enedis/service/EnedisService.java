@@ -1,5 +1,6 @@
 package esthesis.edge.modules.enedis.service;
 
+import static esthesis.edge.api.util.EdgeConstants.EDGE;
 import static esthesis.edge.modules.enedis.EnedisConstants.MODULE_NAME;
 
 import esthesis.edge.api.dto.DeviceDTO;
@@ -16,6 +17,7 @@ import java.time.Instant;
 import java.time.Period;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -31,11 +33,12 @@ import lombok.extern.slf4j.Slf4j;
 public class EnedisService {
 
   private final Instance<DeviceService> deviceService;
-  private final EnedisProperties cfg;
+  private final EnedisProperties enedisProperties;
 
   private Instant calculateRPMExpiration(Instant createdAt) {
     ZonedDateTime zonedDateTime = createdAt.atZone(ZoneId.systemDefault());
-    ZonedDateTime newDateTime = zonedDateTime.plus(Period.parse(cfg.selfRegistration().duration()));
+    ZonedDateTime newDateTime = zonedDateTime.plus(
+        Period.parse(enedisProperties.selfRegistration().duration()));
 
     return newDateTime.toInstant();
   }
@@ -54,72 +57,85 @@ public class EnedisService {
               .config(EnedisConstants.CONFIG_RPM, enedisId)
               .config(EnedisConstants.CONFIG_RPM_ENABLED_AT, now.toString())
               .config(EnedisConstants.CONFIG_RPM_EXPIRES_AT, calculateRPMExpiration(now).toString())
-              .build());
+              .build(), List.of(MODULE_NAME, EDGE));
       log.info("Device with hardwareId '{}' created.", deviceDTO.getHardwareId());
     }
   }
 
   public EnedisConfigDTO getConfig() {
     EnedisConfigDTO config = new EnedisConfigDTO();
-    config.setEnabled(cfg.enabled())
-        .setCron(cfg.cron())
-        .setClientId(cfg.clientId())
-        .setClientSecret(cfg.clientSecret())
-        .setMaxDevices(cfg.maxDevices())
-        .setSelfRegistrationEnabled(cfg.selfRegistration().enabled())
-        .setSelfRegistrationStateChecking(cfg.selfRegistration().stateChecking())
-        .setSelfRegistrationWelcomeUrl(cfg.selfRegistration().welcomeUrl().orElse(null))
-        .setSelfRegistrationRedirectUrl(cfg.selfRegistration().redirectUrl())
-        .setSelfRegistrationDuration(cfg.selfRegistration().duration())
-        .setSelfRegistrationPageLogo1Url(cfg.selfRegistration().page().logo1Url().orElse(null))
-        .setSelfRegistrationPageLogo1Alt(cfg.selfRegistration().page().logo1Alt().orElse(null))
-        .setSelfRegistrationPageLogo2Url(cfg.selfRegistration().page().logo2Url().orElse(null))
-        .setSelfRegistrationPageLogo2Alt(cfg.selfRegistration().page().logo2Alt().orElse(null))
+    config.setEnabled(enedisProperties.enabled())
+        .setCron(enedisProperties.cron())
+        .setClientId(enedisProperties.clientId())
+        .setClientSecret(enedisProperties.clientSecret())
+        .setMaxDevices(enedisProperties.maxDevices())
+        .setSelfRegistrationEnabled(enedisProperties.selfRegistration().enabled())
+        .setSelfRegistrationStateChecking(enedisProperties.selfRegistration().stateChecking())
+        .setSelfRegistrationWelcomeUrl(
+            enedisProperties.selfRegistration().welcomeUrl().orElse(null))
+        .setSelfRegistrationRedirectUrl(enedisProperties.selfRegistration().redirectUrl())
+        .setSelfRegistrationDuration(enedisProperties.selfRegistration().duration())
+        .setSelfRegistrationPageLogo1Url(
+            enedisProperties.selfRegistration().page().logo1Url().orElse(null))
+        .setSelfRegistrationPageLogo1Alt(
+            enedisProperties.selfRegistration().page().logo1Alt().orElse(null))
+        .setSelfRegistrationPageLogo2Url(
+            enedisProperties.selfRegistration().page().logo2Url().orElse(null))
+        .setSelfRegistrationPageLogo2Alt(
+            enedisProperties.selfRegistration().page().logo2Alt().orElse(null))
         .setSelfRegistrationPageRegistrationTitle(
-            cfg.selfRegistration().page().registration().title())
+            enedisProperties.selfRegistration().page().registration().title())
         .setSelfRegistrationPageRegistrationMessage(
-            cfg.selfRegistration().page().registration().message())
-        .setSelfRegistrationPageSuccessTitle(cfg.selfRegistration().page().success().title())
-        .setSelfRegistrationPageSuccessMessage(cfg.selfRegistration().page().success().message())
-        .setSelfRegistrationPageErrorTitle(cfg.selfRegistration().page().error().title())
-        .setSelfRegistrationPageErrorMessage(cfg.selfRegistration().page().error().message());
+            enedisProperties.selfRegistration().page().registration().message())
+        .setSelfRegistrationPageSuccessTitle(
+            enedisProperties.selfRegistration().page().success().title())
+        .setSelfRegistrationPageSuccessMessage(
+            enedisProperties.selfRegistration().page().success().message())
+        .setSelfRegistrationPageErrorTitle(
+            enedisProperties.selfRegistration().page().error().title())
+        .setSelfRegistrationPageErrorMessage(
+            enedisProperties.selfRegistration().page().error().message());
 
     return config;
   }
 
   public String getSelfRegistrationPage(String state) {
     return new TemplateDTO(EnedisTemplates.SELF_REGISTRATION)
-        .data("title", cfg.selfRegistration().page().registration().title())
-        .data("logo1", cfg.selfRegistration().page().logo1Url().orElse(""))
-        .data("logo1Alt", cfg.selfRegistration().page().logo1Alt().orElse(""))
-        .data("logo2", cfg.selfRegistration().page().logo2Url().orElse(""))
-        .data("logo2Alt", cfg.selfRegistration().page().logo2Alt().orElse(""))
+        .data("title", enedisProperties.selfRegistration().page().registration().title())
+        .data("logo1", enedisProperties.selfRegistration().page().logo1Url().orElse(""))
+        .data("logo1Alt", enedisProperties.selfRegistration().page().logo1Alt().orElse(""))
+        .data("logo2", enedisProperties.selfRegistration().page().logo2Url().orElse(""))
+        .data("logo2Alt", enedisProperties.selfRegistration().page().logo2Alt().orElse(""))
         .data("state", state)
-        .data("clientId", cfg.clientId())
-        .data("message", cfg.selfRegistration().page().registration().message())
-        .data("duration", cfg.selfRegistration().duration())
+        .data("clientId", enedisProperties.clientId())
+        .data("message", enedisProperties.selfRegistration().page().registration().message())
+        .data("duration", enedisProperties.selfRegistration().duration())
         .render();
   }
 
   public String getRegistrationSuccessfulPage() {
     return new TemplateDTO(EnedisTemplates.REGISTRATION_SUCCESSFUL)
-        .data("logo1", cfg.selfRegistration().page().logo1Url().orElse(""))
-        .data("logo1Alt", cfg.selfRegistration().page().logo1Alt().orElse(""))
-        .data("logo2", cfg.selfRegistration().page().logo2Url().orElse(""))
-        .data("logo2Alt", cfg.selfRegistration().page().logo2Alt().orElse(""))
-        .data("title", cfg.selfRegistration().page().success().title())
-        .data("message", cfg.selfRegistration().page().success().message())
+        .data("logo1", enedisProperties.selfRegistration().page().logo1Url().orElse(""))
+        .data("logo1Alt", enedisProperties.selfRegistration().page().logo1Alt().orElse(""))
+        .data("logo2", enedisProperties.selfRegistration().page().logo2Url().orElse(""))
+        .data("logo2Alt", enedisProperties.selfRegistration().page().logo2Alt().orElse(""))
+        .data("title", enedisProperties.selfRegistration().page().success().title())
+        .data("message", enedisProperties.selfRegistration().page().success().message())
         .render();
   }
 
   public String getErrorPage() {
     return new TemplateDTO(EnedisTemplates.ERROR)
-        .data("logo1", cfg.selfRegistration().page().logo1Url().orElse(""))
-        .data("logo1Alt", cfg.selfRegistration().page().logo1Alt().orElse(""))
-        .data("logo2", cfg.selfRegistration().page().logo2Url().orElse(""))
-        .data("logo2Alt", cfg.selfRegistration().page().logo2Alt().orElse(""))
-        .data("title", cfg.selfRegistration().page().error().title())
-        .data("message", cfg.selfRegistration().page().error().message())
+        .data("logo1", enedisProperties.selfRegistration().page().logo1Url().orElse(""))
+        .data("logo1Alt", enedisProperties.selfRegistration().page().logo1Alt().orElse(""))
+        .data("logo2", enedisProperties.selfRegistration().page().logo2Url().orElse(""))
+        .data("logo2Alt", enedisProperties.selfRegistration().page().logo2Alt().orElse(""))
+        .data("title", enedisProperties.selfRegistration().page().error().title())
+        .data("message", enedisProperties.selfRegistration().page().error().message())
         .render();
+  }
+
+  public long countDevices() {
+    return deviceService.get().countDevices();
   }
 }

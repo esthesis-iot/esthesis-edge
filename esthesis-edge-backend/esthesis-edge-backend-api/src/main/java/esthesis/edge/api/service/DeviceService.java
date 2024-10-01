@@ -9,6 +9,8 @@ public interface DeviceService {
 
   DeviceDTO createDevice(DeviceDTO deviceDTO);
 
+  DeviceDTO createDevice(DeviceDTO deviceDTO, List<String> tags);
+
   void updateDeviceConfig(String deviceId, String configKey, String cofigValue);
 
   List<DeviceDTO> listDevices();

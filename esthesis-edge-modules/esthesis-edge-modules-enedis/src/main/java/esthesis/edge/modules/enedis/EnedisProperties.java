@@ -11,6 +11,7 @@ public interface EnedisProperties {
   String clientId();
   String clientSecret();
   SelfRegistration selfRegistration();
+  boolean fetchImmediately();
 
   interface SelfRegistration {
     boolean enabled();

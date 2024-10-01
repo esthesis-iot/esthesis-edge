@@ -8,6 +8,10 @@ quarkus:
     db-kind: h2
     jdbc:
       url: jdbc:h2:file:./edgedb;DATABASE_TO_UPPER=TRUE;CASE_INSENSITIVE_IDENTIFIERS=TRUE;
+  rest-client:
+    AgentResource:
+        url: http://localhost:59070
+        scope: Singleton
 
 # noinspection YAMLSchemaValidation
 esthesis:
@@ -15,16 +19,15 @@ esthesis:
     admin-secret: ca820829-328f-41e0-9207-ef42372f94c3
     local:
       enabled: true
-      influxdb:
+      influx-db:
         url: http://localhost:8086
         token: mytoken
         bucket: mybucket
     core:
-      update:
+      push:
         enabled: true
       registration:
         enabled: true
-        url: http://localhost:59070/api/v1/register
         secret: mysecret
       tags:
         - edge
@@ -32,9 +35,10 @@ esthesis:
       enedis:
         enabled: true
         cron: "0/1 * * * * ?"
-        max-devices: 100
+        max-devices: 1000
         client-id: myclientid
         client-secret: myclientsecret
+        fetch-immediately: true
         self-registration:
           enabled: true
           state-checking: false

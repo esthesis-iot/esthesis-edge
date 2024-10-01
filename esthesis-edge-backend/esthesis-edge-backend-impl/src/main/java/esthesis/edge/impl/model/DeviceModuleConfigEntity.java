@@ -6,6 +6,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import esthesis.edge.api.util.EdgeConstants;
 import io.quarkus.hibernate.orm.panache.PanacheEntityBase;
 import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.ManyToOne;
@@ -41,6 +42,7 @@ public class DeviceModuleConfigEntity extends PanacheEntityBase {
 
   @NotBlank
   @Length(max = 1024)
+  @Column(length = 1024)
   private String configValue;
 
   @JsonIgnore

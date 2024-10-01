@@ -9,6 +9,7 @@ import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
+import jakarta.persistence.Index;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotBlank;
@@ -32,7 +33,12 @@ import org.hibernate.validator.constraints.Length;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "device")
+@Table(name = "device", indexes = {
+    @Index(name = "idx_hardwareId", columnList = "hardwareId"),
+    @Index(name = "idx_module", columnList = "moduleName"),
+    @Index(name = "idx_enabled", columnList = "enabled"),
+    @Index(name = "idx_module_enabled", columnList = "moduleName, enabled"),
+})
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 public class DeviceEntity extends PanacheEntityBase {
   // The unique identifier for the device.
@@ -42,8 +48,8 @@ public class DeviceEntity extends PanacheEntityBase {
 
   // The unique identifier for the hardware id of the device.
   @NotEmpty
-  @Column(unique=true)
   @Length(min = 3, max = 512)
+  @Column(unique=true, length = 512)
   @Pattern(regexp = "^[a-zA-Z0-9_-]+$", message = "Only alphanumeric characters, hyphens, and underscores are allowed.")
   private String hardwareId;
 
@@ -53,12 +59,15 @@ public class DeviceEntity extends PanacheEntityBase {
   private String moduleName;
 
   // The public key for the device.
+  @Column(length = 4096)
   private String publicKey;
 
   // The private key for the device.
+  @Column(length = 4096)
   private String privateKey;
 
   // The certificate for the device.
+  @Column(length = 4096)
   private String certificate;
 
   // The date and time when the device was created.
