@@ -38,11 +38,12 @@ public class DeviceModuleConfigEntity extends PanacheEntityBase {
 
   @NotBlank
   @Length(max = 255)
+  @Column(nullable = false)
   private String configKey;
 
   @NotBlank
   @Length(max = 1024)
-  @Column(length = 1024)
+  @Column(length = 1024, nullable = false)
   private String configValue;
 
   @JsonIgnore

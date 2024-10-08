@@ -132,7 +132,8 @@ class DeviceServiceImplTest {
     String keyName = UUID.randomUUID().toString();
     String value = UUID.randomUUID().toString();
     deviceService.updateDeviceConfig(hardwareId, keyName, value);
-    assertEquals(value, deviceService.getDeviceConfigValue(hardwareId, keyName).orElse(null));
+    assertEquals(value,
+        deviceService.getDeviceConfigValueAsString(hardwareId, keyName).orElse(null));
 
     // Create device with config, then get config.
     String hardwareId2 = UUID.randomUUID().toString();
@@ -142,6 +143,7 @@ class DeviceServiceImplTest {
     deviceDTO.setEnabled(true);
     deviceDTO.setModuleConfig(Map.of(keyName, value));
     deviceService.createDevice(deviceDTO);
-    assertEquals(value, deviceService.getDeviceConfigValue(hardwareId2, keyName).orElse(null));
+    assertEquals(value,
+        deviceService.getDeviceConfigValueAsString(hardwareId2, keyName).orElse(null));
   }
 }

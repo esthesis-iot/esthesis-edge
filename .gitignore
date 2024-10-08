@@ -1,2 +1,3 @@
 **/target
 /esthesis-edge-backend/esthesis-edge-backend-impl/edgedb.mv.db
+local-env.sh

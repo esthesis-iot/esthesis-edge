@@ -1,0 +1,32 @@
+services:
+  edge-mariadb:
+    image: mariadb:11.5.2
+    restart: unless-stopped
+    ports:
+      - "4306:3306"
+    environment:
+      MARIADB_ROOT_PASSWORD: esthesis-system
+      MARIADB_USER: esthesis-system
+      MARIADB_PASSWORD: esthesis-system
+      MARIADB_DATABASE: esthesis-edge
+    volumes:
+      - edge-mariadb-vol:/var/lib/mysql
+  edge-influxdb:
+    image: influxdb:2.7.10
+    restart: unless-stopped
+    ports:
+      - "9086:8086"
+    environment:
+      DOCKER_INFLUXDB_INIT_MODE: setup
+      DOCKER_INFLUXDB_INIT_USERNAME: esthesis-system
+      DOCKER_INFLUXDB_INIT_PASSWORD: esthesis-system
+      DOCKER_INFLUXDB_INIT_ORG: esthesis
+      DOCKER_INFLUXDB_INIT_BUCKET: edge
+    volumes:
+      - edge-influxdb-vol-data:/var/lib/influxdb2
+      - edge-influxdb-vol-config:/etc/influxdb2
+
+volumes:
+  edge-mariadb-vol:
+  edge-influxdb-vol-data:
+  edge-influxdb-vol-config:

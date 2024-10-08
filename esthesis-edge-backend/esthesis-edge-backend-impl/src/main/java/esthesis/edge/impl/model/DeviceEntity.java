@@ -49,13 +49,14 @@ public class DeviceEntity extends PanacheEntityBase {
   // The unique identifier for the hardware id of the device.
   @NotEmpty
   @Length(min = 3, max = 512)
-  @Column(unique=true, length = 512)
+  @Column(unique=true, length = 512, nullable = false)
   @Pattern(regexp = "^[a-zA-Z0-9_-]+$", message = "Only alphanumeric characters, hyphens, and underscores are allowed.")
   private String hardwareId;
 
   // The name of the module that created this device.
   @NotEmpty
   @Length(min = 3, max = 255)
+  @Column(nullable = false)
   private String moduleName;
 
   // The public key for the device.
@@ -72,10 +73,12 @@ public class DeviceEntity extends PanacheEntityBase {
 
   // The date and time when the device was created.
   @NotNull
+  @Column(nullable = false)
   private Instant createdAt;
 
   // Whether this disable is enabled or not (disabled devices are ignored when syncing data).
   @NotNull
+  @Column(nullable = false)
   private Boolean enabled;
 
   @Singular("config")

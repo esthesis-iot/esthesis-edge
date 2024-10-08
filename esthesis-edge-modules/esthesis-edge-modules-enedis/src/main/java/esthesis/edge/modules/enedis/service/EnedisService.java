@@ -8,10 +8,13 @@ import esthesis.edge.api.dto.TemplateDTO;
 import esthesis.edge.api.service.DeviceService;
 import esthesis.edge.modules.enedis.EnedisConstants;
 import esthesis.edge.modules.enedis.EnedisProperties;
+import esthesis.edge.modules.enedis.client.EnedisClient;
 import esthesis.edge.modules.enedis.dto.EnedisConfigDTO;
+import esthesis.edge.modules.enedis.dto.datahub.EnedisAuthTokenDTO;
 import esthesis.edge.modules.enedis.templates.EnedisTemplates;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.inject.Instance;
+import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import java.time.Instant;
 import java.time.Period;
@@ -20,6 +23,7 @@ import java.time.ZonedDateTime;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.eclipse.microprofile.rest.client.inject.RestClient;
 
 //  // 10 permits per second.
 //  private final RateLimiter perSecondLimiter = RateLimiter.create(10);
@@ -34,7 +38,19 @@ public class EnedisService {
 
   private final Instance<DeviceService> deviceService;
   private final EnedisProperties enedisProperties;
+  private final EnedisFetchService enedisFetchService;
+  @RestClient
+  @Inject
+  EnedisClient enedisRestClient;
+  // A local reference of the access token, to not keep refreshing when not needed.
+  private EnedisAuthTokenDTO enedisAuthTokenDTO;
 
+  /**
+   * Calculate the expiration time for the RPM token.
+   *
+   * @param createdAt The time the token was created.
+   * @return The expiration time.
+   */
   private Instant calculateRPMExpiration(Instant createdAt) {
     ZonedDateTime zonedDateTime = createdAt.atZone(ZoneId.systemDefault());
     ZonedDateTime newDateTime = zonedDateTime.plus(
@@ -43,8 +59,40 @@ public class EnedisService {
     return newDateTime.toInstant();
   }
 
+  /**
+   * Check if the authentication token has expired. For each device, subtract 3 seconds off the
+   * expiration time to ensure the token can be used throughout the duration of the request.
+   *
+   * @return True if the token has expired, false otherwise.
+   */
+  private boolean hasAuthTokenExpired() {
+    if (enedisAuthTokenDTO == null) {
+      return true;
+    }
+
+    return Instant.now().isAfter(enedisAuthTokenDTO.getExpiresOn());
+  }
+
+  private String createHardwareId(String usagePointId) {
+    return MODULE_NAME + "-" + usagePointId;
+  }
+
+  /**
+   * Refresh the authentication token if it has expired.
+   */
+  public void refreshAuthToken() {
+    if (hasAuthTokenExpired()) {
+      log.debug("Refreshing access token for Enedis.");
+      enedisAuthTokenDTO = enedisRestClient.getAuthToken("client_credentials",
+          enedisProperties.clientId(), enedisProperties.clientSecret());
+      log.debug("Access token refreshed '{}'.", enedisAuthTokenDTO);
+    } else {
+      log.debug("Previously obtained access token is still valid, re-using it.");
+    }
+  }
+
   public void createDevice(String usagePointId) {
-    String hardwareId = MODULE_NAME + "-" + usagePointId;
+    String hardwareId = createHardwareId(usagePointId);
 
     for (String enedisId : usagePointId.split(";")) {
       Instant now = Instant.now();
@@ -54,7 +102,7 @@ public class EnedisService {
               .moduleName(MODULE_NAME)
               .createdAt(now)
               .enabled(true)
-              .config(EnedisConstants.CONFIG_RPM, enedisId)
+              .config(EnedisConstants.CONFIG_PRM, enedisId)
               .config(EnedisConstants.CONFIG_RPM_ENABLED_AT, now.toString())
               .config(EnedisConstants.CONFIG_RPM_EXPIRES_AT, calculateRPMExpiration(now).toString())
               .build(), List.of(MODULE_NAME, EDGE));
@@ -137,5 +185,29 @@ public class EnedisService {
 
   public long countDevices() {
     return deviceService.get().countDevices();
+  }
+
+  public void fetchData() {
+    log.info("Fetching data from Enedis.");
+
+    // Get all Enedis devices.
+    List<DeviceDTO> devices = deviceService.get().listDevices(MODULE_NAME);
+    log.debug("Found '{}' devices to fetch data for.", devices.size());
+    if (devices.isEmpty()) {
+      return;
+    }
+
+    // Fetch data for each device.
+    for (DeviceDTO device : devices) {
+      refreshAuthToken();
+      String hardwareId = device.getHardwareId();
+      String enedisPrm = deviceService.get()
+          .getDeviceConfigValueAsString(hardwareId, EnedisConstants.CONFIG_PRM)
+          .orElseThrow();
+      log.debug("Fetching data for device '{}'.", hardwareId);
+
+      // Fetch Daily Consumption.
+      enedisFetchService.fetchDailyConsumption(hardwareId, enedisPrm);
+    }
   }
 }

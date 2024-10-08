@@ -8,3 +8,15 @@ quarkus:
     category:
       esthesis:
         level: DEBUG
+
+"%debug-rest":
+  quarkus:
+    log:
+      category:
+        "org.jboss.resteasy":
+          min-level: TRACE
+          level: TRACE
+    rest-client:
+      logging:
+        scope: request-response
+        body-limit: 65536

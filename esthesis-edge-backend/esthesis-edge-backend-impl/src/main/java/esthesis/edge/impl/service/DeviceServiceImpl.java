@@ -26,14 +26,6 @@ public class DeviceServiceImpl implements DeviceService {
   private final EdgeProperties edgeProperties;
   private final EsthesisCoreService esthesisCoreService;
 
-  /**
-   * A variation of {@link #createDevice(DeviceDTO)} that allows for the association of tags with
-   * the device in CORE.
-   *
-   * @param deviceDTO The device to create.
-   * @param tags      The tags to associate with the device in CORE.
-   * @return The created device.
-   */
   public DeviceDTO createDevice(DeviceDTO deviceDTO, List<String> tags) {
     DeviceEntity deviceEntity =
         DeviceEntity.findByHardwareId(deviceDTO.getHardwareId()).orElse(null);
@@ -75,13 +67,6 @@ public class DeviceServiceImpl implements DeviceService {
     return deviceMapper.toDTO(deviceEntity);
   }
 
-  /**
-   * Create a new device. If a device with the same hardwareId already exists, it will be updated
-   * (updates only include the module's configuration, any existing configuration will be deleted).
-   *
-   * @param deviceDTO The device to create.
-   * @return The created device.
-   */
   @Override
   public DeviceDTO createDevice(DeviceDTO deviceDTO) {
     return createDevice(deviceDTO, null);
@@ -112,6 +97,11 @@ public class DeviceServiceImpl implements DeviceService {
   }
 
   @Override
+  public List<DeviceDTO> listDevices(String moduleName) {
+    return deviceMapper.toDTO(DeviceEntity.list("moduleName", moduleName));
+  }
+
+  @Override
   public void deleteDevice(String hardwareId) {
     DeviceEntity.deleteByHardwareId(hardwareId);
   }
@@ -127,7 +117,17 @@ public class DeviceServiceImpl implements DeviceService {
   }
 
   @Override
-  public Optional<String> getDeviceConfigValue(String hardwareId, String configKey) {
+  public long countDevices(String moduleName) {
+    return DeviceEntity.count("moduleName", moduleName);
+  }
+
+  @Override
+  public Optional<String> getDeviceConfigValueAsString(String hardwareId, String configKey) {
     return DeviceModuleConfigEntity.findConfigValue(hardwareId, configKey);
+  }
+
+  @Override
+  public Optional<Instant> getDeviceConfigValueAsInstant(String hardwareId, String configKey) {
+    return getDeviceConfigValueAsString(hardwareId, configKey).map(Instant::parse);
   }
 }

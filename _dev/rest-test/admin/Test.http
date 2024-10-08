@@ -1,0 +1,5 @@
+### List all items in queue.
+// @no-log
+GET http://localhost:9080/admin/queue
+X-ESTHESIS-EDGE-ADMIN-SECRET: {{X-ESTHESIS-EDGE-ADMIN-SECRET}}
+###
