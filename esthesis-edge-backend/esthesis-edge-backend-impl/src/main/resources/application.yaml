@@ -25,15 +25,16 @@ esthesis:
     local:
       enabled: true
       influx-db:
-        url: http://localhost:8086
-        token: mytoken
-        bucket: mybucket
+        url: http://localhost:9086
+        token: "Ecw_sqxjoIx7RddbK6kdwh57Ly6LjYvg3sHuqeVWaXmt8lBiEKER7gRCbkImtNhawC0wp8DWA2fm2Qh_3Ast1w=="
+        bucket: edge
+        org: esthesis
     core:
       push:
         enabled: true
       registration:
-        enabled: false
-        secret: mysecret
+        enabled: true
+        secret:
       tags:
         - edge
     modules:

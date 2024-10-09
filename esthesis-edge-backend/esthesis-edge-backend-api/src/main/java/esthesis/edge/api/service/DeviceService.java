@@ -11,12 +11,29 @@ import java.util.Optional;
 public interface DeviceService {
 
   /**
-   * Create a new device.
+   * Create a new device. If the device already exists (based on its hardwareId), only the
+   * configuration will be updated.
    *
    * @param deviceDTO the device to create.
    * @return the created device.
    */
   DeviceDTO createDevice(DeviceDTO deviceDTO);
+
+  /**
+   * Disables a device.
+   *
+   * @param hardwareId the hardware id of the device to disable
+   * @return the updated status of the device.
+   */
+  boolean disableDevice(String hardwareId);
+
+  /**
+   * Check if a device has status enabled.
+   *
+   * @param hardwareId the hardware id of the device to check.
+   * @return the status of the device.
+   */
+  boolean isEnabled(String hardwareId);
 
   /**
    * Create a new device with tags.
@@ -46,10 +63,17 @@ public interface DeviceService {
   /**
    * Get all devices created by specific module.
    *
-   * @param moduleName the name of the module.
+   * @param moduleName the name of the module that created the device.
    * @return a list of all devices for the module.
    */
   List<DeviceDTO> listDevices(String moduleName);
+
+  /**
+   * Get all active devices.
+   * @param moduleName the name of the module that created the device.
+   * @return a list of all active devices for the module.
+   */
+  List<DeviceDTO> listActiveDevices(String moduleName);
 
   /**
    * Delete a device by its hardware ID.

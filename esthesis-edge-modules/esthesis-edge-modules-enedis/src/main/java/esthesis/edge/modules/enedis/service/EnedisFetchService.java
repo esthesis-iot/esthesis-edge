@@ -44,6 +44,7 @@ public class EnedisFetchService {
         .getDeviceConfigValueAsInstant(hardwareId, EnedisConstants.CONFIG_CQ_LAST_FETCHED_AT)
         .orElse(Instant.EPOCH));
     log.debug("Fetching Daily Consumption for device '{}', from '{}'.", hardwareId, lastFetch);
+    //TODO replace once API is available.
 //      EnedisDailyConsumptionDTO dailyConsumption = enedisRestClient.getDailyConsumption(
 //          lastFetch, EnedisUtil.InstantToYYYYMMDD(Instant.now()),
 //          enedisPrm, "Bearer " + enedisAuthTokenDTO.getAccessToken());

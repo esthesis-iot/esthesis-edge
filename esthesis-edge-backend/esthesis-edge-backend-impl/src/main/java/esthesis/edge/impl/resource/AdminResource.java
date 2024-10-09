@@ -5,8 +5,10 @@ import esthesis.edge.api.dto.QueueItemDTO;
 import esthesis.edge.api.security.AdminEndpoint;
 import esthesis.edge.api.service.DataService;
 import esthesis.edge.api.service.DeviceService;
+import esthesis.edge.impl.job.SyncJob;
 import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.GET;
+import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
@@ -25,6 +27,7 @@ public class AdminResource {
 
   private final DeviceService deviceService;
   private final DataService dataService;
+  private final SyncJob syncJob;
 
   /**
    * Endpoint to check if the admin endpoint is working.
@@ -71,6 +74,14 @@ public class AdminResource {
   @Produces("application/json")
   public List<QueueItemDTO> listQueue() {
     return dataService.list();
+  }
+
+  @POST
+  @AdminEndpoint
+  @Path("/sync")
+  @Produces("application/json")
+  public void sync() {
+    syncJob.sync();
   }
 
 }

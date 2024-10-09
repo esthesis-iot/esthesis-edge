@@ -14,7 +14,8 @@ public class QueueItemMapper {
         .id(queueItemEntity.getId())
         .dataObject(queueItemEntity.getDataObject())
         .createdAt(queueItemEntity.getCreatedAt())
-        .processedAt(queueItemEntity.getProcessedAt())
+        .processedLocalAt(queueItemEntity.getProcessedLocalAt())
+        .processedCoreAt(queueItemEntity.getProcessedCoreAt())
         .hardwareId(queueItemEntity.getHardwareId())
         .build();
   }

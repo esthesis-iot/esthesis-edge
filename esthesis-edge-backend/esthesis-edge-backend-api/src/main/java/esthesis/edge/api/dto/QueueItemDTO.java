@@ -18,6 +18,7 @@ public class QueueItemDTO {
   private String id;
   private String dataObject;
   private Instant createdAt;
-  private Instant processedAt;
+  private Instant processedLocalAt;
+  private Instant processedCoreAt;
   private String hardwareId;
 }

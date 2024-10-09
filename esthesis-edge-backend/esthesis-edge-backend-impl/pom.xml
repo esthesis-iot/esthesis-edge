@@ -48,13 +48,17 @@
       <artifactId>lombok</artifactId>
       <groupId>org.projectlombok</groupId>
     </dependency>
-
-    <!-- TEST -->
     <dependency>
-      <groupId>io.quarkus</groupId>
-      <artifactId>quarkus-jdbc-h2</artifactId>
-      <scope>test</scope>
+      <groupId>com.influxdb</groupId>
+      <artifactId>influxdb-client-java</artifactId>
+      <version>${influxdb-client-java.version}</version>
     </dependency>
+    <dependency>
+      <groupId>com.influxdb</groupId>
+      <artifactId>flux-dsl</artifactId>
+      <version>${flux-dsl.version}</version>
+    </dependency>
+
   </dependencies>
 
   <build>

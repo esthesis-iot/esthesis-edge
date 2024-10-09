@@ -21,6 +21,7 @@ import java.time.Period;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.List;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
@@ -46,12 +47,12 @@ public class EnedisService {
   private EnedisAuthTokenDTO enedisAuthTokenDTO;
 
   /**
-   * Calculate the expiration time for the RPM token.
+   * Calculate the expiration time for the PMR token.
    *
    * @param createdAt The time the token was created.
    * @return The expiration time.
    */
-  private Instant calculateRPMExpiration(Instant createdAt) {
+  private Instant calculatePMRExpiration(Instant createdAt) {
     ZonedDateTime zonedDateTime = createdAt.atZone(ZoneId.systemDefault());
     ZonedDateTime newDateTime = zonedDateTime.plus(
         Period.parse(enedisProperties.selfRegistration().duration()));
@@ -103,8 +104,8 @@ public class EnedisService {
               .createdAt(now)
               .enabled(true)
               .config(EnedisConstants.CONFIG_PRM, enedisId)
-              .config(EnedisConstants.CONFIG_RPM_ENABLED_AT, now.toString())
-              .config(EnedisConstants.CONFIG_RPM_EXPIRES_AT, calculateRPMExpiration(now).toString())
+              .config(EnedisConstants.CONFIG_PMR_ENABLED_AT, now.toString())
+              .config(EnedisConstants.CONFIG_PMR_EXPIRES_AT, calculatePMRExpiration(now).toString())
               .build(), List.of(MODULE_NAME, EDGE));
       log.info("Device with hardwareId '{}' created.", deviceDTO.getHardwareId());
     }
@@ -191,23 +192,42 @@ public class EnedisService {
     log.info("Fetching data from Enedis.");
 
     // Get all Enedis devices.
-    List<DeviceDTO> devices = deviceService.get().listDevices(MODULE_NAME);
-    log.debug("Found '{}' devices to fetch data for.", devices.size());
+    List<DeviceDTO> devices = deviceService.get().listActiveDevices(MODULE_NAME);
+    log.debug("Found '{}' active devices to fetch data for.", devices.size());
     if (devices.isEmpty()) {
       return;
     }
 
     // Fetch data for each device.
     for (DeviceDTO device : devices) {
+      // Check if the PMR for this device is still active. If not, set the device as disabled and
+      // skip fetching data.
+      Optional<Instant> pmrExpiresAtOpt = deviceService.get().getDeviceConfigValueAsInstant(device.getHardwareId(),
+          EnedisConstants.CONFIG_PMR_EXPIRES_AT);
+      if (pmrExpiresAtOpt.isPresent()) {
+        Instant pmrExpiresAt = pmrExpiresAtOpt.get();
+        if (pmrExpiresAt.isBefore(Instant.now())) {
+          log.info("PMR for device '{}' has expired, disabling this device.",
+              device.getHardwareId());
+          deviceService.get().disableDevice(device.getHardwareId());
+          continue;
+        }
+      } else {
+        log.warn("No PMR expiration date found for device '{}'.",
+            device.getHardwareId());
+      }
+
+      // Refresh auth token.
       refreshAuthToken();
+
+      // Fetch data.
       String hardwareId = device.getHardwareId();
       String enedisPrm = deviceService.get()
           .getDeviceConfigValueAsString(hardwareId, EnedisConstants.CONFIG_PRM)
           .orElseThrow();
       log.debug("Fetching data for device '{}'.", hardwareId);
-
-      // Fetch Daily Consumption.
       enedisFetchService.fetchDailyConsumption(hardwareId, enedisPrm);
+      log.debug("Data fetch completed for device '{}'.", hardwareId);
     }
   }
 }

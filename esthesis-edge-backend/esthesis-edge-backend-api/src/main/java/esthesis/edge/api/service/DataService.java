@@ -28,11 +28,18 @@ public interface DataService {
   void remove(String queueItemId);
 
   /**
-   * Mark an item as processed.
+   * Mark an item as processed for local delivery.
    *
    * @param queueItemId the ID of the item to mark as processed.
    */
-  void markProcessed(String queueItemId);
+  void markProcessedLocal(String queueItemId);
+
+  /**
+   * Mark an item as processed for CORE delivery.
+   *
+   * @param queueItemId the ID of the item to mark as processed.
+   */
+  void markProcessedCore(String queueItemId);
 
   /**
    * List all items in the queue.

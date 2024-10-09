@@ -1,0 +1,5 @@
+### Initiate data sync.
+// @no-log
+POST http://localhost:9080/admin/sync
+X-ESTHESIS-EDGE-ADMIN-SECRET: {{X-ESTHESIS-EDGE-ADMIN-SECRET}}
+###

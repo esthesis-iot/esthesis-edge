@@ -42,9 +42,16 @@ public class DataServiceImpl implements DataService {
   }
 
   @Override
-  public void markProcessed(String queueItemId) {
+  public void markProcessedLocal(String queueItemId) {
     QueueItemEntity queueItemEntity = QueueItemEntity.findById(queueItemId);
-    queueItemEntity.setProcessedAt(Instant.now());
+    queueItemEntity.setProcessedLocalAt(Instant.now());
+    queueItemEntity.persist();
+  }
+
+  @Override
+  public void markProcessedCore(String queueItemId) {
+    QueueItemEntity queueItemEntity = QueueItemEntity.findById(queueItemId);
+    queueItemEntity.setProcessedCoreAt(Instant.now());
     queueItemEntity.persist();
   }
 

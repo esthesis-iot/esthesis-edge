@@ -11,10 +11,10 @@ public class EnedisConstants {
   public static final String CONFIG_PRM = "prm";
 
   // The date at which the RPM was enabled.
-  public static final String CONFIG_RPM_ENABLED_AT = "rpm_enabled_at";
+  public static final String CONFIG_PMR_ENABLED_AT = "pmr_enabled_at";
 
   // The date at which the RPM expires.
-  public static final String CONFIG_RPM_EXPIRES_AT = "rpm_expires_at";
+  public static final String CONFIG_PMR_EXPIRES_AT = "pmr_expires_at";
 
   // The last date 'consommation quotidienne' was fetched.
   public static final String CONFIG_CQ_LAST_FETCHED_AT = "cq_last_fetched_at";

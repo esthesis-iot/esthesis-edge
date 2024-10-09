@@ -2,6 +2,7 @@ package esthesis.edge.api.util;
 
 import io.smallrye.config.ConfigMapping;
 import java.util.List;
+import java.util.Optional;
 
 @ConfigMapping(prefix = "esthesis.edge")
 public interface EdgeProperties {
@@ -17,6 +18,7 @@ public interface EdgeProperties {
       String url();
       String token();
       String bucket();
+      String org();
     }
   }
 
@@ -30,7 +32,7 @@ public interface EdgeProperties {
 
     interface Registration {
      boolean enabled();
-     String secret();
+     Optional<String> secret();
     }
 
     List<String> tags();

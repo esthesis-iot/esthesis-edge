@@ -38,26 +38,15 @@ public class DeviceServiceImpl implements DeviceService {
       deviceEntity.setModuleName(deviceDTO.getModuleName());
       deviceEntity.setCreatedAt(Instant.now());
       deviceEntity.setEnabled(deviceDTO.getEnabled());
-    } else {
-      DeviceModuleConfigEntity.deleteConfigForDevice(deviceDTO.getHardwareId());
-    }
-
-    // Create the module configuration for the device.
-    if (deviceDTO.getModuleConfig() != null && !deviceDTO.getModuleConfig().isEmpty()) {
-      deviceEntity.setModuleConfig(new ArrayList<>());
-      for (Map.Entry<String, String> entry : deviceDTO.getModuleConfig().entrySet()) {
-        DeviceModuleConfigEntity configEntity = new DeviceModuleConfigEntity();
-        configEntity.setId(UUID.randomUUID().toString());
-        configEntity.setDevice(deviceEntity);
-        configEntity.setConfigKey(entry.getKey());
-        configEntity.setConfigValue(entry.getValue());
-
-        deviceEntity.getModuleConfig().add(configEntity);
-      }
     }
 
     // Persist the device.
     deviceEntity.persist();
+
+    // Create the module configuration for the device.
+    for (Map.Entry<String, String> entry : deviceDTO.getModuleConfig().entrySet()) {
+      updateDeviceConfig(deviceDTO.getHardwareId(), entry.getKey(), entry.getValue());
+    }
 
     // Register the device with esthesis CORE.
     if (edgeProperties.core().registration().enabled()) {
@@ -70,6 +59,20 @@ public class DeviceServiceImpl implements DeviceService {
   @Override
   public DeviceDTO createDevice(DeviceDTO deviceDTO) {
     return createDevice(deviceDTO, null);
+  }
+
+  @Override
+  public boolean disableDevice(String hardwareId) {
+    DeviceEntity deviceEntity = DeviceEntity.findByHardwareId(hardwareId).orElseThrow();
+    deviceEntity.setEnabled(false);
+    deviceEntity.persist();
+
+    return deviceEntity.getEnabled();
+  }
+
+  @Override
+  public boolean isEnabled(String hardwareId) {
+    return DeviceEntity.findByHardwareId(hardwareId).map(DeviceEntity::getEnabled).orElse(false);
   }
 
   @Override
@@ -99,6 +102,12 @@ public class DeviceServiceImpl implements DeviceService {
   @Override
   public List<DeviceDTO> listDevices(String moduleName) {
     return deviceMapper.toDTO(DeviceEntity.list("moduleName", moduleName));
+  }
+
+  @Override
+  public List<DeviceDTO> listActiveDevices(String moduleName) {
+    return deviceMapper.toDTO(
+        DeviceEntity.list("moduleName = ?1 and enabled = ?2", moduleName, true));
   }
 
   @Override

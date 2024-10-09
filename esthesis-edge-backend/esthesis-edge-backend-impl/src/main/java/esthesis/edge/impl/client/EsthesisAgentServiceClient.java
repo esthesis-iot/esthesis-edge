@@ -10,6 +10,6 @@ import org.eclipse.microprofile.rest.client.inject.RegisterRestClient;
 @RegisterRestClient(configKey = "EsthesisAgentServiceClient")
 public interface EsthesisAgentServiceClient {
   @POST
-  @Path(value = "/v1/register")
+  @Path(value = "/api/v1/register")
   AgentRegistrationResponse register(@Valid AgentRegistrationRequest agentRegistrationRequest);
 }

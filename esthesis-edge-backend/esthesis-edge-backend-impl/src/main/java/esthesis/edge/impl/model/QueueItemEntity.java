@@ -8,6 +8,7 @@ import jakarta.persistence.Index;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotBlank;
 import java.time.Instant;
+import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -22,7 +23,7 @@ import org.hibernate.validator.constraints.Length;
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(name = "queue_item", indexes = {
-    @Index(name = "idx_hid_processed_at", columnList = "hardwareId, processedAt")})
+    @Index(name = "idx_hid_processed_at", columnList = "hardware_id, processed_local_at, processed_core_at")})
 public class QueueItemEntity extends PanacheEntityBase {
 
   @Id
@@ -30,15 +31,27 @@ public class QueueItemEntity extends PanacheEntityBase {
   private String id;
 
   @Length(max = 4096)
-  @Column(length = 4096, nullable = false)
+  @Column(length = 4096, nullable = false, name = "data_object")
   private String dataObject;
 
-  @Column(nullable = false)
+  @Column(nullable = false, name = "created_at")
   private Instant createdAt;
 
-  private Instant processedAt;
+  @Column(name = "processed_local_at")
+  private Instant processedLocalAt;
 
-  @Column(nullable = false)
+  @Column(name = "processed_core_at")
+  private Instant processedCoreAt;
+
+  @Column(nullable = false, name = "hardware_id")
   private String hardwareId;
+
+  public static List<QueueItemEntity> findNotProcessedLocal() {
+    return find("processedLocalAt IS NULL").list();
+  }
+
+  public static List<QueueItemEntity> findNotProcessedCore() {
+    return find("processedCoreAt IS NULL").list();
+  }
 
 }

@@ -34,10 +34,10 @@ import org.hibernate.validator.constraints.Length;
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(name = "device", indexes = {
-    @Index(name = "idx_hardwareId", columnList = "hardwareId"),
-    @Index(name = "idx_module", columnList = "moduleName"),
+    @Index(name = "idx_hardwareId", columnList = "hardware_id"),
+    @Index(name = "idx_module", columnList = "module_name"),
     @Index(name = "idx_enabled", columnList = "enabled"),
-    @Index(name = "idx_module_enabled", columnList = "moduleName, enabled"),
+    @Index(name = "idx_module_enabled", columnList = "module_name, enabled"),
 })
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 public class DeviceEntity extends PanacheEntityBase {
@@ -49,22 +49,22 @@ public class DeviceEntity extends PanacheEntityBase {
   // The unique identifier for the hardware id of the device.
   @NotEmpty
   @Length(min = 3, max = 512)
-  @Column(unique=true, length = 512, nullable = false)
+  @Column(unique=true, length = 512, nullable = false, name = "hardware_id")
   @Pattern(regexp = "^[a-zA-Z0-9_-]+$", message = "Only alphanumeric characters, hyphens, and underscores are allowed.")
   private String hardwareId;
 
   // The name of the module that created this device.
   @NotEmpty
   @Length(min = 3, max = 255)
-  @Column(nullable = false)
+  @Column(nullable = false, name = "module_name")
   private String moduleName;
 
   // The public key for the device.
-  @Column(length = 4096)
+  @Column(length = 4096, name = "public_key")
   private String publicKey;
 
   // The private key for the device.
-  @Column(length = 4096)
+  @Column(length = 4096, name = "private_key")
   private String privateKey;
 
   // The certificate for the device.
@@ -73,7 +73,7 @@ public class DeviceEntity extends PanacheEntityBase {
 
   // The date and time when the device was created.
   @NotNull
-  @Column(nullable = false)
+  @Column(nullable = false, name = "created_at")
   private Instant createdAt;
 
   // Whether this disable is enabled or not (disabled devices are ignored when syncing data).
@@ -82,6 +82,7 @@ public class DeviceEntity extends PanacheEntityBase {
   private Boolean enabled;
 
   @Singular("config")
+  @Column(name = "module_config")
   @OneToMany(mappedBy = "device", cascade = CascadeType.ALL, orphanRemoval = true, fetch = EAGER)
   private List<DeviceModuleConfigEntity> moduleConfig;
 
