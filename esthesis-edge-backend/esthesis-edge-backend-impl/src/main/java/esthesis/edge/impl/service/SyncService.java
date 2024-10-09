@@ -35,7 +35,7 @@ public class SyncService {
 
     QueueItemEntity.findNotProcessedLocal().forEach(queueItem -> {
       log.debug("Local syncing queue item '{}'.", queueItem.getId());
-      syncService.influxDBPost(queueItem);
+//      syncService.influxDBPost(queueItem);
       queueItem.setProcessedLocalAt(Instant.now());
       queueItem.persist();
     });
