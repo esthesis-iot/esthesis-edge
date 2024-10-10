@@ -1,9 +1,11 @@
 package esthesis.edge.modules.enedis.dto.datahub;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import esthesis.common.avro.ELPEntry;
 import esthesis.edge.modules.enedis.EnedisUtil;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import java.util.List;
+import java.util.stream.Collectors;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
@@ -62,13 +64,12 @@ public class EnedisDailyConsumptionDTO {
    * @return Daily Consumption in ELP format.
    */
   public String toELP() {
-    StringBuilder elp = new StringBuilder();
-    for (IntervalReading interval : meterReading.getIntervalReading()) {
-      elp.append(String.format("energy dq=%d %s\n",
-          Integer.parseInt(interval.getValue()),
-          EnedisUtil.StringDataToELPData(interval.getDate())));
-    }
-
-    return elp.toString();
+    return meterReading.getIntervalReading().stream()
+        .map(interval -> ELPEntry.builder()
+            .category("energy")
+            .date(EnedisUtil.YmdToInstant(interval.getDate()))
+            .measurement("dc", interval.getValue() + "i")
+            .build().toString())
+        .collect(Collectors.joining("\n"));
   }
 }

@@ -47,11 +47,19 @@ public class QueueItemEntity extends PanacheEntityBase {
   private String hardwareId;
 
   public static List<QueueItemEntity> findNotProcessedLocal() {
-    return find("processedLocalAt IS NULL").list();
+    return find("processedLocalAt IS NULL order by createdAt").list();
   }
 
-  public static List<QueueItemEntity> findNotProcessedCore() {
-    return find("processedCoreAt IS NULL").list();
+  public static List<String> findDistinctHardwareIdsWithNotProcessedCore() {
+    return find("SELECT DISTINCT hardwareId FROM QueueItemEntity WHERE processedCoreAt IS NULL "
+        + "order by hardwareId")
+        .project(String.class)
+        .list();
+  }
+
+  public static List<QueueItemEntity> findByHardwareIdNotProcessedCore(String hardwareId) {
+    return find("hardwareId = ?1 AND processedCoreAt IS NULL order by createdAt",
+        hardwareId).list();
   }
 
 }

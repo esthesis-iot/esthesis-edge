@@ -21,11 +21,11 @@ public class EnedisUtil {
   }
 
   /**
-   * Converts a YYYY-MM-DD string to an ISO-8601 date.
+   * Converts a YYYY-MM-DD string to an Instant (ISO-8601 date).
    * @param date The date to convert.
    * @return The given date as an ISO-8601 date.
    */
-  public static String StringDataToELPData(String date) {
-    return date + "T23:59:59Z";
+  public static Instant YmdToInstant(String date) {
+    return Instant.parse(date + "T23:59:59Z");
   }
 }

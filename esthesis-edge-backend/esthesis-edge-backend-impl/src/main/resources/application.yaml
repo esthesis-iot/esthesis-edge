@@ -32,6 +32,7 @@ esthesis:
     core:
       push:
         enabled: true
+        url: tcp://mosquitto.esthesis:1883
       registration:
         enabled: true
         secret:

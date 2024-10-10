@@ -33,6 +33,10 @@ public class SyncJob {
       syncService.syncInfluxDB();
     }
 
+    if (edgeProperties.core().push().enabled()) {
+      syncService.syncCore();
+    }
+
     log.debug("Syncing data finished in '{}' ms.",
         Instant.now().toEpochMilli() - start.toEpochMilli());
   }
