@@ -33,6 +33,7 @@ esthesis:
       push:
         enabled: true
         url: tcp://mosquitto.esthesis:1883
+        topic-telemetry: esthesis/telemetry
       registration:
         enabled: true
         secret:

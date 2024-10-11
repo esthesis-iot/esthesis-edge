@@ -61,6 +61,7 @@ public class SyncService {
 
       // Write point to InfluxDB.
       try (WriteApi writeApi = influxDBClient.makeWriteApi()) {
+        log.debug("InfluxDB writing point '{}'.", point.toLineProtocol());
         writeApi.writePoint(point);
       }
       log.debug("InfluxDB synced queue item '{}'.", queueItemEntity.getId());
@@ -72,6 +73,9 @@ public class SyncService {
     String mqttUrl = edgeProperties.core().push().url()
         .orElseThrow(() -> new QValueIsRequiredException("esthesis CORE MQTT server is not "
             + "specified."));
+    String topic = edgeProperties.core().push().topicTelemetry()
+        .orElseThrow(() -> new QValueIsRequiredException("esthesis CORE MQTT topic is not "
+            + "specified.")) + "/" + hardwareId;
     MqttPublisher mqttPublisher = new MqttPublisher(mqttUrl);
 
     try {
@@ -87,7 +91,7 @@ public class SyncService {
       for (QueueItemEntity queueItemEntity : queueItemEntities) {
         try {
           log.debug("esthesis CORE syncing queue item '{}'.", queueItemEntity.getId());
-          mqttPublisher.publish("test/" + hardwareId, queueItemEntity.getDataObject());
+          mqttPublisher.publish(topic, queueItemEntity.getDataObject());
           queueItemEntity.setProcessedCoreAt(Instant.now());
           queueItemEntity.persist();
           log.debug("esthesis CORE synced queue item '{}'.", queueItemEntity.getId());

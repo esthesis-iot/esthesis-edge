@@ -16,11 +16,13 @@ import java.security.cert.X509Certificate;
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManagerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.eclipse.paho.client.mqttv3.MqttClient;
 import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence;
 
+@Slf4j
 public class MqttPublisher {
 
   private MqttClient client;
@@ -85,6 +87,7 @@ public class MqttPublisher {
   }
 
   public void publish(String topic, String message) throws MqttException {
+    log.debug("Publishing message to topic '{}': '{}'.", topic, message);
     client.publish(topic, message.getBytes(), 0, false);
   }
 

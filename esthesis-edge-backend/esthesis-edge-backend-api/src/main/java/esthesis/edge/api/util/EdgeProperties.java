@@ -42,6 +42,8 @@ public interface EdgeProperties {
       boolean enabled();
 
       Optional<String> url();
+      
+      Optional<String> topicTelemetry();
     }
 
     interface Registration {
