@@ -3,21 +3,29 @@
 <buildprofiles xsi:noNamespaceSchemaLocation="https://resources.jetbrains.com/writerside/1.0/build-profiles.xsd"
                xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 
-    <variables>
-        <primary-color>halloween</primary-color>
-        <custom-favicons>logo.png</custom-favicons>
-    </variables>
-    <build-profile instance="eed">
+    <build-profile instance="esthesis-edge">
         <variables>
-            <noindex-content>true</noindex-content>
-            <header-logo>logo-with-text.png</header-logo>
+            <noindex-content>false</noindex-content>
+            <primary-color>#059999</primary-color>
+            <color-preset>soft</color-preset>
+            <link-color>#059999</link-color>
+            <custom-favicons>logo.png</custom-favicons>
+            <header-logo>logo.png</header-logo>
+
+            <download-title>Get esthesis EDGE</download-title>
+            <download-page>https://esthes.is/edge</download-page>
+            <showDownloadButton>true</showDownloadButton>
         </variables>
     </build-profile>
 
     <footer>
         <copyright>European Dynamics SA</copyright>
-        <social type="twitter" href="https://twitter.com/onwriterside"/>
-        <link href="https://blog.jetbrains.com">Blog</link>
+        <social type="linkedin" href="https://www.linkedin.com/company/european-dynamics"/>
+        <link href="https://www.eurodyn.com">esthesis CORE</link>
+        <link href="https://www.eurodyn.com">esthesis EDGE</link>
+        <link href="https://www.eurodyn.com">esthesis GATEWAY</link>
+        <link href="https://www.eurodyn.com">esthesis UNS</link>
+        <link href="https://www.eurodyn.com">esthesis HISTORIAN</link>
     </footer>
 
 </buildprofiles>
