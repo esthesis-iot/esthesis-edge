@@ -1,0 +1,75 @@
+quarkus:
+  banner:
+    enabled: false
+  hibernate-orm:
+    database:
+      generation: update
+  datasource:
+    db-kind: mariadb
+    username: esthesis-system
+    password: esthesis-system
+    jdbc:
+      url: jdbc:mariadb://localhost:4306/esthesis-edge
+  rest-client:
+    EsthesisAgentServiceClient:
+      url: http://localhost:59070
+      scope: Singleton
+    EnedisClient:
+      url: https://ext.prod-sandbox.api.enedis.fr
+      scope: Singleton
+
+# noinspection YAMLSchemaValidation
+esthesis:
+  edge:
+    admin-secret: ca820829-328f-41e0-9207-ef42372f94c3
+    local:
+      enabled: true
+      influx-db:
+        url: http://localhost:9086
+        token: "Ecw_sqxjoIx7RddbK6kdwh57Ly6LjYvg3sHuqeVWaXmt8lBiEKER7gRCbkImtNhawC0wp8DWA2fm2Qh_3Ast1w=="
+        bucket: edge
+        org: esthesis
+    core:
+      push:
+        enabled: true
+        url: ssl://mosquitto.esthesis:8883
+        topic-telemetry: esthesis/telemetry
+        topic-ping: esthesis/ping
+      registration:
+        enabled: true
+        secret:
+      tags:
+        - edge
+      key-algorithm: RSA
+    modules:
+      enedis:
+        enabled: true
+        cron: "0/1 * * * * ?"
+        max-devices: 1000
+        past-days-init: 7
+        client-id: myclientid
+        client-secret: myclientsecret
+        fetch-immediately: true
+        self-registration:
+          enabled: true
+          state-checking: false
+          welcome-url:
+          redirect-url: http://localhost:8080
+          duration: P1Y
+          page:
+            logo1-url: https://getlogovector.com/wp-content/uploads/2019/08/enedis-logo-vector.png
+            logo1-alt:
+            logo2-url:
+            logo2-alt:
+            registration:
+              title: "Connect your Enedis account"
+              message: "You will be redirected to Enedis, where you have to authenticate with your
+                Enedis account, and authorise this application to retrieve your electricity consumption
+                data. The authorisation will be valid for 1 year. Your data will be used by us to provide
+                you with insights and recommendations on how to save energy."
+            success:
+              title: "Account connected"
+              message: "Your account was successfully connected, you may now close this window."
+            error:
+              title: "Error connecting account"
+              message: "An error occurred while connecting your account. Please try again later."
