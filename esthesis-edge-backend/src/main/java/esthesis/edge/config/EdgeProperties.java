@@ -9,6 +9,14 @@ public interface EdgeProperties {
 
   String adminSecret();
 
+  String syncCron();
+
+  String purgeCron();
+
+  int purgeSuccessfulMinutes();
+
+  int purgeQueuedMinutes();
+
   Locale local();
 
   Core core();

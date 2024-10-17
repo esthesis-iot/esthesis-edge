@@ -2,6 +2,7 @@ package esthesis.edge.jobs;
 
 import esthesis.edge.config.EdgeProperties;
 import esthesis.edge.services.SyncService;
+import io.quarkus.scheduler.Scheduled;
 import jakarta.enterprise.context.ApplicationScoped;
 import java.time.Instant;
 import lombok.RequiredArgsConstructor;
@@ -15,7 +16,8 @@ public class SyncJob {
   private final EdgeProperties edgeProperties;
   private final SyncService syncService;
 
-  public void sync() {
+  @Scheduled(cron = "{esthesis.edge.sync-cron}")
+  public void execute() {
     Instant start = Instant.now();
     log.debug("Syncing data started.");
 

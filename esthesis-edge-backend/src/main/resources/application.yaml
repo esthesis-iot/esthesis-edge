@@ -22,6 +22,10 @@ quarkus:
 esthesis:
   edge:
     admin-secret: ca820829-328f-41e0-9207-ef42372f94c3
+    sync-cron: "0 0 * * * ?"
+    purge-cron: "0 0 0 * * ?"
+    purge-successful-minutes: 60
+    purge-queued-minutes: 10080
     local:
       enabled: true
       influx-db:

@@ -7,7 +7,7 @@
   <parent>
     <groupId>esthesis</groupId>
     <artifactId>esthesis-bom</artifactId>
-    <version>1.0.4-SNAPSHOT</version>
+    <version>1.0.5-SNAPSHOT</version>
   </parent>
 
   <artifactId>esthesis-edge-backend</artifactId>
@@ -48,12 +48,16 @@
       <groupId>io.quarkus</groupId>
       <artifactId>quarkus-qute</artifactId>
     </dependency>
+    <dependency>
+      <groupId>io.quarkus</groupId>
+      <artifactId>quarkus-scheduler</artifactId>
+    </dependency>
 
     <!-- ESTHESIS -->
     <dependency>
       <groupId>esthesis</groupId>
       <artifactId>esthesis-common</artifactId>
-      <version>1.0.4-SNAPSHOT</version>
+      <version>1.0.5-SNAPSHOT</version>
     </dependency>
 
     <!-- THIRD-PARTY -->

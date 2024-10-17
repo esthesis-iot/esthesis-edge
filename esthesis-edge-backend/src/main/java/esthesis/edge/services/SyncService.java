@@ -72,7 +72,7 @@ public class SyncService {
     }
   }
 
-  public void mqttPost(DeviceEntity deviceEntity, List<QueueItemEntity> queueItemEntities)
+  private void mqttPost(DeviceEntity deviceEntity, List<QueueItemEntity> queueItemEntities)
   throws MqttException {
     String mqttUrl = edgeProperties.core().push().url().orElseThrow(
         () -> new QValueIsRequiredException("esthesis CORE MQTT server is not " + "specified."));
@@ -100,8 +100,8 @@ public class SyncService {
         try {
           log.debug("esthesis CORE syncing queue item '{}'.", queueItemEntity.getId());
           mqttPublisher.publish(telemetryTopic, queueItemEntity.getDataObject());
-//          queueItemEntity.setProcessedCoreAt(Instant.now());
-//          queueItemEntity.persist();
+          queueItemEntity.setProcessedCoreAt(Instant.now());
+          queueItemEntity.persist();
           log.debug("esthesis CORE synced queue item '{}'.", queueItemEntity.getId());
         } catch (Exception e) {
           log.error("Error syncing queue item '{}'.", queueItemEntity.getId(), e);
@@ -169,4 +169,5 @@ public class SyncService {
 
     log.debug("esthesis CORE syncing finished.");
   }
+
 }

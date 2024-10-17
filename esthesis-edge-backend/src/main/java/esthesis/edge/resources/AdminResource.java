@@ -2,6 +2,7 @@ package esthesis.edge.resources;
 
 import esthesis.edge.dto.DeviceDTO;
 import esthesis.edge.dto.QueueItemDTO;
+import esthesis.edge.jobs.PurgeJob;
 import esthesis.edge.jobs.SyncJob;
 import esthesis.edge.security.AdminEndpoint;
 import esthesis.edge.services.DeviceService;
@@ -28,6 +29,7 @@ public class AdminResource {
   private final DeviceService deviceService;
   private final QueueService queueService;
   private final SyncJob syncJob;
+  private final PurgeJob purgeJob;
 
   /**
    * Endpoint to check if the admin endpoint is working.
@@ -81,7 +83,15 @@ public class AdminResource {
   @Path("/sync")
   @Produces("application/json")
   public void sync() {
-    syncJob.sync();
+    syncJob.execute();
+  }
+
+  @POST
+  @AdminEndpoint
+  @Path("/purge")
+  @Produces("application/json")
+  public void purge() {
+    purgeJob.execute();
   }
 
 }
