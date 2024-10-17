@@ -48,12 +48,27 @@ esthesis:
     modules:
       enedis:
         enabled: true
-        cron: "0/1 * * * * ?"
+        cron: "0 0 6 * * ?"
         max-devices: 1000
         past-days-init: 7
         client-id: myclientid
         client-secret: myclientsecret
-        fetch-immediately: true
+        fetch-types:
+          dc:
+            enabled: true
+            category: "energy"
+            measurement: "dc"
+            errors-threshold: 3
+          dcmp:
+            enabled: true
+            category: "energy"
+            measurement: "dcmp"
+            errors-threshold: 3
+          dp:
+            enabled: true
+            category: "energy"
+            measurement: "dp"
+            errors-threshold: 3
         self-registration:
           enabled: true
           state-checking: false

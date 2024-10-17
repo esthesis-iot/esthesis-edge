@@ -15,6 +15,9 @@ import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 
+/**
+ * Service class for managing devices.
+ */
 @Transactional
 @ApplicationScoped
 @RequiredArgsConstructor
@@ -24,6 +27,13 @@ public class DeviceService {
   private final EdgeProperties edgeProperties;
   private final EsthesisCoreService esthesisCoreService;
 
+  /**
+   * Creates a new device.
+   *
+   * @param deviceDTO The device to create.
+   * @param tags      The tags to associate with the device.
+   * @return The created device.
+   */
   public DeviceDTO createDevice(DeviceDTO deviceDTO, List<String> tags) {
     DeviceEntity deviceEntity =
         DeviceEntity.findByHardwareId(deviceDTO.getHardwareId()).orElse(null);
@@ -54,10 +64,22 @@ public class DeviceService {
     return deviceMapper.toDTO(deviceEntity);
   }
 
+  /**
+   * Creates a new device.
+   *
+   * @param deviceDTO The device to create.
+   * @return The created device.
+   */
   public DeviceDTO createDevice(DeviceDTO deviceDTO) {
     return createDevice(deviceDTO, null);
   }
 
+  /**
+   * Disables a device.
+   *
+   * @param hardwareId The hardware ID of the device to disable.
+   * @return True if the device was disabled, false otherwise.
+   */
   public boolean disableDevice(String hardwareId) {
     DeviceEntity deviceEntity = DeviceEntity.findByHardwareId(hardwareId).orElseThrow();
     deviceEntity.setEnabled(false);
@@ -66,10 +88,23 @@ public class DeviceService {
     return deviceEntity.getEnabled();
   }
 
+  /**
+   * Checks if a device is enabled.
+   *
+   * @param hardwareId The hardware ID of the device to enable.
+   * @return True if the device was enabled, false otherwise.
+   */
   public boolean isEnabled(String hardwareId) {
     return DeviceEntity.findByHardwareId(hardwareId).map(DeviceEntity::getEnabled).orElse(false);
   }
 
+  /**
+   * Updates the configuration option for a device.
+   *
+   * @param hardwareId The hardware ID of the device.
+   * @param configKey  The configuration key.
+   * @param cofigValue The configuration value.
+   */
   public void updateDeviceConfig(String hardwareId, String configKey, String cofigValue) {
     DeviceModuleConfigEntity config =
         DeviceModuleConfigEntity.getConfig(hardwareId, configKey).orElse(null);
@@ -88,39 +123,87 @@ public class DeviceService {
     config.persist();
   }
 
+  /**
+   * Lists all devices.
+   *
+   * @return The list of devices.
+   */
   public List<DeviceDTO> listDevices() {
     return deviceMapper.toDTO(DeviceEntity.listAll());
   }
 
+  /**
+   * Lists all devices created by a specific module.
+   *
+   * @param moduleName The module name.
+   * @return The list of devices.
+   */
   public List<DeviceDTO> listDevices(String moduleName) {
     return deviceMapper.toDTO(DeviceEntity.list("moduleName", moduleName));
   }
 
+  /**
+   * Lists all active devices for a specific module.
+   *
+   * @param moduleName The module name.
+   * @return The list of active devices.
+   */
   public List<DeviceDTO> listActiveDevices(String moduleName) {
     return deviceMapper.toDTO(
         DeviceEntity.list("moduleName = ?1 and enabled = ?2", moduleName, true));
   }
 
+  /**
+   * Deletes a device by its hardware ID.
+   *
+   * @param hardwareId The hardware ID of the device to delete.
+   */
   public void deleteDevice(String hardwareId) {
     DeviceEntity.deleteByHardwareId(hardwareId);
   }
 
+  /**
+   * Deletes all devices.
+   */
   public void deleteAllDevices() {
     DeviceEntity.deleteAll();
   }
 
+  /**
+   * Counts all devices.
+   *
+   * @return The number of devices.
+   */
   public long countDevices() {
     return DeviceEntity.count();
   }
 
+  /**
+   * Counts all devices created by a specific module.
+   *
+   * @param moduleName The module name.
+   * @return The number of devices.
+   */
   public long countDevices(String moduleName) {
     return DeviceEntity.count("moduleName", moduleName);
   }
 
+  /**
+   * Gets a configuration value for a device.
+   *
+   * @param hardwareId The hardware ID of the device.
+   * @param configKey  The configuration key to search for.
+   */
   public Optional<String> getDeviceConfigValueAsString(String hardwareId, String configKey) {
     return DeviceModuleConfigEntity.findConfigValue(hardwareId, configKey);
   }
 
+  /**
+   * Gets a configuration value for a device as an Instant.
+   *
+   * @param hardwareId The hardware ID of the device.
+   * @param configKey  The configuration key to search for.
+   */
   public Optional<Instant> getDeviceConfigValueAsInstant(String hardwareId, String configKey) {
     return getDeviceConfigValueAsString(hardwareId, configKey).map(Instant::parse);
   }

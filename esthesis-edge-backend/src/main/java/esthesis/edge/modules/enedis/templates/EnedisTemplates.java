@@ -1,10 +1,14 @@
 package esthesis.edge.modules.enedis.templates;
 
+/**
+ * This class contains the HTML templates for the Enedis module.
+ */
 public class EnedisTemplates {
 
   private EnedisTemplates() {
   }
 
+  // A generic error page template.
   public static final String ERROR =
       """
           <!DOCTYPE html>
@@ -122,6 +126,7 @@ public class EnedisTemplates {
           </html>
           """;
 
+  // The template for the self-registration page.
   public static final String SELF_REGISTRATION = """
       <!DOCTYPE html>
       <html lang="en">
@@ -240,6 +245,7 @@ public class EnedisTemplates {
       </html>
       """;
 
+  // The template for the registration successful page.
   public static final String REGISTRATION_SUCCESSFUL = """
       <!DOCTYPE html>
       <html lang="en">

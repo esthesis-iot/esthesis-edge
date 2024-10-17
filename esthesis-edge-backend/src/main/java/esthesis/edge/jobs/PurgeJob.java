@@ -10,6 +10,14 @@ import java.time.Instant;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+/**
+ * Purge job is responsible for purging records from queue_item database table.
+ * <p></p>
+ * There are two conditions upon which records are purged:
+ * - Records that have been successfully delivered for a certain amount of time.
+ * - Records that have been queued for a certain amount of time, irrespectively of their delivery
+ * status.
+ */
 @Slf4j
 @ApplicationScoped
 @RequiredArgsConstructor
@@ -22,6 +30,12 @@ public class PurgeJob {
     CORE, LOCAL, BOTH
   }
 
+  /**
+   * Purge records from queue_item table based on the mode.
+   *
+   * @param mode
+   * @return
+   */
   private long purgeRecords(PURGE_MODE mode) {
     log.debug("Purging records in mode '{}'.", mode);
     long recordsPurged = 0;
@@ -29,11 +43,9 @@ public class PurgeJob {
     // Purge queued items that have been successfully delivered, based on the mode in which EDGE is
     // operating.
     recordsPurged = switch (mode) {
-      case CORE -> QueueItemEntity.delete(
-          "processedCoreAt IS NOT NULL AND processedCoreAt < ?1",
+      case CORE -> QueueItemEntity.delete("processedCoreAt IS NOT NULL AND processedCoreAt < ?1",
           Instant.now().minus(Duration.ofMinutes(edgeProperties.purgeSuccessfulMinutes())));
-      case LOCAL -> QueueItemEntity.delete(
-          "processedLocalAt IS NOT NULL AND processedLocalAt < ?1",
+      case LOCAL -> QueueItemEntity.delete("processedLocalAt IS NOT NULL AND processedLocalAt < ?1",
           Instant.now().minus(Duration.ofMinutes(edgeProperties.purgeSuccessfulMinutes())));
       case BOTH -> QueueItemEntity.delete(
           "processedLocalAt IS NOT NULL AND processedCoreAt IS NOT NULL"
@@ -48,6 +60,9 @@ public class PurgeJob {
     return recordsPurged;
   }
 
+  /**
+   * Execute the purge job.
+   */
   @Transactional
   @Scheduled(cron = "{esthesis.edge.purge-cron}")
   public void execute() {

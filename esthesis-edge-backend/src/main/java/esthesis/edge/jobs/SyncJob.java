@@ -8,6 +8,10 @@ import java.time.Instant;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+/**
+ * Sync job synchronises data in queue_item database table with a local InfluxDB and/or esthesis
+ * CORE.
+ */
 @Slf4j
 @ApplicationScoped
 @RequiredArgsConstructor
@@ -16,6 +20,9 @@ public class SyncJob {
   private final EdgeProperties edgeProperties;
   private final SyncService syncService;
 
+  /**
+   * Executes the sync job.
+   */
   @Scheduled(cron = "{esthesis.edge.sync-cron}")
   public void execute() {
     Instant start = Instant.now();

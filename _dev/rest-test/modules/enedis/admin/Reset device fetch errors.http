@@ -1,0 +1,5 @@
+### Fetch data from Enedis.
+// @no-log
+PUT http://localhost:9080/enedis/admin/reset-errors?hardwareId=enedis-26584978546985
+X-ESTHESIS-EDGE-ADMIN-SECRET: {{X-ESTHESIS-EDGE-ADMIN-SECRET}}
+###

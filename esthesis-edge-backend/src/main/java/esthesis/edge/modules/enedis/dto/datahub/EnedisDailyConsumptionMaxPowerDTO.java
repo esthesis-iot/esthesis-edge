@@ -1,7 +1,9 @@
 package esthesis.edge.modules.enedis.dto.datahub;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import esthesis.edge.modules.enedis.EnedisUtil;
 import io.quarkus.runtime.annotations.RegisterForReflection;
+import java.time.Instant;
 import java.util.List;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -9,17 +11,17 @@ import lombok.ToString;
 import lombok.experimental.Accessors;
 
 /**
- * A DTO representing the daily consumption data received from Enedis.
+ * A DTO representing the daily consumption data maximum power received from Enedis.
  */
 @Data
 @ToString
 @NoArgsConstructor
 @RegisterForReflection
 @Accessors(chain = true)
-public class EnedisDailyConsumptionDTO {
+public class EnedisDailyConsumptionMaxPowerDTO {
 
   @JsonProperty("meter_reading")
-  private MeterReading meterReading;
+  private EnedisDailyConsumptionMaxPowerDTO.MeterReading meterReading;
 
   @Data
   public static class MeterReading {
@@ -32,10 +34,10 @@ public class EnedisDailyConsumptionDTO {
     private String quality;
 
     @JsonProperty("reading_type")
-    private ReadingType readingType;
+    private EnedisDailyConsumptionMaxPowerDTO.ReadingType readingType;
 
     @JsonProperty("interval_reading")
-    private List<IntervalReading> intervalReading;
+    private List<EnedisDailyConsumptionMaxPowerDTO.IntervalReading> intervalReading;
   }
 
   @Data
@@ -55,6 +57,10 @@ public class EnedisDailyConsumptionDTO {
   public static class IntervalReading {
 
     private String value;
-    private String date;
+    private Instant date;
+
+    public void setDate(String date) {
+      this.date = EnedisUtil.yyyyMMdd_HHmmssToInstant(date);
+    }
   }
 }

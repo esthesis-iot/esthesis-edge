@@ -18,6 +18,9 @@ import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.TrustManagerFactory;
 
+/**
+ * Utility class for cryptographic operations in the Edge module.
+ */
 public class EdgeCryptoUtil extends CommonCryptoUtil {
 
   private static final String CERT_TYPE = "X509";

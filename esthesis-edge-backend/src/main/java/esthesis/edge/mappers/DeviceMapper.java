@@ -5,11 +5,19 @@ import esthesis.edge.dto.DeviceDTO.DeviceDTOBuilder;
 import esthesis.edge.model.DeviceEntity;
 import jakarta.enterprise.context.ApplicationScoped;
 import java.util.List;
-import java.util.stream.Collectors;
 
+/**
+ * Helper mappers for DeviceEntity.
+ */
 @ApplicationScoped
 public class DeviceMapper {
 
+  /**
+   * Convert DeviceDTO to DeviceEntity.
+   *
+   * @param deviceEntity the DeviceEntity to convert.
+   * @return the DeviceDTO.
+   */
   public DeviceDTO toDTO(DeviceEntity deviceEntity) {
     DeviceDTOBuilder deviceDTOBuilder = DeviceDTO.builder()
         .hardwareId(deviceEntity.getHardwareId())
@@ -27,7 +35,13 @@ public class DeviceMapper {
     return deviceDTOBuilder.build();
   }
 
+  /**
+   * Convert DeviceEntity to DeviceDTO.
+   *
+   * @param deviceEntities the DeviceEntities to convert.
+   * @return the DeviceDTO.
+   */
   public List<DeviceDTO> toDTO(List<DeviceEntity> deviceEntities) {
-    return deviceEntities.stream().map(this::toDTO).collect(Collectors.toList());
+    return deviceEntities.stream().map(this::toDTO).toList();
   }
 }

@@ -2,6 +2,8 @@ package esthesis.edge.modules.enedis.client;
 
 import esthesis.edge.modules.enedis.dto.datahub.EnedisAuthTokenDTO;
 import esthesis.edge.modules.enedis.dto.datahub.EnedisDailyConsumptionDTO;
+import esthesis.edge.modules.enedis.dto.datahub.EnedisDailyConsumptionMaxPowerDTO;
+import esthesis.edge.modules.enedis.dto.datahub.EnedisDailyProductionDTO;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.FormParam;
 import jakarta.ws.rs.GET;
@@ -50,6 +52,44 @@ public interface EnedisClient {
   @Path("metering_data_dc/v5/daily_consumption")
   @Produces(MediaType.APPLICATION_JSON)
   EnedisDailyConsumptionDTO getDailyConsumption(
+      @QueryParam("start") String startDate,
+      @QueryParam("end") String endDate,
+      @QueryParam("usage_point_id") String usagePointId,
+      @HeaderParam("Authorization") String bearerToken
+  );
+
+  /**
+   * Get daily consumption max power data from Enedis.
+   *
+   * @param startDate    The start date to fetch from, in YYYY-MM-DD format.
+   * @param endDate      The end date to fetch to, in YYYY-MM-DD format.
+   * @param usagePointId The usage point ID (Enedis PRM).
+   * @param bearerToken  The bearer token to authenticate with.
+   * @return The daily consumption max power data.
+   */
+  @GET
+  @Path("metering_data_dcmp/v5/daily_consumption_max_power")
+  @Produces(MediaType.APPLICATION_JSON)
+  EnedisDailyConsumptionMaxPowerDTO getDailyConsumptionMaxPower(
+      @QueryParam("start") String startDate,
+      @QueryParam("end") String endDate,
+      @QueryParam("usage_point_id") String usagePointId,
+      @HeaderParam("Authorization") String bearerToken
+  );
+
+  /**
+   * Get daily production data from Enedis.
+   *
+   * @param startDate    The start date to fetch from, in YYYY-MM-DD format.
+   * @param endDate      The end date to fetch to, in YYYY-MM-DD format.
+   * @param usagePointId The usage point ID (Enedis PRM).
+   * @param bearerToken  The bearer token to authenticate with.
+   * @return The daily consumption data.
+   */
+  @GET
+  @Path("metering_data_dp/v5/daily_production")
+  @Produces(MediaType.APPLICATION_JSON)
+  EnedisDailyProductionDTO getDailyProduction(
       @QueryParam("start") String startDate,
       @QueryParam("end") String endDate,
       @QueryParam("usage_point_id") String usagePointId,

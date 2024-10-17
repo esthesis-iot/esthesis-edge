@@ -7,8 +7,8 @@ import esthesis.common.exception.QDoesNotExistException;
 import esthesis.common.util.EsthesisCommonConstants.Device.Capability;
 import esthesis.common.util.EsthesisCommonConstants.Device.Type;
 import esthesis.edge.clients.EsthesisAgentServiceClient;
-import esthesis.edge.model.DeviceEntity;
 import esthesis.edge.config.EdgeProperties;
+import esthesis.edge.model.DeviceEntity;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import java.util.List;
@@ -18,6 +18,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 
+/**
+ * Service class for interacting with esthesis CORE.
+ */
 @Slf4j
 @ApplicationScoped
 @RequiredArgsConstructor
@@ -28,6 +31,12 @@ public class EsthesisCoreService {
   EsthesisAgentServiceClient esthesisAgentServiceClient;
   private final EdgeProperties edgeProperties;
 
+  /**
+   * Registers a device with esthesis CORE.
+   *
+   * @param hardwareId The hardware ID of the device to register.
+   * @param tags       The tags to associate with the device.
+   */
   public void registerDevice(String hardwareId, List<String> tags) {
     DeviceEntity device = DeviceEntity.findByHardwareId(hardwareId).orElseThrow(() ->
         new QDoesNotExistException("Device with hardware ID {} does not exist.", hardwareId));

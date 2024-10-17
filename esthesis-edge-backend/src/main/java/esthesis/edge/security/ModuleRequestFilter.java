@@ -25,7 +25,7 @@ public class ModuleRequestFilter implements ContainerRequestFilter {
   Config configProvider;
 
   /**
-   * Get the ModuleEndpoint annotation from the resource method.
+   * Gets the ModuleEndpoint annotation from the resource method.
    *
    * @param resourceMethod The resource method to scan for the annotation.
    * @return An Optional containing the ModuleEndpoint annotation if it exists, otherwise an empty
@@ -45,6 +45,11 @@ public class ModuleRequestFilter implements ContainerRequestFilter {
     return Optional.ofNullable(declaredMethod.getAnnotation(ModuleEndpoint.class));
   }
 
+  /**
+   * Filters the request based on the ModuleEndpoint annotation.
+   *
+   * @param requestContext request context.
+   */
   @Override
   public void filter(ContainerRequestContext requestContext) {
     getModuleEndpointAnnotation(info.getResourceMethod()).ifPresent(moduleEndpoint -> {

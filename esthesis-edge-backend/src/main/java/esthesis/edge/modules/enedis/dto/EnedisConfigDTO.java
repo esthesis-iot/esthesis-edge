@@ -5,6 +5,9 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.Accessors;
 
+/**
+ * A DTO representing the Enedis configuration.
+ */
 @Data
 @NoArgsConstructor
 @RegisterForReflection

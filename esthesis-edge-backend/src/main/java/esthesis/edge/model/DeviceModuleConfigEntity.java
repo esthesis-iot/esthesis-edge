@@ -22,6 +22,9 @@ import lombok.Setter;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.validator.constraints.Length;
 
+/**
+ * Represents the configuration of a module of a device.
+ */
 @Entity
 @Getter
 @Setter
@@ -36,16 +39,19 @@ public class DeviceModuleConfigEntity extends PanacheEntityBase {
   @Length(max = 36)
   private String id;
 
+  // The name of the configuration value (key).
   @NotBlank
   @Length(max = 255)
   @Column(nullable = false, name = "config_key")
   private String configKey;
 
+  // The value of the configuration.
   @NotBlank
   @Length(max = 1024)
   @Column(length = 1024, nullable = false, name = "config_value")
   private String configValue;
 
+  // The device to which this configuration belongs.
   @JsonIgnore
   @OnDelete(action = CASCADE)
   @ManyToOne(cascade = CascadeType.ALL)
@@ -67,16 +73,48 @@ public class DeviceModuleConfigEntity extends PanacheEntityBase {
         .build();
   }
 
+  /**
+   * Deletes all configurations for a device.
+   *
+   * @param hardwareId The hardware ID of the device.
+   */
   public static void deleteConfigForDevice(String hardwareId) {
     DeviceEntity deviceEntity = DeviceEntity.findByHardwareId(hardwareId).orElseThrow();
     DeviceModuleConfigEntity.delete(EdgeConstants.DBCOL_DEVICE, deviceEntity);
   }
 
+  /**
+   * Finds the configuration value for a given hardware ID and configuration key.
+   *
+   * @param hardwareId The hardware ID of the device.
+   * @param configKey  The configuration key.
+   * @return The configuration value if it exists.
+   */
   public static Optional<String> findConfigValue(String hardwareId, String configKey) {
     return getConfig(hardwareId, configKey)
         .map(DeviceModuleConfigEntity::getConfigValue);
   }
 
+  /**
+   * Updates the configuration value for a given hardware ID and configuration key.
+   *
+   * @param hardwareId The hardware ID of the device.
+   * @param key        The configuration key.
+   * @param newValue   The new value of the configuration.
+   */
+  public static void updateConfigValue(String hardwareId, String key, String newValue) {
+    Optional<DeviceModuleConfigEntity> config = getConfig(hardwareId, key);
+    config.ifPresent(
+        deviceModuleConfigEntity -> deviceModuleConfigEntity.setConfigValue(newValue));
+  }
+
+  /**
+   * Finds the configuration for a given hardware ID and configuration key.
+   *
+   * @param hardwareId The hardware ID of the device.
+   * @param configKey  The configuration key.
+   * @return The configuration if it exists.
+   */
   public static Optional<DeviceModuleConfigEntity> getConfig(String hardwareId, String configKey) {
     DeviceEntity deviceEntity = DeviceEntity.findByHardwareId(hardwareId).orElseThrow();
     return DeviceModuleConfigEntity.find(

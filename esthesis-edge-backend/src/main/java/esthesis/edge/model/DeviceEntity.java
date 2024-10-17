@@ -27,6 +27,9 @@ import lombok.Setter;
 import lombok.Singular;
 import org.hibernate.validator.constraints.Length;
 
+/**
+ * Represents a device that is managed by EDGE.
+ */
 @Entity
 @Getter
 @Setter
@@ -82,15 +85,27 @@ public class DeviceEntity extends PanacheEntityBase {
   @Column(nullable = false)
   private Boolean enabled;
 
+  // Module-specific device configuration options.
   @Singular("config")
   @Column(name = "module_config")
   @OneToMany(mappedBy = "device", cascade = CascadeType.ALL, orphanRemoval = true, fetch = EAGER)
   private List<DeviceModuleConfigEntity> moduleConfig;
 
+  /**
+   * Finds a device by its hardware ID.
+   *
+   * @param hardwareId The hardware ID of the device.
+   * @return The device entity, if found.
+   */
   public static Optional<DeviceEntity> findByHardwareId(String hardwareId) {
     return find(EdgeConstants.DBCOL_HARDWARE_ID, hardwareId).firstResultOptional();
   }
 
+  /**
+   * Deletes a device by its hardwareID.
+   *
+   * @param hardwareId The hardware ID of the device.
+   */
   public static void deleteByHardwareId(String hardwareId) {
     delete(EdgeConstants.DBCOL_HARDWARE_ID, hardwareId);
   }

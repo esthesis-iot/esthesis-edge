@@ -1,5 +1,8 @@
 package esthesis.edge.config;
 
+/**
+ * Utility constants for EDGE.
+ */
 public class EdgeConstants {
 
   private EdgeConstants() {

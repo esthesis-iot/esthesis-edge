@@ -24,13 +24,15 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.paho.client.mqttv3.MqttException;
 
+/**
+ * Service class for syncing data between the edge and InfluxDB and esthesis CORE.
+ */
 @Slf4j
 @ApplicationScoped
 @RequiredArgsConstructor
 public class SyncService {
 
   private final EdgeProperties edgeProperties;
-  private final DeviceService deviceService;
   private final AvroUtils avroUtils;
   private InfluxDBClient influxDBClient;
 
@@ -72,6 +74,13 @@ public class SyncService {
     }
   }
 
+  /**
+   * Post queue items to esthesis CORE via MQTT.
+   *
+   * @param deviceEntity      The device to post the queue items for.
+   * @param queueItemEntities The queue items to post.
+   * @throws MqttException If an error occurs while posting the queue items.
+   */
   private void mqttPost(DeviceEntity deviceEntity, List<QueueItemEntity> queueItemEntities)
   throws MqttException {
     String mqttUrl = edgeProperties.core().push().url().orElseThrow(
@@ -103,7 +112,7 @@ public class SyncService {
           queueItemEntity.setProcessedCoreAt(Instant.now());
           queueItemEntity.persist();
           log.debug("esthesis CORE synced queue item '{}'.", queueItemEntity.getId());
-        } catch (Exception e) {
+        } catch (MqttException e) {
           log.error("Error syncing queue item '{}'.", queueItemEntity.getId(), e);
         }
       }
@@ -119,6 +128,9 @@ public class SyncService {
     }
   }
 
+  /**
+   * Sync data between the edge and InfluxDB.
+   */
   @Transactional
   public void syncInfluxDB() {
     influxDBClient = InfluxDBClientFactory.create(edgeProperties.local().influxDB().url(),
@@ -147,6 +159,9 @@ public class SyncService {
     log.debug("InfluxDB syncing finished.");
   }
 
+  /**
+   * Sync data between the edge and esthesis CORE.
+   */
   @Transactional
   public void syncCore() {
     log.debug("esthesis CORE syncing started.");

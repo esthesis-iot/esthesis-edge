@@ -16,12 +16,16 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
+/**
+ * Public resource for Enedis module. This resource is used to handle the self-registration of
+ * Enedis devices.
+ */
 @Slf4j
 @Path("/enedis/public")
 @RequiredArgsConstructor
 public class EnedisPublicResource {
 
-  // The list of random states being generated while displaying the welcome page.
+  // The list of states being tracked while displaying the welcome page.
   private static final EvictingQueue<String> states = EvictingQueue.create(1000);
   private final EnedisProperties cfg;
   private final EnedisService enedisService;
@@ -37,6 +41,13 @@ public class EnedisPublicResource {
     return states.contains(state) || !cfg.selfRegistration().stateChecking();
   }
 
+  /**
+   * Handles the self-registration of Enedis devices. This endpoint will present the user with a
+   * welcome page and a button to redirect to the Enedis self-registration page. Alternatively, if a
+   * welcome URL is configured, the user will be redirected to that URL.
+   *
+   * @return a response containing the welcome page.
+   */
   @GET
   @Path("self-registration")
   @Produces(MediaType.TEXT_HTML)
@@ -63,6 +74,15 @@ public class EnedisPublicResource {
     }
   }
 
+  /**
+   * Handles the redirection from the Enedis self-registration page. This endpoint will create the
+   * device in the database and present the user with a success page.
+   *
+   * @param state        The state received from Enedis.
+   * @param usagePointId The usage point ID received from Enedis.
+   * @param code         The code received from Enedis (not used by Enedis, nor EDGE).
+   * @return a response containing the success page.
+   */
   @GET
   @Path("redirect-handler")
   @Produces(MediaType.TEXT_HTML)

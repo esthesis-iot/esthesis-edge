@@ -14,6 +14,9 @@ import lombok.ToString;
 import lombok.experimental.Accessors;
 import org.hibernate.validator.constraints.Length;
 
+/**
+ * A DTO representing an EDGE device.
+ */
 @Data
 @Builder
 @ToString

@@ -9,14 +9,14 @@ import lombok.ToString;
 import lombok.experimental.Accessors;
 
 /**
- * A DTO representing the daily consumption data received from Enedis.
+ * A DTO representing the daily production data received from Enedis.
  */
 @Data
 @ToString
 @NoArgsConstructor
 @RegisterForReflection
 @Accessors(chain = true)
-public class EnedisDailyConsumptionDTO {
+public class EnedisDailyProductionDTO {
 
   @JsonProperty("meter_reading")
   private MeterReading meterReading;

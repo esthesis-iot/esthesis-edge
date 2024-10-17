@@ -19,7 +19,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * AdminResource is a REST resource that provides endpoints for administrative tasks.
+ * Administration resource for EDGE. Access to the resources defined here need to use the configured
+ * secret as a Bearer Authorization header.
  */
 @Slf4j
 @Path("/admin")
@@ -44,6 +45,11 @@ public class AdminResource {
     return "OK";
   }
 
+  /**
+   * Lists all devices registered in the system.
+   *
+   * @return A list of devices.
+   */
   @GET
   @AdminEndpoint
   @Path("/devices")
@@ -52,6 +58,12 @@ public class AdminResource {
     return deviceService.listDevices();
   }
 
+  /**
+   * Deletes a device by its hardware ID. Note that the device is not deleted in esthesis CORE.
+   *
+   * @param hardwareId The hardware ID of the device to delete.
+   * @return 200 OK if the device was deleted.
+   */
   @DELETE
   @AdminEndpoint
   @Path("/device/{hardwareId}")
@@ -61,6 +73,12 @@ public class AdminResource {
     return Response.ok().build();
   }
 
+  /**
+   * Deletes all devices registered in the system. Note that the devices are not deleted in
+   * esthesis
+   *
+   * @return 200 OK if the devices were deleted.
+   */
   @DELETE
   @AdminEndpoint
   @Path("/devices")
@@ -70,6 +88,11 @@ public class AdminResource {
     return Response.ok().build();
   }
 
+  /**
+   * Lists all items in the queue.
+   *
+   * @return A list of queue items.
+   */
   @GET
   @AdminEndpoint
   @Path("/queue")
@@ -78,6 +101,9 @@ public class AdminResource {
     return queueService.list();
   }
 
+  /**
+   * Triggers the {@link SyncJob}.
+   */
   @POST
   @AdminEndpoint
   @Path("/sync")
@@ -86,6 +112,9 @@ public class AdminResource {
     syncJob.execute();
   }
 
+  /**
+   * Triggers the {@link PurgeJob}.
+   */
   @POST
   @AdminEndpoint
   @Path("/purge")

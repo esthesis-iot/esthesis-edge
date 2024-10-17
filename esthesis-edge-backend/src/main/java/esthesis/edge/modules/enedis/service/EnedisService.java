@@ -5,6 +5,8 @@ import static esthesis.edge.modules.enedis.config.EnedisConstants.MODULE_NAME;
 
 import esthesis.edge.dto.DeviceDTO;
 import esthesis.edge.dto.TemplateDTO;
+import esthesis.edge.model.DeviceEntity;
+import esthesis.edge.model.DeviceModuleConfigEntity;
 import esthesis.edge.modules.enedis.client.EnedisClient;
 import esthesis.edge.modules.enedis.config.EnedisConstants;
 import esthesis.edge.modules.enedis.config.EnedisProperties;
@@ -12,6 +14,7 @@ import esthesis.edge.modules.enedis.dto.EnedisConfigDTO;
 import esthesis.edge.modules.enedis.dto.datahub.EnedisAuthTokenDTO;
 import esthesis.edge.modules.enedis.templates.EnedisTemplates;
 import esthesis.edge.services.DeviceService;
+import io.quarkus.scheduler.Scheduled;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
@@ -30,8 +33,10 @@ import org.eclipse.microprofile.rest.client.inject.RestClient;
 //  // ~2.78 permits per second (for 10,000 per hour).
 //  private final RateLimiter perHourLimiter = RateLimiter.create(10000.0 / 3600.0);
 
+/**
+ * Service for handling Enedis module related operations.
+ */
 @Slf4j
-@Transactional
 @ApplicationScoped
 @RequiredArgsConstructor
 public class EnedisService {
@@ -91,6 +96,12 @@ public class EnedisService {
     }
   }
 
+  /**
+   * Create a new device for the given usage point ID.
+   *
+   * @param usagePointId The usage point ID.
+   */
+  @Transactional
   public void createDevice(String usagePointId) {
     String hardwareId = createHardwareId(usagePointId);
 
@@ -110,6 +121,11 @@ public class EnedisService {
     }
   }
 
+  /**
+   * Get the Enedis module configuration.
+   *
+   * @return The Enedis module configuration.
+   */
   public EnedisConfigDTO getConfig() {
     EnedisConfigDTO config = new EnedisConfigDTO();
     config.setEnabled(enedisProperties.enabled())
@@ -147,6 +163,12 @@ public class EnedisService {
     return config;
   }
 
+  /**
+   * Get the self registration page.
+   *
+   * @param state The state to pass to the self registration page.
+   * @return The self registration page.
+   */
   public String getSelfRegistrationPage(String state) {
     return new TemplateDTO(EnedisTemplates.SELF_REGISTRATION)
         .data("title", enedisProperties.selfRegistration().page().registration().title())
@@ -161,6 +183,11 @@ public class EnedisService {
         .render();
   }
 
+  /**
+   * Get the registration successful page.
+   *
+   * @return The registration successful page.
+   */
   public String getRegistrationSuccessfulPage() {
     return new TemplateDTO(EnedisTemplates.REGISTRATION_SUCCESSFUL)
         .data("logo1", enedisProperties.selfRegistration().page().logo1Url().orElse(""))
@@ -172,6 +199,11 @@ public class EnedisService {
         .render();
   }
 
+  /**
+   * Get the error page.
+   *
+   * @return The error page.
+   */
   public String getErrorPage() {
     return new TemplateDTO(EnedisTemplates.ERROR)
         .data("logo1", enedisProperties.selfRegistration().page().logo1Url().orElse(""))
@@ -183,10 +215,19 @@ public class EnedisService {
         .render();
   }
 
+  /**
+   * Get the total number of registered devices, enabled and disabled.
+   *
+   * @return The total number of registered devices.
+   */
   public long countDevices() {
     return deviceService.countDevices();
   }
 
+  /**
+   * Fetches new data from Enedis API.
+   */
+  @Scheduled(cron = "{esthesis.edge.modules.enedis.cron}")
   public void fetchData() {
     log.debug("Fetching data from Enedis.");
 
@@ -227,10 +268,70 @@ public class EnedisService {
           .orElseThrow();
       log.debug("Fetching data for device '{}'.", hardwareId);
 
-      // Fetch Daily Consumption.
-      enedisFetchService.fetchDailyConsumption(hardwareId, enedisPrm,
-          enedisAuthTokenDTO.getAccessToken());
+      // Daily Consumption.
+      int dcErrors = deviceService.getDeviceConfigValueAsString(hardwareId,
+          EnedisConstants.CONFIG_DC_ERRORS).map(Integer::parseInt).orElse(0);
+      if (enedisProperties.fetchTypes().dc().enabled() &&
+          dcErrors < enedisProperties.fetchTypes().dc().errorsThreshold()) {
+        enedisFetchService.fetchDailyConsumption(hardwareId, enedisPrm,
+            enedisAuthTokenDTO.getAccessToken());
+      }
+
+      // Daily Consumption Max Power.
+      int dcmpErrors = deviceService.getDeviceConfigValueAsString(hardwareId,
+          EnedisConstants.CONFIG_DCMP_ERRORS).map(Integer::parseInt).orElse(0);
+      if (enedisProperties.fetchTypes().dcmp().enabled()
+          && dcmpErrors < enedisProperties.fetchTypes().dcmp().errorsThreshold()) {
+        enedisFetchService.fetchDailyConsumptionMaxPower(hardwareId, enedisPrm,
+            enedisAuthTokenDTO.getAccessToken());
+      }
+
+      // Daily Production.
+      int dpErrors = deviceService.getDeviceConfigValueAsString(hardwareId,
+          EnedisConstants.CONFIG_DP_ERRORS).map(Integer::parseInt).orElse(0);
+      if (enedisProperties.fetchTypes().dp().enabled() &&
+          dpErrors < enedisProperties.fetchTypes().dp().errorsThreshold()) {
+        enedisFetchService.fetchDailyProduction(hardwareId, enedisPrm,
+            enedisAuthTokenDTO.getAccessToken());
+      }
+
       log.debug("Data fetch completed for device '{}'.", hardwareId);
     }
+  }
+
+  /**
+   * Get the devices that have fetch errors above the defined threshold.
+   *
+   * @return The devices that have fetch errors.
+   */
+  public List<DeviceEntity> getFetchErrors() {
+    return DeviceModuleConfigEntity
+        .find("(configKey = 'dc_errors' and CAST(configValue AS INTEGER) >= ?1) or " +
+                "(configKey = 'dcmp_errors' and CAST(configValue AS INTEGER) >= ?2) or " +
+                "(configKey = 'dp_errors' and CAST(configValue AS INTEGER) >= ?3)",
+            enedisProperties.fetchTypes().dc().errorsThreshold(),
+            enedisProperties.fetchTypes().dcmp().errorsThreshold(),
+            enedisProperties.fetchTypes().dp().errorsThreshold())
+        .list()
+        .stream()
+        .map(entity -> ((DeviceModuleConfigEntity) entity).getDevice())
+        .distinct()
+        .toList();
+  }
+
+  /**
+   * Reset the fetch errors for the given device.
+   *
+   * @param hardwareId The hardware ID of the device.
+   * @return The device entity.
+   */
+  @Transactional
+  public DeviceEntity resetFetchErrors(String hardwareId) {
+    log.debug("Resetting fetch errors for device '{}'.", hardwareId);
+    DeviceModuleConfigEntity.updateConfigValue(hardwareId, EnedisConstants.CONFIG_DC_ERRORS, "0");
+    DeviceModuleConfigEntity.updateConfigValue(hardwareId, EnedisConstants.CONFIG_DCMP_ERRORS, "0");
+    DeviceModuleConfigEntity.updateConfigValue(hardwareId, EnedisConstants.CONFIG_DP_ERRORS, "0");
+
+    return DeviceEntity.findByHardwareId(hardwareId).orElseThrow();
   }
 }

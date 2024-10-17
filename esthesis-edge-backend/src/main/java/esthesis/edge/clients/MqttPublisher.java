@@ -19,19 +19,42 @@ import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence;
 
+/**
+ * Helper class to publish MQTT messages to esthesis CORE.
+ */
 @Slf4j
 public class MqttPublisher {
 
+  // The MQTT client.
   private final MqttClient client;
 
+  /**
+   * Create a new instance of the MQTT publisher.
+   *
+   * @param url The MQTT broker URL.
+   * @throws MqttException If the instance could not be created.
+   */
   public MqttPublisher(String url) throws MqttException {
     this.client = new MqttClient(url, MqttClient.generateClientId(), new MemoryPersistence());
   }
 
+  /**
+   * Connect to the MQTT broker.
+   *
+   * @throws MqttException If the connection could not be established.
+   */
   public void connect() throws MqttException {
     client.connect();
   }
 
+  /**
+   * Connect to the MQTT broker with SSL.
+   *
+   * @param coreCertAsPem   The CORE certificate as PEM.
+   * @param clientCertAsPem The client certificate as PEM.
+   * @param clientKeyAsPem  The client private key as PEM.
+   * @param keyAlgorithm    The private key algorithm.*
+   */
   public void connect(String coreCertAsPem, String clientCertAsPem, String clientKeyAsPem,
       String keyAlgorithm)
   throws CertificateException, KeyStoreException, IOException, NoSuchAlgorithmException,
@@ -65,11 +88,23 @@ public class MqttPublisher {
     client.connect(options);
   }
 
+  /**
+   * Publish a message to a topic.
+   *
+   * @param topic   The topic to publish to.
+   * @param message The message to publish.
+   * @throws MqttException If the message could not be published.
+   */
   public void publish(String topic, String message) throws MqttException {
     log.debug("Publishing message to topic '{}': '{}'.", topic, message);
     client.publish(topic, message.getBytes(), 0, false);
   }
 
+  /**
+   * Disconnect from the MQTT broker.
+   *
+   * @throws MqttException If the disconnection could not be established.
+   */
   public void disconnect() throws MqttException {
     client.disconnect();
   }

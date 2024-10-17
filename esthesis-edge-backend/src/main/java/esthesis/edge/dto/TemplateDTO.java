@@ -6,6 +6,9 @@ import java.util.Map;
 import lombok.Getter;
 import lombok.Setter;
 
+/**
+ * A DTO representing a template that can be rendered with Qute.
+ */
 public class TemplateDTO {
 
   @Getter

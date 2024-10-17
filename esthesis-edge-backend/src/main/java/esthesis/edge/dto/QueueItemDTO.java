@@ -8,6 +8,9 @@ import lombok.NoArgsConstructor;
 import lombok.ToString;
 import lombok.experimental.Accessors;
 
+/**
+ * A DTO representing an item queued in EDGE's database.
+ */
 @Data
 @Builder
 @ToString
