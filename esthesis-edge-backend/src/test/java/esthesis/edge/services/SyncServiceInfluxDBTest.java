@@ -17,7 +17,7 @@ import org.junit.jupiter.api.Test;
 @QuarkusTest
 @Transactional
 @QuarkusTestResource(value = InfluxDBTC.class, restrictToAnnotatedClass = true)
-class SyncServiceTest {
+class SyncServiceInfluxDBTest {
 
   @InjectSpy
   SyncService syncService;

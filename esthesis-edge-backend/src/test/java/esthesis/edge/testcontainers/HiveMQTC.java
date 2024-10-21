@@ -19,7 +19,11 @@ public class HiveMQTC implements QuarkusTestResourceLifecycleManager {
     container.start();
     container.followOutput(new Slf4jLogConsumer(log));
 
-    return Map.of("test.mqtt.port", container.getFirstMappedPort().toString());
+    return Map.of(
+        "test.mqtt.port", container.getFirstMappedPort().toString(),
+        "esthesis.edge.core.push.url",
+        "tcp://localhost:" + container.getFirstMappedPort().toString()
+    );
   }
 
   @Override

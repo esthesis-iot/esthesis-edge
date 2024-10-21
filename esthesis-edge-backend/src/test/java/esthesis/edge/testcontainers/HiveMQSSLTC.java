@@ -3,8 +3,11 @@ package esthesis.edge.testcontainers;
 import io.quarkus.test.common.QuarkusTestResourceLifecycleManager;
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 import java.util.Map;
 import java.util.Objects;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.testcontainers.containers.output.Slf4jLogConsumer;
 import org.testcontainers.hivemq.HiveMQContainer;
@@ -28,6 +31,7 @@ public class HiveMQSSLTC implements QuarkusTestResourceLifecycleManager {
   }
 
   @Override
+  @SneakyThrows
   public Map<String, String> start() {
     File keystore = loadResourceFile("mqtt/server-keystore.jks");
     File truststore = loadResourceFile("mqtt/server-truststore.jks");
@@ -48,7 +52,17 @@ public class HiveMQSSLTC implements QuarkusTestResourceLifecycleManager {
     container.start();
     container.followOutput(new Slf4jLogConsumer(log));
 
-    return Map.of("test.mqtt.port", container.getFirstMappedPort().toString());
+    String s = loadResourceFileAsText("mqtt/ca.crt");
+    System.out.println(s);
+
+    return Map.of(
+        "test.mqtt.port", container.getFirstMappedPort().toString(),
+        "esthesis.edge.core.push.url",
+        "ssl://localhost:" + container.getFirstMappedPort().toString(),
+        "esthesis.edge.core.cert",
+        Base64.getEncoder().encodeToString(loadResourceFileAsText("mqtt/ca.crt").getBytes(
+            StandardCharsets.UTF_8))
+    );
   }
 
   @Override

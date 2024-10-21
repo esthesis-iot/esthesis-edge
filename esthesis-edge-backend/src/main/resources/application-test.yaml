@@ -1,4 +1,6 @@
 quarkus:
+  scheduler:
+    enabled: false
   datasource:
     db-kind: h2
     jdbc:
@@ -12,8 +14,6 @@ quarkus:
 esthesis:
   edge:
     core:
-      push:
-        enabled: false
       registration:
         secret: "test"
 
