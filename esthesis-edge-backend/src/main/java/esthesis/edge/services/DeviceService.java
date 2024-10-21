@@ -52,8 +52,10 @@ public class DeviceService {
     deviceEntity.persist();
 
     // Create the module configuration for the device.
-    for (Map.Entry<String, String> entry : deviceDTO.getModuleConfig().entrySet()) {
-      updateDeviceConfig(deviceDTO.getHardwareId(), entry.getKey(), entry.getValue());
+    if (deviceDTO.getModuleConfig() != null) {
+      for (Map.Entry<String, String> entry : deviceDTO.getModuleConfig().entrySet()) {
+        updateDeviceConfig(deviceDTO.getHardwareId(), entry.getKey(), entry.getValue());
+      }
     }
 
     // Register the device with esthesis CORE.

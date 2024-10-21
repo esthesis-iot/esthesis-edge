@@ -108,8 +108,10 @@ public class AdminResource {
   @AdminEndpoint
   @Path("/sync")
   @Produces("application/json")
-  public void sync() {
+  public Response sync() {
     syncJob.execute();
+
+    return Response.ok().build();
   }
 
   /**
@@ -119,8 +121,10 @@ public class AdminResource {
   @AdminEndpoint
   @Path("/purge")
   @Produces("application/json")
-  public void purge() {
+  public Response purge() {
     purgeJob.execute();
+
+    return Response.ok().build();
   }
 
 }

@@ -1,0 +1,19 @@
+<hivemq>
+  <listeners>
+    <tls-tcp-listener>
+      <port>8883</port>
+      <bind-address>0.0.0.0</bind-address>
+      <tls>
+        <keystore>
+          <path>/opt/hivemq/certs/server-keystore.jks</path>
+          <password>esthesis</password>
+          <private-key-password>esthesis</private-key-password>
+        </keystore>
+        <truststore>
+          <path>/opt/hivemq/certs/server-truststore.jks</path>
+          <password>esthesis</password>
+        </truststore>
+      </tls>
+    </tls-tcp-listener>
+  </listeners>
+</hivemq>

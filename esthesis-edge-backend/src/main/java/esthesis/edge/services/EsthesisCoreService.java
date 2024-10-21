@@ -48,8 +48,10 @@ public class EsthesisCoreService {
           .type(Type.EDGE)
           .capability(Capability.PING)
           .capability(Capability.TELEMETRY)
-          .capability(Capability.METADATA)
-          .tags(tags.isEmpty() ? null : String.join(",", tags));
+          .capability(Capability.METADATA);
+      if (tags != null && !tags.isEmpty()) {
+        requestBuilder.tags(String.join(",", tags));
+      }
 
       // Add registration secret, if present.
       Optional<String> secret = edgeProperties.core().registration().secret();

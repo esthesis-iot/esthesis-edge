@@ -108,4 +108,13 @@ public class MqttPublisher {
   public void disconnect() throws MqttException {
     client.disconnect();
   }
+
+  /**
+   * Checks if the MQTT client is connected.
+   *
+   * @return True if the client is connected, false otherwise.
+   */
+  public boolean isConnected() {
+    return client.isConnected();
+  }
 }

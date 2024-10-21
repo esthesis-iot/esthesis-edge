@@ -3,3 +3,17 @@ quarkus:
     db-kind: h2
     jdbc:
       url: jdbc:h2:mem:;DATABASE_TO_UPPER=TRUE;CASE_INSENSITIVE_IDENTIFIERS=TRUE;
+  rest-client:
+    EsthesisAgentServiceClient:
+      scope: ApplicationScoped
+    EnedisClient:
+      scope: ApplicationScoped
+
+esthesis:
+  edge:
+    core:
+      push:
+        enabled: false
+      registration:
+        secret: "test"
+

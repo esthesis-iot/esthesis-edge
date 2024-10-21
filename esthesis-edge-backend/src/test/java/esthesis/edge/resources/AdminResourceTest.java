@@ -1,4 +1,4 @@
-package esthesis.edge.impl.resources;
+package esthesis.edge.resources;
 
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.is;
@@ -48,7 +48,7 @@ class AdminResourceTest {
   }
 
   @Test
-  void testDeleteDeviceByDeviceId() {
+  void testDeleteDeviceByHardwareId() {
     given()
         .header(AdminRequestFilter.ADMIN_SECRET_HEADER_NAME, adminSecret)
         .when().delete("/admin/device/1234")
@@ -61,6 +61,33 @@ class AdminResourceTest {
     given()
         .header(AdminRequestFilter.ADMIN_SECRET_HEADER_NAME, adminSecret)
         .when().delete("/admin/devices")
+        .then()
+        .statusCode(200);
+  }
+
+  @Test
+  void testListQueue() {
+    given()
+        .header(AdminRequestFilter.ADMIN_SECRET_HEADER_NAME, adminSecret)
+        .when().get("/admin/queue")
+        .then()
+        .statusCode(200);
+  }
+
+  @Test
+  void testSync() {
+    given()
+        .header(AdminRequestFilter.ADMIN_SECRET_HEADER_NAME, adminSecret)
+        .when().post("/admin/sync")
+        .then()
+        .statusCode(200);
+  }
+
+  @Test
+  void testPurge() {
+    given()
+        .header(AdminRequestFilter.ADMIN_SECRET_HEADER_NAME, adminSecret)
+        .when().post("/admin/purge")
         .then()
         .statusCode(200);
   }

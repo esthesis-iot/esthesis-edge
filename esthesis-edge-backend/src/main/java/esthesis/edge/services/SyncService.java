@@ -44,32 +44,37 @@ public class SyncService {
   private void influxDBPost(QueueItemEntity queueItemEntity) {
     log.debug("InfluxDB syncing queue item '{}'.", queueItemEntity.getId());
 
-    // Prepare InfluxDB point.
-    PayloadData payloadData = avroUtils.parsePayload(queueItemEntity.getDataObject());
-    Point point = Point.measurement(payloadData.getCategory())
-        .addTag("hardwareId", queueItemEntity.getHardwareId())
-        .time(Instant.parse(payloadData.getTimestamp()), WritePrecision.S);
-    for (ValueData valueData : payloadData.getValues()) {
-      switch (valueData.getValueType()) {
-        case STRING -> point.addField(valueData.getName(), valueData.getValue());
-        case BOOLEAN ->
-            point.addField(valueData.getName(), Boolean.parseBoolean(valueData.getValue()));
-        case BYTE -> point.addField(valueData.getName(), Byte.parseByte(valueData.getValue()));
-        case SHORT -> point.addField(valueData.getName(), Short.parseShort(valueData.getValue()));
-        case INTEGER -> point.addField(valueData.getName(), Integer.parseInt(valueData.getValue()));
-        case LONG, BIG_INTEGER ->
-            point.addField(valueData.getName(), Long.parseLong(valueData.getValue()));
-        case FLOAT -> point.addField(valueData.getName(), Float.parseFloat(valueData.getValue()));
-        case DOUBLE, BIG_DECIMAL ->
-            point.addField(valueData.getName(), Double.parseDouble(valueData.getValue()));
-        case UNKNOWN -> log.warn("Unknown value type '{}'.", valueData.getValueType());
+    // Prepare InfluxDB point by splitting the payload data.
+    String[] dataList = queueItemEntity.getDataObject().split("\n");
+    for (String data : dataList) {
+      PayloadData payloadData = avroUtils.parsePayload(data);
+      Point point = Point.measurement(payloadData.getCategory())
+          .addTag("hardwareId", queueItemEntity.getHardwareId())
+          .time(Instant.parse(payloadData.getTimestamp()), WritePrecision.S);
+      for (ValueData valueData : payloadData.getValues()) {
+        switch (valueData.getValueType()) {
+          case STRING -> point.addField(valueData.getName(), valueData.getValue());
+          case BOOLEAN ->
+              point.addField(valueData.getName(), Boolean.parseBoolean(valueData.getValue()));
+          case BYTE -> point.addField(valueData.getName(), Byte.parseByte(valueData.getValue()));
+          case SHORT -> point.addField(valueData.getName(), Short.parseShort(valueData.getValue()));
+          case INTEGER ->
+              point.addField(valueData.getName(), Integer.parseInt(valueData.getValue()));
+          case LONG, BIG_INTEGER ->
+              point.addField(valueData.getName(), Long.parseLong(valueData.getValue()));
+          case FLOAT -> point.addField(valueData.getName(), Float.parseFloat(valueData.getValue()));
+          case DOUBLE, BIG_DECIMAL ->
+              point.addField(valueData.getName(), Double.parseDouble(valueData.getValue()));
+          case UNKNOWN -> log.warn("Unknown value type '{}'.", valueData.getValueType());
+        }
+
+        // Write point to InfluxDB.
+        try (WriteApi writeApi = influxDBClient.makeWriteApi()) {
+          log.debug("InfluxDB writing point '{}'.", point.toLineProtocol());
+          writeApi.writePoint(point);
+        }
       }
 
-      // Write point to InfluxDB.
-      try (WriteApi writeApi = influxDBClient.makeWriteApi()) {
-        log.debug("InfluxDB writing point '{}'.", point.toLineProtocol());
-        writeApi.writePoint(point);
-      }
       log.debug("InfluxDB synced queue item '{}'.", queueItemEntity.getId());
     }
   }
