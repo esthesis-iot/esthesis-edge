@@ -42,12 +42,7 @@ class DeviceServiceTest {
     Mockito.when(esthesisAgentServiceClient.register(any(AgentRegistrationRequest.class)))
         .thenReturn(new AgentRegistrationResponse());
   }
-
-  /**
-   * Convenience method to create a test device.
-   *
-   * @param hardwareId The hardware ID of the device.
-   */
+  
   private DeviceEntity createTestDevice(String hardwareId) {
     DeviceEntity deviceEntity = new DeviceEntity();
     deviceEntity.setId(UUID.randomUUID().toString());

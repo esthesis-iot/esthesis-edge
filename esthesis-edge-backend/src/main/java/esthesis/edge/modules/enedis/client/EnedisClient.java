@@ -4,6 +4,7 @@ import esthesis.edge.modules.enedis.dto.datahub.EnedisAuthTokenDTO;
 import esthesis.edge.modules.enedis.dto.datahub.EnedisDailyConsumptionDTO;
 import esthesis.edge.modules.enedis.dto.datahub.EnedisDailyConsumptionMaxPowerDTO;
 import esthesis.edge.modules.enedis.dto.datahub.EnedisDailyProductionDTO;
+import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.FormParam;
 import jakarta.ws.rs.GET;
@@ -18,6 +19,7 @@ import org.eclipse.microprofile.rest.client.inject.RegisterRestClient;
 /**
  * Enedis REST client.
  */
+@ApplicationScoped
 @RegisterRestClient(configKey = "EnedisClient")
 public interface EnedisClient {
 
