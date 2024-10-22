@@ -68,9 +68,10 @@ public class EnedisFetchService {
    * @param hardwareId  The hardware ID of the device.
    * @param enedisPrm   The Enedis PRM.
    * @param accessToken The access token.
+   * @return
    */
   @Transactional(Transactional.TxType.REQUIRES_NEW)
-  public void fetchDailyConsumption(String hardwareId, String enedisPrm, String accessToken) {
+  public int fetchDailyConsumption(String hardwareId, String enedisPrm, String accessToken) {
     // Fetch data.
     String lastFetch = EnedisUtil.instantToYmd(deviceService
         .getDeviceConfigValueAsInstant(hardwareId, EnedisConstants.CONFIG_DC_LAST_FETCHED_AT)
@@ -88,6 +89,7 @@ public class EnedisFetchService {
     }
 
     // Queue data for processing.
+    int itemsQueued = 0;
     if (dailyConsumptionDTO != null) {
       if (!dailyConsumptionDTO.getMeterReading().getIntervalReading().isEmpty()) {
         log.debug("Queuing Daily Consumption:\n{}",
@@ -104,10 +106,14 @@ public class EnedisFetchService {
         // not be available at the time of fetching, however it may become available later on.
         deviceService.updateDeviceConfig(hardwareId, EnedisConstants.CONFIG_DC_LAST_FETCHED_AT,
             Instant.now().toString());
+
+        itemsQueued++;
       } else {
         log.debug("No Daily Consumption data to queue.");
       }
     }
+
+    return itemsQueued;
   }
 
   /**
@@ -116,9 +122,10 @@ public class EnedisFetchService {
    * @param hardwareId  The hardware ID of the device.
    * @param enedisPrm   The Enedis PRM.
    * @param accessToken The access token.
+   * @return
    */
   @Transactional(Transactional.TxType.REQUIRES_NEW)
-  public void fetchDailyConsumptionMaxPower(String hardwareId, String enedisPrm,
+  public int fetchDailyConsumptionMaxPower(String hardwareId, String enedisPrm,
       String accessToken) {
     // Fetch data.
     String lastFetch = EnedisUtil.instantToYmd(deviceService
@@ -138,6 +145,7 @@ public class EnedisFetchService {
       increaseErrors(hardwareId, EnedisConstants.CONFIG_DCMP_ERRORS);
     }
 
+    int itemsQueued = 0;
     if (dailyConsumptionMaxPowerDTO != null) {
       // Queue data for processing.
       if (!dailyConsumptionMaxPowerDTO.getMeterReading().getIntervalReading().isEmpty()) {
@@ -155,10 +163,14 @@ public class EnedisFetchService {
         // not be available at the time of fetching, however it may become available later on.
         deviceService.updateDeviceConfig(hardwareId, EnedisConstants.CONFIG_DCMP_LAST_FETCHED_AT,
             Instant.now().toString());
+
+        itemsQueued++;
       }
     } else {
       log.debug("No Daily Consumption Max Power data to queue.");
     }
+
+    return itemsQueued;
   }
 
   /**
@@ -167,9 +179,10 @@ public class EnedisFetchService {
    * @param hardwareId  The hardware ID of the device.
    * @param enedisPrm   The Enedis PRM.
    * @param accessToken The access token.
+   * @return
    */
   @Transactional(Transactional.TxType.REQUIRES_NEW)
-  public void fetchDailyProduction(String hardwareId, String enedisPrm, String accessToken) {
+  public int fetchDailyProduction(String hardwareId, String enedisPrm, String accessToken) {
     // Fetch data.
     String lastFetch = EnedisUtil.instantToYmd(deviceService
         .getDeviceConfigValueAsInstant(hardwareId, EnedisConstants.CONFIG_DP_LAST_FETCHED_AT)
@@ -186,6 +199,7 @@ public class EnedisFetchService {
       increaseErrors(hardwareId, EnedisConstants.CONFIG_DP_ERRORS);
     }
 
+    int itemsQueued = 0;
     if (dailyProductionDTO != null) {
       // Queue data for processing.
       if (!dailyProductionDTO.getMeterReading().getIntervalReading().isEmpty()) {
@@ -203,9 +217,13 @@ public class EnedisFetchService {
         // not be available at the time of fetching, however it may become available later on.
         deviceService.updateDeviceConfig(hardwareId, EnedisConstants.CONFIG_DP_LAST_FETCHED_AT,
             Instant.now().toString());
+
+        itemsQueued++;
       }
     } else {
       log.debug("No Daily Production data to queue.");
     }
+
+    return itemsQueued;
   }
 }

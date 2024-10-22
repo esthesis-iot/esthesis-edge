@@ -14,31 +14,28 @@ import esthesis.edge.modules.enedis.dto.EnedisConfigDTO;
 import esthesis.edge.modules.enedis.dto.datahub.EnedisAuthTokenDTO;
 import esthesis.edge.modules.enedis.templates.EnedisTemplates;
 import esthesis.edge.services.DeviceService;
+import io.github.resilience4j.ratelimiter.RateLimiter;
+import io.github.resilience4j.ratelimiter.RateLimiterConfig;
 import io.quarkus.scheduler.Scheduled;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
+import java.time.Duration;
 import java.time.Instant;
 import java.time.Period;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Optional;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 
-//  // 10 permits per second.
-//  private final RateLimiter perSecondLimiter = RateLimiter.create(10);
-//  // ~2.78 permits per second (for 10,000 per hour).
-//  private final RateLimiter perHourLimiter = RateLimiter.create(10000.0 / 3600.0);
 
 /**
  * Service for handling Enedis module related operations.
  */
 @Slf4j
 @ApplicationScoped
-@RequiredArgsConstructor
 public class EnedisService {
 
   private final DeviceService deviceService;
@@ -49,6 +46,25 @@ public class EnedisService {
   EnedisClient enedisRestClient;
   // A local reference of the access token, to not keep refreshing when not needed.
   private EnedisAuthTokenDTO enedisAuthTokenDTO;
+  // Rate limiters for Enedis API.
+  private RateLimiter perSecondLimiter;
+  private RateLimiter perHourLimiter;
+
+  public EnedisService(DeviceService deviceService, EnedisProperties enedisProperties,
+      EnedisFetchService enedisFetchService) {
+    this.deviceService = deviceService;
+    this.enedisProperties = enedisProperties;
+    this.enedisFetchService = enedisFetchService;
+
+    perSecondLimiter = RateLimiter.of("perSecondLimiter", RateLimiterConfig.custom()
+        .limitForPeriod(EnedisConstants.REQUESTS_PER_SECOND)
+        .limitRefreshPeriod(Duration.ofSeconds(1))
+        .build());
+    perHourLimiter = RateLimiter.of("perHourLimiter", RateLimiterConfig.custom()
+        .limitForPeriod(EnedisConstants.REQUESTS_PER_HOUR)
+        .limitRefreshPeriod(Duration.ofHours(1))
+        .build());
+  }
 
   /**
    * Calculate the expiration time for the PMR token.
@@ -238,7 +254,6 @@ public class EnedisService {
       return;
     }
 
-    // Fetch data for each device.
     for (DeviceDTO device : devices) {
       // Check if the PMR for this device is still active. If not, set the device as disabled and
       // skip fetching data.
@@ -273,8 +288,11 @@ public class EnedisService {
           EnedisConstants.CONFIG_DC_ERRORS).map(Integer::parseInt).orElse(0);
       if (enedisProperties.fetchTypes().dc().enabled() &&
           dcErrors < enedisProperties.fetchTypes().dc().errorsThreshold()) {
-        enedisFetchService.fetchDailyConsumption(hardwareId, enedisPrm,
+        perSecondLimiter.acquirePermission();
+        perHourLimiter.acquirePermission();
+        int itemsQueued = enedisFetchService.fetchDailyConsumption(hardwareId, enedisPrm,
             enedisAuthTokenDTO.getAccessToken());
+        log.debug("Queued '{}' items from Daily Consumption API.", itemsQueued);
       }
 
       // Daily Consumption Max Power.
@@ -282,8 +300,11 @@ public class EnedisService {
           EnedisConstants.CONFIG_DCMP_ERRORS).map(Integer::parseInt).orElse(0);
       if (enedisProperties.fetchTypes().dcmp().enabled()
           && dcmpErrors < enedisProperties.fetchTypes().dcmp().errorsThreshold()) {
-        enedisFetchService.fetchDailyConsumptionMaxPower(hardwareId, enedisPrm,
+        perSecondLimiter.acquirePermission();
+        perHourLimiter.acquirePermission();
+        int itemsQueued = enedisFetchService.fetchDailyConsumptionMaxPower(hardwareId, enedisPrm,
             enedisAuthTokenDTO.getAccessToken());
+        log.debug("Queued '{}' items from Daily Consumption Max Power API.", itemsQueued);
       }
 
       // Daily Production.
@@ -291,8 +312,11 @@ public class EnedisService {
           EnedisConstants.CONFIG_DP_ERRORS).map(Integer::parseInt).orElse(0);
       if (enedisProperties.fetchTypes().dp().enabled() &&
           dpErrors < enedisProperties.fetchTypes().dp().errorsThreshold()) {
-        enedisFetchService.fetchDailyProduction(hardwareId, enedisPrm,
+        perSecondLimiter.acquirePermission();
+        perHourLimiter.acquirePermission();
+        int itemsQueued = enedisFetchService.fetchDailyProduction(hardwareId, enedisPrm,
             enedisAuthTokenDTO.getAccessToken());
+        log.debug("Queued '{}' items from Daily Production API.", itemsQueued);
       }
 
       log.debug("Data fetch completed for device '{}'.", hardwareId);

@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
 import static org.wildfly.common.Assert.assertTrue;
 
 import esthesis.common.agent.dto.AgentRegistrationRequest;
@@ -22,7 +23,6 @@ import java.util.UUID;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 
 
 @QuarkusTest
@@ -39,10 +39,10 @@ class DeviceServiceTest {
   @BeforeEach
   public void setup() {
     // Mock the esthesis CORE registration.
-    Mockito.when(esthesisAgentServiceClient.register(any(AgentRegistrationRequest.class)))
+    when(esthesisAgentServiceClient.register(any(AgentRegistrationRequest.class)))
         .thenReturn(new AgentRegistrationResponse());
   }
-  
+
   private DeviceEntity createTestDevice(String hardwareId) {
     DeviceEntity deviceEntity = new DeviceEntity();
     deviceEntity.setId(UUID.randomUUID().toString());
@@ -210,13 +210,13 @@ class DeviceServiceTest {
     keyName = "instant";
     Instant keyValueInstant = Instant.now();
     DeviceDTO deviceDTO2 = new DeviceDTO();
-    deviceDTO2.setHardwareId(hardwareId2);
+    deviceDTO2.setHardwareId(hardwareId3);
     deviceDTO2.setModuleName("test");
     deviceDTO2.setEnabled(true);
     deviceDTO2.setModuleConfig(Map.of(keyName, keyValueInstant.toString()));
     deviceService.createDevice(deviceDTO2);
     assertEquals(keyValueInstant,
-        deviceService.getDeviceConfigValueAsInstant(hardwareId2, keyName).orElse(null));
+        deviceService.getDeviceConfigValueAsInstant(hardwareId3, keyName).orElse(null));
   }
 
 }
