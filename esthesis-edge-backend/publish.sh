@@ -122,7 +122,10 @@ fi
 # Build and push the image.
 IMAGE_NAME="$ESTHESIS_REGISTRY_URL/esthesis-edge"
 printInfo "Building source code."
-$MVNW clean package "$MAVEN_OPTIMISE_PARAMS"
+if [ "$ESTHESIS_LOCAL_BUILD" = "true" ]; then
+  printInfo "Building source code."
+  $MVNW clean package "$MAVEN_OPTIMISE_PARAMS"
+fi
 printInfo "Building $ESTHESIS_ARCHITECTURES for $IMAGE_NAME."
 docker buildx build \
 			-f src/main/docker/Dockerfile.jvm \
