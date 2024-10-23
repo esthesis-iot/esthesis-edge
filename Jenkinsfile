@@ -125,6 +125,13 @@ pipeline {
                 }
             }
         }
+        stage('Produce bom.xml for backend') {
+            steps{
+                container (name: 'esthesis-edge-builder') {
+                    sh 'mvn -f esthesis-edge-backend/pom.xml org.cyclonedx:cyclonedx-maven-plugin:makeAggregateBom'
+                }
+            }
+        }
         stage('Post Dependency-Track Analysis for server') {
             steps {
                 container (name: 'esthesis-edge-builder') {
