@@ -1,0 +1,26 @@
+# Introduction
+
+![big-log.png](../images/big-logo.png)
+
+esthesis EDGE is a system designed to be deployed at the edge of a network, close to the data sources, in environments 
+where real-time data processing and synchronisation with central systems are crucial. It acts as a data collector and 
+synchroniser, retrieving information from third-party systems, such as sensors, devices, or other external data sources, 
+at the edge of a network.
+
+Once the data is fetched, esthesis EDGE processes and stores it locally, ensuring low-latency responses and high 
+availability, even when the connection to the central system, Esthesis CORE, is intermittent. It then synchronises 
+the collected data with esthesis CORE, which serves as the central hub for managing, analysing, and storing aggregated 
+data from multiple edge or standalone/agent-based deployments.
+
+Key features of Esthesis EDGE include:
+
+1.	**Data Collection**: Fetches data from various third-party systems, such as IoT devices, databases, or external APIs.
+2.	**Edge Deploymen**t: Operates close to the data source to minimize latency and ensure reliable operation even 
+with unreliable connectivity.
+3.	**Local Processing**: Performs initial processing and filtering of data before synchronizing it with the core system.
+4.	**Synchronization**: Ensures that data is consistently synced with esthesis CORE for centralised analysis and long-term 
+storage.
+5.	**Scalability**: Supports multiple edge deployments that can operate independently and communicate with the esthesis 
+CORE system.
+
+esthesis EDGE is part of the [esthesis IoT platform](https://esthes.is).

@@ -20,6 +20,7 @@ import jakarta.transaction.Transactional;
 import java.time.Instant;
 import java.util.Base64;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.paho.client.mqttv3.MqttException;
@@ -134,10 +135,13 @@ public class SyncService {
   }
 
   /**
-   * Sync data between the edge and InfluxDB.
+   * Sync data between edge and InfluxDB.
+   *
+   * @return True if all entries could be processed, false otherwise.
    */
   @Transactional
-  public void syncInfluxDB() {
+  public boolean syncInfluxDB() {
+    final AtomicBoolean hasErrors = new AtomicBoolean(false);
     influxDBClient = InfluxDBClientFactory.create(edgeProperties.local().influxDB().url(),
         edgeProperties.local().influxDB().token().toCharArray(),
         edgeProperties.local().influxDB().org(), edgeProperties.local().influxDB().bucket());
@@ -153,22 +157,29 @@ public class SyncService {
           queueItem.persist();
         } catch (Exception e) {
           log.error("Error syncing queue item '{}'.", queueItem.getId(), e);
+          hasErrors.set(true);
         }
       });
     } catch (Exception e) {
       log.error("Error syncing InfluxDB.", e);
+      hasErrors.set(true);
     } finally {
       influxDBClient.close();
     }
 
     log.debug("InfluxDB syncing finished.");
+
+    return !hasErrors.get();
   }
 
   /**
    * Sync data between the edge and esthesis CORE.
+   *
+   * @return True if all entries could be processed, false otherwise.
    */
   @Transactional
-  public void syncCore() {
+  public boolean syncCore() {
+    final AtomicBoolean hasErrors = new AtomicBoolean(false);
     log.debug("esthesis CORE syncing started.");
 
     // Find distinct hardwareIds with unprocessed CORE items.
@@ -184,10 +195,12 @@ public class SyncService {
         log.debug("esthesis CORE synced hardwareId '{}'.", hardwareId);
       } catch (Exception e) {
         log.error("Error syncing hardwareId '{}'.", hardwareId, e);
+        hasErrors.set(true);
       }
     });
 
     log.debug("esthesis CORE syncing finished.");
+    return !hasErrors.get();
   }
 
 }

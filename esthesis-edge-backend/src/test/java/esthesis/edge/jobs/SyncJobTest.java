@@ -1,11 +1,13 @@
 package esthesis.edge.jobs;
 
-import esthesis.edge.model.QueueItemEntity;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.mockito.Mockito.when;
+
+import esthesis.edge.services.SyncService;
 import io.quarkus.test.junit.QuarkusTest;
+import io.quarkus.test.junit.mockito.InjectSpy;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
-import java.time.Instant;
-import java.util.UUID;
 import org.junit.jupiter.api.Test;
 
 @QuarkusTest
@@ -15,20 +17,16 @@ class SyncJobTest {
   @Inject
   SyncJob syncJob;
 
+  @InjectSpy
+  SyncService syncService;
+
   @Test
   void execute() {
-    syncJob.execute();
+    when(syncService.syncCore()).thenReturn(true);
+    when(syncService.syncInfluxDB()).thenReturn(true);
 
-    QueueItemEntity.builder()
-        .id(UUID.randomUUID().toString())
-        .hardwareId(UUID.randomUUID().toString())
-        .processedCoreAt(null)
-        .processedLocalAt(null)
-        .createdAt(Instant.EPOCH)
-        .dataObject("test")
-        .build()
-        .persist();
-
-    syncJob.execute();
+    assertDoesNotThrow(() ->
+        syncJob.execute()
+    );
   }
 }

@@ -45,3 +45,4 @@ nb-configuration.xml
 .certs/
 /edgedb.trace.db
 /edgedb.mv.db
+/buildkitd.toml

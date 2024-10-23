@@ -3,7 +3,12 @@ package esthesis.edge.resources;
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.is;
 
+import esthesis.edge.jobs.PurgeJob;
+import esthesis.edge.jobs.SyncJob;
 import esthesis.edge.security.AdminRequestFilter;
+import esthesis.edge.services.DeviceService;
+import esthesis.edge.services.QueueService;
+import io.quarkus.test.InjectMock;
 import io.quarkus.test.junit.QuarkusTest;
 import java.util.UUID;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
@@ -14,6 +19,18 @@ class AdminResourceTest {
 
   @ConfigProperty(name = "esthesis.edge.admin-secret")
   String adminSecret;
+
+  @InjectMock
+  DeviceService deviceService;
+
+  @InjectMock
+  QueueService queueService;
+
+  @InjectMock
+  SyncJob syncJob;
+
+  @InjectMock
+  PurgeJob purgeJob;
 
   @Test
   void testAuthOK() {

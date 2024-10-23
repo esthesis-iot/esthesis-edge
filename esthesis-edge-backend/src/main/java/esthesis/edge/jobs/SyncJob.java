@@ -1,5 +1,6 @@
 package esthesis.edge.jobs;
 
+import esthesis.common.exception.QProcessingException;
 import esthesis.edge.config.EdgeProperties;
 import esthesis.edge.services.SyncService;
 import io.quarkus.scheduler.Scheduled;
@@ -28,12 +29,12 @@ public class SyncJob {
     Instant start = Instant.now();
     log.debug("Syncing data started.");
 
-    if (edgeProperties.local().enabled()) {
-      syncService.syncInfluxDB();
+    if (edgeProperties.local().enabled() && !syncService.syncInfluxDB()) {
+      throw new QProcessingException("Failed to sync data to InfluxDB.");
     }
 
-    if (edgeProperties.core().push().enabled()) {
-      syncService.syncCore();
+    if (edgeProperties.core().push().enabled() && !syncService.syncCore()) {
+      throw new QProcessingException("Failed to sync data to esthesis CORE.");
     }
 
     log.debug("Syncing data finished in '{}' ms.",

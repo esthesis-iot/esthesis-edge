@@ -1,5 +1,7 @@
 package esthesis.edge.jobs;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+
 import esthesis.edge.model.QueueItemEntity;
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
@@ -17,18 +19,24 @@ class PurgeJobTest {
 
   @Test
   void execute() {
-    purgeJob.execute();
+    assertDoesNotThrow(() ->
+        purgeJob.execute()
+    );
 
-    QueueItemEntity.builder()
-        .id(UUID.randomUUID().toString())
-        .hardwareId(UUID.randomUUID().toString())
-        .processedCoreAt(null)
-        .processedLocalAt(null)
-        .createdAt(Instant.EPOCH)
-        .dataObject("test")
-        .build()
-        .persist();
+    assertDoesNotThrow(() ->
+        QueueItemEntity.builder()
+            .id(UUID.randomUUID().toString())
+            .hardwareId(UUID.randomUUID().toString())
+            .processedCoreAt(null)
+            .processedLocalAt(null)
+            .createdAt(Instant.EPOCH)
+            .dataObject("energy watt=1000")
+            .build()
+            .persist()
+    );
 
-    purgeJob.execute();
+    assertDoesNotThrow(() ->
+        purgeJob.execute()
+    );
   }
 }

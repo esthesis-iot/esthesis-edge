@@ -1,5 +1,6 @@
 package esthesis.edge;
 
+import esthesis.edge.dto.QueueItemDTO;
 import esthesis.edge.model.DeviceEntity;
 import esthesis.edge.model.DeviceModuleConfigEntity;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -45,5 +46,18 @@ public class TestUtils {
     deviceEntity.getModuleConfig().add(configEntity);
 
     deviceEntity.persist();
+  }
+
+  @Transactional
+  public QueueItemDTO createQueueItem(String id, String hardwareId, String dataObject) {
+    QueueItemDTO queueItem = new QueueItemDTO();
+    queueItem.setId(id);
+    queueItem.setHardwareId(hardwareId);
+    queueItem.setDataObject(dataObject);
+    queueItem.setProcessedLocalAt(null);
+    queueItem.setProcessedCoreAt(null);
+    queueItem.setCreatedAt(Instant.now());
+
+    return queueItem;
   }
 }
