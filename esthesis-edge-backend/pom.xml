@@ -130,12 +130,17 @@
       <plugin>
         <artifactId>maven-compiler-plugin</artifactId>
       </plugin>
-      <!-- <plugin>
+      <plugin>
         <artifactId>maven-surefire-plugin</artifactId>
+        <configuration>
+          <systemPropertyVariables>
+            <jacoco-agent.destfile>target/jacoco.exec</jacoco-agent.destfile>
+          </systemPropertyVariables>
+        </configuration>
       </plugin>
       <plugin>
         <artifactId>maven-failsafe-plugin</artifactId>
-      </plugin> -->
+      </plugin>
       <plugin>
         <groupId>io.github.git-commit-id</groupId>
         <artifactId>git-commit-id-maven-plugin</artifactId>
