@@ -107,14 +107,10 @@ pipeline {
         stage('Build Server') {
             steps {
                 container (name: 'esthesis-edge-builder') {
-                    withCredentials([usernamePassword(credentialsId: 'dockerhub-credentials',
-                    usernameVariable: 'Username',
-                    passwordVariable: 'Password')]){
-                        sh '''
-                            docker login -u $Username -p $Password docker.io
-                            mvn -f esthesis-edge-backend/pom.xml clean install -Pnative
-                        '''
-                    }
+                    sh '''
+
+                        mvn -f esthesis-edge-backend/pom.xml clean install
+                    '''
                 }
             }
         }
