@@ -17,7 +17,6 @@
     <maven.compiler.source>21</maven.compiler.source>
     <maven.compiler.target>21</maven.compiler.target>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <jacoco.version>0.8.12</jacoco.version>
   </properties>
 
   <dependencies>
@@ -119,6 +118,11 @@
       <artifactId>influxdb</artifactId>
       <scope>test</scope>
     </dependency>
+    <dependency>
+        <groupId>io.quarkus</groupId>
+        <artifactId>quarkus-jacoco</artifactId>
+        <scope>test</scope>
+    </dependency>
   </dependencies>
 
   <build>
@@ -135,48 +139,10 @@
         <artifactId>git-commit-id-maven-plugin</artifactId>
       </plugin>
       <plugin>
-          <groupId>org.jacoco</groupId>
-          <artifactId>jacoco-maven-plugin</artifactId>
-          <version>${jacoco.version}</version>
-          <executions>
-              <execution>
-                  <id>prepare-agent</id>
-                  <goals>
-                      <goal>prepare-agent</goal>
-                  </goals>
-                  <configuration>
-                      <destFile>${project.build.directory}/jacoco.exec</destFile>
-                      <propertyName>jacocoArgLine</propertyName>
-                  </configuration>
-              </execution>
-              <execution>
-                  <id>report</id>
-                  <phase>prepare-package</phase>
-                  <goals>
-                      <goal>report</goal>
-                  </goals>
-                  <configuration>
-                      <dataFile>${project.build.directory}/jacoco.exec</dataFile>
-                      <outputDirectory>${project.reporting.outputDirectory}/jacoco</outputDirectory>
-                  </configuration>
-              </execution>
-          </executions>
-      </plugin>
-
-      <!-- Maven Surefire Plugin -->
-      <plugin>
           <artifactId>maven-surefire-plugin</artifactId>
-          <configuration>
-              <argLine>${jacocoArgLine}</argLine>
-          </configuration>
       </plugin>
-
-      <!-- Maven Failsafe Plugin -->
       <plugin>
           <artifactId>maven-failsafe-plugin</artifactId>
-          <configuration>
-              <argLine>${jacocoArgLine}</argLine>
-          </configuration>
       </plugin>
     </plugins>
   </build>
