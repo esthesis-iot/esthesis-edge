@@ -46,3 +46,4 @@ nb-configuration.xml
 /edgedb.trace.db
 /edgedb.mv.db
 /buildkitd.toml
+/local-env.sh

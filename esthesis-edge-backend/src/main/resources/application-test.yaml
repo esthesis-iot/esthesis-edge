@@ -16,4 +16,6 @@ esthesis:
     core:
       registration:
         secret: "test"
-
+    modules:
+      enedis:
+        enabled: true

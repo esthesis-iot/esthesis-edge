@@ -26,7 +26,6 @@ fi
 echo "Using profiles: $PROFILES."
 
 # Call starter script
-cd esthesis-edge-backend && \
 ./mvnw quarkus:dev \
   -Dquarkus.console.enabled="$CONSOLE" \
   -Dquarkus.profile="$PROFILES" \
