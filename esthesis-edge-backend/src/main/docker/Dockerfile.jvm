@@ -93,5 +93,8 @@ USER 185
 ENV JAVA_OPTS_APPEND="-Dquarkus.http.host=0.0.0.0 -Djava.util.logging.manager=org.jboss.logmanager.LogManager"
 ENV JAVA_APP_JAR="/deployments/quarkus-run.jar"
 
+HEALTHCHECK --interval=30s --timeout=10s --start-period=10s --retries=3 \
+  CMD ["curl", "--fail", "http://localhost:8080/q/health/live"]
+
 ENTRYPOINT [ "/opt/jboss/container/java/run/run-java.sh" ]
 

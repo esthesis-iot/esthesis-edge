@@ -27,27 +27,27 @@ esthesis:
     purge-successful-minutes: 60
     purge-queued-minutes: 10080
     local:
-      enabled: true
+      enabled: false
       influx-db:
         url: http://localhost:9086
-        token: "Ecw_sqxjoIx7RddbK6kdwh57Ly6LjYvg3sHuqeVWaXmt8lBiEKER7gRCbkImtNhawC0wp8DWA2fm2Qh_3Ast1w=="
+        token: esthesis
         bucket: edge
         org: esthesis
     core:
       push:
-        enabled: true
+        enabled: false
         url: ssl://mosquitto.esthesis:8883
         topic-telemetry: esthesis/telemetry
         topic-ping: esthesis/ping
       registration:
-        enabled: true
+        enabled: false
         secret:
       tags:
         - edge
       key-algorithm: RSA
     modules:
       enedis:
-        enabled: true
+        enabled: false
         cron: "0 0 6 * * ?"
         max-devices: 1000
         past-days-init: 7

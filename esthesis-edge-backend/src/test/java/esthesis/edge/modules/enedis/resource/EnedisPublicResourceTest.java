@@ -26,8 +26,8 @@ class EnedisPublicResourceTest {
   @Inject
   SmallRyeConfig smallRyeConfig;
 
-  @ApplicationScoped
   @Mock
+  @ApplicationScoped
   EnedisProperties enedisProperties() {
     return smallRyeConfig.getConfigMapping(EnedisProperties.class);
   }
