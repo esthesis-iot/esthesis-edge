@@ -1,5 +1,5 @@
 ### Fetch data from Enedis.
 // @no-log
-GET http://localhost:9080/enedis/admin/errors
+GET http://localhost:{{API_PORT}}/enedis/admin/errors
 X-ESTHESIS-EDGE-ADMIN-SECRET: {{X-ESTHESIS-EDGE-ADMIN-SECRET}}
 ###

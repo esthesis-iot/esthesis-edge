@@ -5,7 +5,7 @@
 # Customer who has only one consumption delivery point for which he has activated the load curve.
 # His data is accurately uploaded (without data "hole") and his metre was put into service at the
 # beginning of the Linky deployment.
-GET localhost:9080/enedis/public/redirect-handler?code=123&State=8ae1de52-770c-4bee-a6ac-3c7a6ea45b6f
+GET localhost:{{API_PORT}}/enedis/public/redirect-handler?code=123&State=8ae1de52-770c-4bee-a6ac-3c7a6ea45b6f
     &usage_point_id=22516914714270
 
 ###
@@ -13,7 +13,7 @@ GET localhost:9080/enedis/public/redirect-handler?code=123&State=8ae1de52-770c-4
 # Customer who has only one consumption delivery point for which he has activated the load curve.
 # His data is accurately uploaded (without a data "hole") and his metre was put into service on
 # August 27, 2019.
-GET localhost:9080/enedis/public/redirect-handler?code=123&State=8ae1de52-770c-4bee-a6ac-3c7a6ea45b6f
+GET localhost:{{API_PORT}}/enedis/public/redirect-handler?code=123&State=8ae1de52-770c-4bee-a6ac-3c7a6ea45b6f
     &usage_point_id=11453290002823
 
 ###
@@ -21,7 +21,7 @@ GET localhost:9080/enedis/public/redirect-handler?code=123&State=8ae1de52-770c-4
 # Customer who has only one consumption delivery point for which he has not activated the charging curve.
 # His data is accurately uploaded (without data "hole") and his metre was put into service at the
 # beginning of the Linky deployment.
-GET localhost:9080/enedis/public/redirect-handler?code=123&State=8ae1de52-770c-4bee-a6ac-3c7a6ea45b6f
+GET localhost:{{API_PORT}}/enedis/public/redirect-handler?code=123&State=8ae1de52-770c-4bee-a6ac-3c7a6ea45b6f
     &usage_point_id=32320647321714
 
 ###
@@ -29,10 +29,10 @@ GET localhost:9080/enedis/public/redirect-handler?code=123&State=8ae1de52-770c-4
 # Customer who has a consumption delivery point and a production delivery point for which he has
 # activated the load curves. Its data is uploaded accurately (without a "hole" in data) and its
 # metres were put into service at the beginning of the Linky deployment.
-GET localhost:9080/enedis/public/redirect-handler?code=123&State=8ae1de52-770c-4bee-a6ac-3c7a6ea45b6f
+GET localhost:{{API_PORT}}/enedis/public/redirect-handler?code=123&State=8ae1de52-770c-4bee-a6ac-3c7a6ea45b6f
     &usage_point_id=12345678901234
 ###
-GET localhost:9080/enedis/public/redirect-handler?code=123&State=8ae1de52-770c-4bee-a6ac-3c7a6ea45b6f
+GET localhost:{{API_PORT}}/enedis/public/redirect-handler?code=123&State=8ae1de52-770c-4bee-a6ac-3c7a6ea45b6f
     &usage_point_id=10284856584123
 
 ###
@@ -40,7 +40,7 @@ GET localhost:9080/enedis/public/redirect-handler?code=123&State=8ae1de52-770c-4
 # Customer who has only one consumption delivery point for which he has activated the load curve.
 # His data has data "holes" on Tuesdays and Wednesdays and his metre was put into service at the
 # beginning of the Linky deployment
-GET localhost:9080/enedis/public/redirect-handler?code=123&State=8ae1de52-770c-4bee-a6ac-3c7a6ea45b6f
+GET localhost:{{API_PORT}}/enedis/public/redirect-handler?code=123&State=8ae1de52-770c-4bee-a6ac-3c7a6ea45b6f
     &usage_point_id=42900589957123
 
 ###
@@ -48,7 +48,7 @@ GET localhost:9080/enedis/public/redirect-handler?code=123&State=8ae1de52-770c-4
 # Customer who has only one production delivery point for which he has activated the load curve.
 # His data is accurately uploaded (without data "hole") and his metre was put into service at the
 # beginning of the Linky deployment.
-GET localhost:9080/enedis/public/redirect-handler?code=123&State=8ae1de52-770c-4bee-a6ac-3c7a6ea45b6f
+GET localhost:{{API_PORT}}/enedis/public/redirect-handler?code=123&State=8ae1de52-770c-4bee-a6ac-3c7a6ea45b6f
     &usage_point_id=24880057139941
 
 ###
@@ -58,7 +58,7 @@ GET localhost:9080/enedis/public/redirect-handler?code=123&State=8ae1de52-770c-4
 # consumption data collected correspond to consumption minus production and production is zero.
 # Conversely, when production is greater than consumption. His data is accurately uploaded
 # (without data "hole") and his metre was put into service at the beginning of the Linky deployment.
-GET localhost:9080/enedis/public/redirect-handler?code=123&State=8ae1de52-770c-4bee-a6ac-3c7a6ea45b6f
+GET localhost:{{API_PORT}}/enedis/public/redirect-handler?code=123&State=8ae1de52-770c-4bee-a6ac-3c7a6ea45b6f
     &usage_point_id=12655648759651
 
 ###
@@ -66,17 +66,17 @@ GET localhost:9080/enedis/public/redirect-handler?code=123&State=8ae1de52-770c-4
 # Customer who has three consumption delivery points for which he has activated the load curves.
 # Its data is uploaded accurately (without a "hole" in data) and its metres were put into service
 # at the beginning of the Linky deployment.
-GET localhost:9080/enedis/public/redirect-handler?code=123&State=8ae1de52-770c-4bee-a6ac-3c7a6ea45b6f
+GET localhost:{{API_PORT}}/enedis/public/redirect-handler?code=123&State=8ae1de52-770c-4bee-a6ac-3c7a6ea45b6f
     &usage_point_id=64975835695673
 ###
-GET localhost:9080/enedis/public/redirect-handler?code=123&State=8ae1de52-770c-4bee-a6ac-3c7a6ea45b6f
+GET localhost:{{API_PORT}}/enedis/public/redirect-handler?code=123&State=8ae1de52-770c-4bee-a6ac-3c7a6ea45b6f
     &usage_point_id=63695879465986
 ###
-GET localhost:9080/enedis/public/redirect-handler?code=123&State=8ae1de52-770c-4bee-a6ac-3c7a6ea45b6f
+GET localhost:{{API_PORT}}/enedis/public/redirect-handler?code=123&State=8ae1de52-770c-4bee-a6ac-3c7a6ea45b6f
     &usage_point_id=22315546958763
 
 ###
 # client 8
 # Customer who gives his consent but revokes it immediately after giving it.
-GET localhost:9080/enedis/public/redirect-handler?code=123&State=8ae1de52-770c-4bee-a6ac-3c7a6ea45b6f
+GET localhost:{{API_PORT}}/enedis/public/redirect-handler?code=123&State=8ae1de52-770c-4bee-a6ac-3c7a6ea45b6f
     &usage_point_id=26584978546985
