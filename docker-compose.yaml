@@ -20,7 +20,7 @@ services:
       influxdb:
         condition: service_healthy
   mariadb:
-    image: mariadb:11.5.2
+    image: mariadb:11.4.3
     restart: unless-stopped
     environment:
       MARIADB_ROOT_PASSWORD: esthesis-system

@@ -30,7 +30,7 @@ esthesis:
       enabled: false
       influx-db:
         url: http://localhost:9086
-        token: esthesis
+        token: esthesis-edge
         bucket: edge
         org: esthesis
     core:

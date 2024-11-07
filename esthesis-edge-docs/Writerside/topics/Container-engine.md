@@ -4,8 +4,7 @@ title: Container engine
 
 # Container engine installation guide
 esthesis EDGE publishes linux/amd64 and linux/arm64 container images as part of its release process. Images are pushed
-to [Docker Hub](https://hub.docker.com/repository/docker/esthesisiot/esthesis-edge/general) and are freely available to 
-everyone.
+to [Docker Hub](https://hub.docker.com/repository/docker/esthesisiot/esthesis-edge/general).
 
 ## Requirements
 - A container engine runtime.
