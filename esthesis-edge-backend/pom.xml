@@ -7,7 +7,7 @@
   <parent>
     <groupId>esthesis</groupId>
     <artifactId>esthesis-bom</artifactId>
-    <version>1.0.6</version>
+    <version>1.0.7</version>
   </parent>
 
   <artifactId>esthesis-edge</artifactId>
@@ -24,7 +24,7 @@
     <dependency>
       <groupId>esthesis</groupId>
       <artifactId>esthesis-common</artifactId>
-      <version>1.0.6</version>
+      <version>1.0.7</version>
     </dependency>
 
     <!-- QUARKUS -->
