@@ -11,6 +11,7 @@
 #  															(default: auth).
 #   ESTHESIS_REGISTRY_USERNAME:	The username to login to the 'auth' type registry.
 #   ESTHESIS_REGISTRY_PASSWORD:	The password to login to the 'auth' type registry.
+#   ESTHESIS_SKIP_COMPOSE_PUB:  Skips publishing the esthesis EDGE Docker Compose file to Docker Hub.
 #
 # Usage examples:
 #   ./publish.sh
@@ -39,6 +40,11 @@ printInfo() {
 # If $ESTHESIS_REGISTRY_URL is empty, set it to Docker Hub.
 if [ -z "$ESTHESIS_REGISTRY_URL" ]; then
   ESTHESIS_REGISTRY_URL="docker.io/esthesisiot"
+fi
+
+# If $ESTHESIS_SKIP_COMPOSE_PUB is empty, set it to false.
+if [ -z "$ESTHESIS_SKIP_COMPOSE_PUB" ]; then
+  ESTHESIS_SKIP_COMPOSE_PUB="false"
 fi
 
 # If $ESTHESIS_REGISTRY_TYPE is empty, set it to 'auth'.
@@ -84,3 +90,6 @@ helm package .
 
 # Push the chart to the registry.
 helm push esthesis-edge-helm-"$CHART_VERSION".tgz oci://"$ESTHESIS_REGISTRY_URL"
+
+# Remove the chart package.
+rm esthesis-edge-helm-"$CHART_VERSION".tgz
