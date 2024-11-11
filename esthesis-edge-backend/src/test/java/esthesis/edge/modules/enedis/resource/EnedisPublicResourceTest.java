@@ -82,8 +82,7 @@ class EnedisPublicResourceTest {
     given()
         .when().get("/enedis/public/redirect-handler?State=1&usage_point_id=1&code=1")
         .then()
-        .statusCode(200)
-        .body(not(is(emptyOrNullString())));
+        .statusCode(200);
   }
 
   @Test

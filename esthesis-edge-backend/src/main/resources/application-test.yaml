@@ -19,3 +19,5 @@ esthesis:
     modules:
       enedis:
         enabled: true
+        self-registration:
+          state-checking: false

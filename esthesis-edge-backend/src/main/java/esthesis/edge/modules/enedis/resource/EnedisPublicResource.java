@@ -38,7 +38,7 @@ public class EnedisPublicResource {
    * @return True if the state is known, false otherwise.
    */
   private boolean isKnownState(String state) {
-    return states.contains(state) || !cfg.selfRegistration().stateChecking();
+    return states.contains(state);
   }
 
   /**
@@ -90,7 +90,8 @@ public class EnedisPublicResource {
   public Response redirectHandler(@QueryParam("State") String state,
       @QueryParam("usage_point_id") String usagePointId, @QueryParam("code") String code) {
     // Check the state received is one we have previously created, if not return an error.
-    if (StringUtils.isEmpty(state) || !isKnownState(state)) {
+    if (cfg.selfRegistration().stateChecking() && (StringUtils.isEmpty(state) || !isKnownState(
+        state))) {
       log.error("Received invalid state '{}'.", state);
       return Response.status(Response.Status.BAD_REQUEST).entity("Invalid state.").build();
     }
