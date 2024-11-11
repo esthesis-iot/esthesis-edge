@@ -1,3 +1,53 @@
 # Enedis
 
-Start typing here...
+The configuration for the esthesis EDGE Enedis module consists of the following parameters. 
+<tip>
+Please note, all parameters should be prefixed by 'ESTHESIS_EDGE_MODULES_ENEDIS_'.
+</tip>
+
+## General configuration
+
+| **NAME**           | **DESCRIPTION**                                                                                                                                      |
+|--------------------|------------------------------------------------------------------------------------------------------------------------------------------------------|
+| **ENABLED**        | Whether the Enedis module is enabled or not.<br/>Default: false                                                                                      |
+| **CRON**           | A Quartz-type cron expression, specifying the frequency in which the Enedis module tries to fetch data from the Enedis API.<br/>Default: 0 0 6 * * ? |
+| **MAX_DEVICES**    | The total number of Enedis devices that can be registered in estehesis EDGE.<br/>Default: 1000                                                       |
+| **PAST_DAYS_INIT** | The number of days in the past to fetch data from the Enedis API for a newly registered device.<br/>Default: 30                                      |
+| **CLIENT_ID**      | The client ID to use when connecting to the Enedis API.<br/>Default: esthesis-edge                                                                   |
+| **CLIENT_SECRET**  | The client secret to use when connecting to the Enedis API.<br/>Default: esthesis-edge                                                               |
+
+## Data fetching
+
+| **NAME**                              | **DESCRIPTION**                                                                         |
+|---------------------------------------|-----------------------------------------------------------------------------------------|
+| **FETCH_TYPES_DC_ENABLED**            | Enables fetching Daily Consumption data.<br/>Default: false                             |
+| **FETCH_TYPES_DC_CATEGORY**           | Category name when synchronising data.<br/>Default: energy                              |
+| **FETCH_TYPES_DC_MEASUREMENT**        | Measurement name when synchronising data.<br/>Default: dc                               |
+| **FETCH_TYPES_DC_ERRORS_THRESHOLD**   | The number of errors after which DC fetching is disabled for a device.<br/>Default: 3   |
+| **FETCH_TYPES_DCMP_ENABLED**          | Enables fetching Daily Consumption Max Power data.<br/>Default: false                   |
+| **FETCH_TYPES_DCMP_CATEGORY**         | Category name when synchronising data.<br/>Default: energy                              |
+| **FETCH_TYPES_DCMP_MEASUREMENT**      | Measurement name when synchronising data.<br/>Default: dcmp                             |
+| **FETCH_TYPES_DCMP_ERRORS_THRESHOLD** | The number of errors after which DCMP fetching is disabled for a device.<br/>Default: 3 |
+| **FETCH_TYPES_DP_ENABLED**            | Enables fetching Daily Production data.<br/>Default: false                              |
+| **FETCH_TYPES_DP_CATEGORY**           | Category name when synchronising data.<br/>Default: energy                              |
+| **FETCH_TYPES_DP_MEASUREMENT**        | Measurement name when synchronising data.<br/>Default: dp                               |
+| **FETCH_TYPES_DP_ERRORS_THRESHOLD**   | The number of errors after which DP fetching is disabled for a device.<br/>Default: 3   |
+
+## Self-registration
+| **NAME**                                        | **DESCRIPTION**                                                                                                                                                                                                                                                                                                                                                                |
+|-------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| **SELF_REGISTRATION_ENABLED**                   | Enables the self-registration page for Enedis' end-users.<br/>Default: false                                                                                                                                                                                                                                                                                                   |
+| **SELF_REGISTRATION_STATE_CHECKING**            | Enables checking the registration state when a user is redirected back from Enedis API to esthesis EDGE.<br/>Default: false                                                                                                                                                                                                                                                    |
+| **SELF_REGISTRATION_WELCOME_URL**               | If set, instead of showing an internal self-registration page the user is redirected to this url.                                                                                                                                                                                                                                                                              |
+| **SELF_REGISTRATION_REDIRECT_URL**              | The URL Enedis API is instructed to redirect the user after consent.<br/>Default: http://localhost:8080                                                                                                                                                                                                                                                                        |
+| **SELF_REGISTRATION_DURATION**                  | The consent duration requested from Enedis API.<br/>Default: P1Y                                                                                                                                                                                                                                                                                                               |
+| **SELF_REGISTRATION_PAGE_LOGO1_URL**            | The URL of the first logo to be displayed in the self-registration page.                                                                                                                                                                                                                                                                                                       |
+| **SELF_REGISTRATION_PAGE_LOGO1_ALT**            | The alt text of the first logo to be displayed in the self-registration page.                                                                                                                                                                                                                                                                                                  |
+| **SELF_REGISTRATION_PAGE_LOGO2_URL**            | The URL of the second logo to be displayed in the self-registration page.                                                                                                                                                                                                                                                                                                      |
+| **SELF_REGISTRATION_PAGE_LOGO2_ALT**            | The alt text of the second logo to be displayed in the self-registration page.                                                                                                                                                                                                                                                                                                 |
+| **SELF_REGISTRATION_PAGE_REGISTRATION_TITLE**   | The title of the self-registration page.<br/>Default: Connect your Enedis account                                                                                                                                                                                                                                                                                              |
+| **SELF_REGISTRATION_PAGE_REGISTRATION_MESSAGE** | The text of the self-registration page.<br/>Default: You will be redirected to Enedis, where you have to authenticate with your Enedis account, and authorise this application to retrieve your electricity consumption data. The authorisation will be valid for 1 year. Your data will be used by us to provide you with insights and recommendations on how to save energy. |
+| **SELF_REGISTRATION_PAGE_SUCCESS_TITLE**        | The title of the successful registration page.<br/>Default: Account connected                                                                                                                                                                                                                                                                                                  |
+| **SELF_REGISTRATION_PAGE_SUCCESS_MESSAGE**      | The text of the successful registration page.<br/>Default: Your account was successfully connected, you may now close this window.                                                                                                                                                                                                                                             |
+| **SELF_REGISTRATION_PAGE_ERROR_TITLE**          | The title of the unsuccessful registration page.<br/>Default: Error connecting account                                                                                                                                                                                                                                                                                                |
+| **SELF_REGISTRATION_PAGE_ERROR_MESSAGE**        | The text of the unsuccessful registration page.<br/>Default: An error occurred while connecting your account. Please try again later.                                                                                                                                                                                                                                           |

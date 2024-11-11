@@ -6,9 +6,9 @@
     <build-profile instance="esthesis-edge">
         <variables>
             <noindex-content>false</noindex-content>
-            <primary-color>#059999</primary-color>
+            <primary-color>#fdad00</primary-color>
             <color-preset>soft</color-preset>
-            <link-color>#059999</link-color>
+            <link-color>#fdad00</link-color>
             <custom-favicons>logo.png</custom-favicons>
             <header-logo>logo.png</header-logo>
 

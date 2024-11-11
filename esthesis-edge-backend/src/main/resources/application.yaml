@@ -50,9 +50,9 @@ esthesis:
         enabled: false
         cron: "0 0 6 * * ?"
         max-devices: 1000
-        past-days-init: 7
-        client-id: myclientid
-        client-secret: myclientsecret
+        past-days-init: 30
+        client-id: esthesis-edge
+        client-secret: esthesis-edge
         fetch-types:
           dc:
             enabled: true
@@ -71,7 +71,7 @@ esthesis:
             errors-threshold: 3
         self-registration:
           enabled: true
-          state-checking: false
+          state-checking: true
           welcome-url:
           redirect-url: http://localhost:8080
           duration: P1Y

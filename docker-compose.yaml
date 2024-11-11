@@ -7,13 +7,13 @@
 ####################################################################################################
 services:
   edge:
-    image: 192.168.50.211:5000/esthesis/esthesis-edge:1.0.0-SNAPSHOT
+    image: 192.168.50.211:5000/esthesis/esthesis-edge:latest
     restart: unless-stopped
     environment:
       QUARKUS_DATASOURCE_JDBC_URL: jdbc:mariadb://mariadb:3306/esthesis-edge
       ESTHESIS_EDGE_LOCAL_INFLUX_DB_URL: http://influxdb:8086
     ports:
-      - "6080:8080"
+      - "8080:8080"
     depends_on:
       mariadb:
         condition: service_healthy

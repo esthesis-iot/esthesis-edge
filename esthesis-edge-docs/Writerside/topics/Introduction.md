@@ -15,7 +15,7 @@ data from multiple edge or standalone/agent-based deployments.
 Key features of Esthesis EDGE include:
 
 1.	**Data Collection**: Fetches data from various third-party systems, such as IoT devices, databases, or external APIs.
-2.	**Edge Deploymen**t: Operates close to the data source to minimize latency and ensure reliable operation even 
+2.	**Edge Deployment**t: Operates close to the data source to minimize latency and ensure reliable operation even 
 with unreliable connectivity.
 3.	**Local Processing**: Performs initial processing and filtering of data before synchronizing it with the core system.
 4.	**Synchronization**: Ensures that data is consistently synced with esthesis CORE for centralised analysis and long-term 
