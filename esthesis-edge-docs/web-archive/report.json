@@ -5,10 +5,10 @@
   "testsPassedCount" : 172,
   "testsWarnings" : {
     "INT002" : [ {
-      "id" : "INT002---Enedis---in-esthesis-edge-tree-15-17---------esthesis-edge-tree-22-13",
+      "id" : "INT002---Enedis---in-esthesis-edge-tree-16-17---------esthesis-edge-tree-23-13",
       "problemId" : "INT002",
       "name" : "Map ID is not unique",
-      "description" : "\"\"Enedis\"\" in esthesis-edge.tree:15:17 -> <br/>    esthesis-edge.tree:22:13"
+      "description" : "\"\"Enedis\"\" in esthesis-edge.tree:16:17 -> <br/>    esthesis-edge.tree:23:13"
     } ],
     "VIS011" : [ {
       "id" : "VIS011------images-big-logo_dark-png---in-Introduction-md-3-1",
@@ -19,10 +19,10 @@
   },
   "testsErrors" : {
     "CDE006" : [ {
-      "id" : "CDE006-In-Container-engine-md-19-1",
+      "id" : "CDE006-In-Kubernetes-md-13-1",
       "problemId" : "CDE006",
       "name" : "'code-block' cannot be empty",
-      "description" : "In Container-engine.md:19:1"
+      "description" : "In Kubernetes.md:13:1"
     } ]
   },
   "idsAndTitles" : {
