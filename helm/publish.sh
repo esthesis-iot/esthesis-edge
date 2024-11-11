@@ -90,16 +90,4 @@ printInfo "Publishing release-version Helm chart."
 helm package .
 printInfo "Pushing the Helm chart '$CHART_VERSION' to the registry."
 helm push esthesis-edge-helm-"$CHART_VERSION".tgz oci://"$ESTHESIS_REGISTRY_URL"
-#rm esthesis-edge-helm-"$CHART_VERSION".tgz
-
-printInfo "Publishing latest-version Helm chart."
-find . -name Chart.yaml -print0 | xargs -0 "$SED" -i "0,/version:/s|version:.*$|version: latest|"
-helm package .
-printInfo "Pushing the Helm chart 'latest' to the registry."
-helm push esthesis-edge-helm-latest.tgz oci://"$ESTHESIS_REGISTRY_URL"
-#rm esthesis-edge-helm-"latest".tgz
-
-# Switch chart version back to release.
-find . -name Chart.yaml -print0 | xargs -0 "$SED" -i "0,/version:/s|version:.*$|version: \"$RELEASE_VERSION\"|"
-
-
+rm esthesis-edge-helm-"$CHART_VERSION".tgz
