@@ -8,8 +8,8 @@ maintainers:
     email: esthesis@eurodyn.com
     url: https://www.eurodyn.com
 icon: https://esthes.is/media/logo.png
-version: "1.0.3-SNAPSHOT"
-appVersion: "1.0.3-SNAPSHOT"
+version: "1.0.7"
+appVersion: "1.0.7"
 dependencies:
   - name: mariadb
     version: "11.4.3"
