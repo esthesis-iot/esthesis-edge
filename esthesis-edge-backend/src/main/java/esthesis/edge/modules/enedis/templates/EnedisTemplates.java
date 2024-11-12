@@ -24,6 +24,7 @@ public class EnedisTemplates {
                       padding: 0;
                       height: 100vh;
                       display: flex;
+                      flex-direction: column;
                       justify-content: center;
                       align-items: center;
                       background: linear-gradient(135deg, #4b79a1, #283e51);
@@ -97,6 +98,11 @@ public class EnedisTemplates {
                   a:hover {
                       text-decoration: underline;
                   }
+          
+                  .poweredBy {
+                      margin-top: 10px;
+                      color: #aaa;
+                  }
               </style>
           
               <script>
@@ -108,12 +114,14 @@ public class EnedisTemplates {
           <body>
               <div class="login-container">
                   <div class="logo-container">
-                      <img src="https://esthes.is/docs/img/logo.png" alt="esthesis EDGE">
                       {#if logo1}
                         <img src="{logo1}" alt="{logo1Alt}">
                       {/if}
                       {#if logo2}
                         <img src="{logo2}" alt="{logo2Alt}">
+                      {/if}
+                      {#if logo3}
+                        <img src="{logo3}" alt="{logo3Alt}">
                       {/if}
                   </div>
                   <h2>{title}</h2>
@@ -122,6 +130,7 @@ public class EnedisTemplates {
                   </p>
                   <button onclick="close()">Close</button>
               </div>
+              <div class="poweredBy"><a href="https://esthes.is" target="_blank">Powered by esthesis EDGE</a></div>
           </body>
           </html>
           """;
@@ -141,6 +150,7 @@ public class EnedisTemplates {
                   padding: 0;
                   height: 100vh;
                   display: flex;
+                  flex-direction: column;
                   justify-content: center;
                   align-items: center;
                   background: linear-gradient(135deg, #4b79a1, #283e51);
@@ -214,6 +224,10 @@ public class EnedisTemplates {
               a:hover {
                   text-decoration: underline;
               }
+              .poweredBy {
+                  margin-top: 10px;
+                  color: #aaa;
+              }
           </style>
       
           <script>
@@ -226,21 +240,25 @@ public class EnedisTemplates {
       <body>
           <div class="login-container">
               <div class="logo-container">
-                  <img src="https://esthes.is/docs/img/logo.png" alt="esthesis EDGE">
                   {#if logo1}
                     <img src="{logo1}" alt="{logo1Alt}">
                   {/if}
                   {#if logo2}
                     <img src="{logo2}" alt="{logo2Alt}">
                   {/if}
+                  {#if logo3}
+                    <img src="{logo3}" alt="{logo3Alt}">
+                  {/if}
               </div>
               <h2>{title}</h2>
               <p>
                 {message}
               </p>
-              <img src="/enedis/enedis-accept-button.png" alt="accept" style="cursor: pointer"
+              <img src="{buttonUrl}" alt="accept" style="cursor: pointer"
                 onclick="redirect();">
           </div>
+          <br>
+          <div class="poweredBy"><a href="https://esthes.is" target="_blank">Powered by esthesis EDGE</a></div>          
       </body>
       </html>
       """;
@@ -260,6 +278,7 @@ public class EnedisTemplates {
                   padding: 0;
                   height: 100vh;
                   display: flex;
+                  flex-direction: column;
                   justify-content: center;
                   align-items: center;
                   background: linear-gradient(135deg, #4b79a1, #283e51);
@@ -333,6 +352,10 @@ public class EnedisTemplates {
               a:hover {
                   text-decoration: underline;
               }
+              .poweredBy {
+                  margin-top: 10px;
+                  color: #aaa;
+              }
           </style>
       
           <script>
@@ -344,12 +367,14 @@ public class EnedisTemplates {
       <body>
           <div class="login-container">
               <div class="logo-container">
-                  <img src="https://esthes.is/docs/img/logo.png" alt="esthesis EDGE">
                   {#if logo1}
                     <img src="{logo1}" alt="{logo1Alt}">
                   {/if}
                   {#if logo2}
                     <img src="{logo2}" alt="{logo2Alt}">
+                  {/if}
+                  {#if logo3}
+                    <img src="{logo3}" alt="{logo3Alt}">
                   {/if}
               </div>
               <h2>{title}</h2>
@@ -358,6 +383,7 @@ public class EnedisTemplates {
               </p>
               <button onclick="close()">Close</button>
           </div>
+          <div class="poweredBy"><a href="https://esthes.is" target="_blank">Powered by esthesis EDGE</a></div>
       </body>
       </html>
       """;

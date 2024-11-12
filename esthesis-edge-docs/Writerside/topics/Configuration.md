@@ -11,5 +11,5 @@ configuration parameters should be specified appropriately.
 
 
 You can find the configuration options in the following sections of the documentation:
-- [](Main.md)
+- [](Main-configuration.md)
 - [Enedis module configuration](enedis.md)

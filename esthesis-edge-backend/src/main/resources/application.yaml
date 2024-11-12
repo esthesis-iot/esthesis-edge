@@ -15,8 +15,13 @@ quarkus:
       url: "${QUARKUS_REST_CLIENT_ESTHESIS_AGENT_SERVICE_CLIENT_URL:http://localhost:59070}"
       scope: Singleton
     EnedisClient:
-      url: "${QUARKUS_REST_CLIENT_ENEDIS_CLIENT_URL:https://ext.prod-sandbox.api.enedis.fr}"
+      url: "${QUARKUS_REST_CLIENT_ENEDIS_CLIENT_URL:https://gw.ext.prod-sandbox.api.enedis.fr}"
       scope: Singleton
+  log:
+    min-level: TRACE
+    category:
+      esthesis:
+        min-level: TRACE
 
 # noinspection YAMLSchemaValidation
 esthesis:
@@ -59,17 +64,17 @@ esthesis:
             enabled: true
             category: "energy"
             measurement: "dc"
-            errors-threshold: 3
+            errors-threshold: 10
           dcmp:
             enabled: true
             category: "energy"
             measurement: "dcmp"
-            errors-threshold: 3
+            errors-threshold: 10
           dp:
             enabled: true
             category: "energy"
             measurement: "dp"
-            errors-threshold: 3
+            errors-threshold: 10
         self-registration:
           enabled: true
           state-checking: true
@@ -77,10 +82,13 @@ esthesis:
           redirect-url: http://localhost:8080
           duration: P1Y
           page:
-            logo1-url: https://getlogovector.com/wp-content/uploads/2019/08/enedis-logo-vector.png
-            logo1-alt:
-            logo2-url:
-            logo2-alt:
+            logo1-url: https://datahub-enedis.fr/wp-content/uploads/Enedis-signature_couleur_RVB_72-dpi.png
+            logo1-alt: Enedis
+            logo2-url: https://www.eurodyn.com/wp-content/uploads/2018/11/logo_ed.png
+            logo2-alt: European Dynamics
+            logo3-url: https://esthes.is/docs/edge/images/logo.png
+            logo3-alt: esthesis EDGE
+            button-url: https://datahub-enedis.fr/wp-content/uploads/2018/11/vert-enedis.png
             registration:
               title: "Connect your Enedis account"
               message: "You will be redirected to Enedis, where you have to authenticate with your

@@ -138,6 +138,15 @@ public interface EnedisProperties {
       // The alt text of logo #2.
       Optional<String> logo2Alt();
 
+      // The URL of logo #3.
+      Optional<String> logo3Url();
+
+      // The alt text of logo #3.
+      Optional<String> logo3Alt();
+
+      // The URL of the accept button.
+      String buttonUrl();
+
       // Registration page configuration.
       Registration registration();
 

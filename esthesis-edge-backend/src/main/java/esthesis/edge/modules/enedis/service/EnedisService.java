@@ -40,8 +40,8 @@ public class EnedisService {
   private final DeviceService deviceService;
   private final EnedisProperties enedisProperties;
   private final EnedisFetchService enedisFetchService;
-  @RestClient
   @Inject
+  @RestClient
   EnedisClient enedisRestClient;
   // A local reference of the access token, to not keep refreshing when not needed.
   private EnedisAuthTokenDTO enedisAuthTokenDTO;
@@ -149,6 +149,9 @@ public class EnedisService {
         .data("logo1Alt", enedisProperties.selfRegistration().page().logo1Alt().orElse(""))
         .data("logo2", enedisProperties.selfRegistration().page().logo2Url().orElse(""))
         .data("logo2Alt", enedisProperties.selfRegistration().page().logo2Alt().orElse(""))
+        .data("logo3", enedisProperties.selfRegistration().page().logo3Url().orElse(""))
+        .data("logo3Alt", enedisProperties.selfRegistration().page().logo3Alt().orElse(""))
+        .data("buttonUrl", enedisProperties.selfRegistration().page().buttonUrl())
         .data("state", state)
         .data("clientId", enedisProperties.clientId())
         .data("message", enedisProperties.selfRegistration().page().registration().message())
@@ -167,6 +170,8 @@ public class EnedisService {
         .data("logo1Alt", enedisProperties.selfRegistration().page().logo1Alt().orElse(""))
         .data("logo2", enedisProperties.selfRegistration().page().logo2Url().orElse(""))
         .data("logo2Alt", enedisProperties.selfRegistration().page().logo2Alt().orElse(""))
+        .data("logo3", enedisProperties.selfRegistration().page().logo3Url().orElse(""))
+        .data("logo3Alt", enedisProperties.selfRegistration().page().logo3Alt().orElse(""))
         .data("title", enedisProperties.selfRegistration().page().success().title())
         .data("message", enedisProperties.selfRegistration().page().success().message())
         .render();
@@ -183,6 +188,8 @@ public class EnedisService {
         .data("logo1Alt", enedisProperties.selfRegistration().page().logo1Alt().orElse(""))
         .data("logo2", enedisProperties.selfRegistration().page().logo2Url().orElse(""))
         .data("logo2Alt", enedisProperties.selfRegistration().page().logo2Alt().orElse(""))
+        .data("logo3", enedisProperties.selfRegistration().page().logo3Url().orElse(""))
+        .data("logo3Alt", enedisProperties.selfRegistration().page().logo3Alt().orElse(""))
         .data("title", enedisProperties.selfRegistration().page().error().title())
         .data("message", enedisProperties.selfRegistration().page().error().message())
         .render();

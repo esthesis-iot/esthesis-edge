@@ -23,7 +23,7 @@ quarkus:
       url: "http://esthesis-agent-service:8080"
     # -- The URL of the Enedis API.
     enedisClient:
-      url: "https://ext.prod-sandbox.api.enedis.fr"
+      url: "https://gw.ext.prod-sandbox.api.enedis.fr"
 
 esthesis:
   edge:
@@ -108,7 +108,7 @@ esthesis:
             # -- The measurement name used to store Data Consumption data (used both in local InfluxDB database and in eLP).
             measurement: "dc"
             # -- The number of errors after which the fetching of Data Consumption data is stopped.
-            errorsThreshold: 3
+            errorsThreshold: 10
           dcmp:
             # -- Whether Data Consumption Max Power data is fetched from Enedis.
             enabled: true
@@ -117,7 +117,7 @@ esthesis:
             # -- The measurement name used to store Data Consumption Max Power data (used both in local InfluxDB database and in eLP).
             measurement: "dcmp"
             # -- The number of errors after which the fetching of Data Consumption Max Power data is stopped.
-            errorsThreshold: 3
+            errorsThreshold: 10
           dp:
             # -- Whether Data Production data is fetched from Enedis.
             enabled: true
@@ -126,7 +126,7 @@ esthesis:
             # -- The measurement name used to store Data Production data (used both in local InfluxDB database and in eLP).
             measurement: "dp"
             # -- The number of errors after which the fetching of Data Production data is stopped.
-            errorsThreshold: 3
+            errorsThreshold: 10
         selfRegistration:
           # -- Whether the self-registration page and functionality is enabled for the Enedis module.
           enabled: false
@@ -140,13 +140,19 @@ esthesis:
           duration: P1Y
           page:
             # -- The URL of the first logo being displayed on the self-registration page, if the welcome URL is empty.
-            logo1Url: https://getlogovector.com/wp-content/uploads/2019/08/enedis-logo-vector.png
+            logo1Url:
             # -- The alt text of the first logo being displayed on the self-registration page, if the welcome URL is empty.
             logo1Alt:
             # -- The URL of the second logo being displayed on the self-registration page, if the welcome URL is empty.
             logo2Url:
             # -- The alt text of the second logo being displayed on the self-registration page, if the welcome URL is empty.
             logo2Alt:
+            # -- The URL of the third logo being displayed on the self-registration page, if the welcome URL is empty.
+            logo3Url:
+            # -- The alt text of the third logo being displayed on the self-registration page, if the welcome URL is empty.
+            logo3Alt:
+            # -- The URL of the Enedis forward-button being displayed on the self-registration page.
+            buttonUrl:
             registration:
               # -- The title of the self-registration page, if the welcome URL is empty.
               title: "Connect your Enedis account"
