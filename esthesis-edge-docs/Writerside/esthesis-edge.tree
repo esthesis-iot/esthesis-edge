@@ -17,6 +17,7 @@
             </toc-element>
         </toc-element>
     </toc-element>
+    <toc-element topic="Examples.md"/>
     <toc-element topic="Users-guide.md">
         <toc-element topic="How-it-works.md"/>
         <toc-element topic="Modules.md">

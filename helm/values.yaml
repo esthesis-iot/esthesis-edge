@@ -44,18 +44,18 @@ esthesis:
       port: 80
     ingress:
       # -- Whether an ingress resource is created for esthesis EDGE.
-      enabled: true
+      enabled: false
       # -- The name of the cluster issuer used by cert-manager for the ingress resource.
-      certManagerClusterIssuer: letsencrypt-staging
+      certManagerClusterIssuer:
       # -- The name of the issuer used by cert-manager for the ingress resource.
       certManagerIssuer:
       # -- The class name of the ingress controller.
       className:
       # -- The hostname of the ingress resource.
-      hostname: "edge.k8s.home.nassosmichas.com"
+      hostname:
     local:
       # -- Whether the local InfluxDB database is updated with data fetched.
-      enabled: true
+      enabled: false
       influxDb:
         # -- The URL of the local InfluxDB database.
         url: "http://influxdb:8088"
@@ -129,7 +129,7 @@ esthesis:
             errorsThreshold: 3
         selfRegistration:
           # -- Whether the self-registration page and functionality is enabled for the Enedis module.
-          enabled: true
+          enabled: false
           # -- Whether self-registration redirect from Enedis requires a valid state.
           stateChecking: false
           # -- The URL of the self-registration welcome page. If left empty, a default page is provided by the Enedis module.

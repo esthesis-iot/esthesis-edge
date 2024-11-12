@@ -11,10 +11,10 @@
             <link-color>#fdad00</link-color>
             <custom-favicons>logo.png</custom-favicons>
             <header-logo>logo.png</header-logo>
-
             <download-title>Get esthesis EDGE</download-title>
             <download-page>https://esthes.is/edge</download-page>
             <showDownloadButton>true</showDownloadButton>
+            <content-max-width>2048</content-max-width>
         </variables>
     </build-profile>
 
