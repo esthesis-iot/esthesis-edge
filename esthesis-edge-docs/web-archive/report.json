@@ -5,10 +5,10 @@
   "testsPassedCount" : 172,
   "testsWarnings" : {
     "INT002" : [ {
-      "id" : "INT002---Enedis---in-esthesis-edge-tree-16-17---------esthesis-edge-tree-23-13",
+      "id" : "INT002---Enedis---in-esthesis-edge-tree-16-17---------esthesis-edge-tree-24-13",
       "problemId" : "INT002",
       "name" : "Map ID is not unique",
-      "description" : "\"\"Enedis\"\" in esthesis-edge.tree:16:17 -> <br/>    esthesis-edge.tree:23:13"
+      "description" : "\"\"Enedis\"\" in esthesis-edge.tree:16:17 -> <br/>    esthesis-edge.tree:24:13"
     } ],
     "VIS011" : [ {
       "id" : "VIS011------images-big-logo_dark-png---in-Introduction-md-3-1",
@@ -18,11 +18,11 @@
     } ]
   },
   "testsErrors" : {
-    "CDE006" : [ {
-      "id" : "CDE006-In-Kubernetes-md-13-1",
-      "problemId" : "CDE006",
-      "name" : "'code-block' cannot be empty",
-      "description" : "In Kubernetes.md:13:1"
+    "REF002" : [ {
+      "id" : "REF002---Main-md---in-Configuration-md-14-3",
+      "problemId" : "REF002",
+      "name" : "Referenced topic doesn't exist",
+      "description" : "\"\"Main.md\"\" in Configuration.md:14:3"
     } ]
   },
   "idsAndTitles" : {
@@ -255,6 +255,12 @@
       "id" : "CDE005-",
       "problemId" : "CDE005",
       "name" : "Cannot read the source code snippet from the specified location, and there is no fallback content in the 'code-block' element",
+      "description" : ""
+    } ],
+    "CDE006" : [ {
+      "id" : "CDE006-",
+      "problemId" : "CDE006",
+      "name" : "'code-block' cannot be empty",
       "description" : ""
     } ],
     "CDE007" : [ {
@@ -939,12 +945,6 @@
       "id" : "REF001-",
       "problemId" : "REF001",
       "name" : "Cannot link to a topic that is not included in the current instance",
-      "description" : ""
-    } ],
-    "REF002" : [ {
-      "id" : "REF002-",
-      "problemId" : "REF002",
-      "name" : "Referenced topic doesn't exist",
       "description" : ""
     } ],
     "REF003" : [ {
