@@ -10,6 +10,8 @@ import java.util.Optional;
 @ConfigMapping(prefix = "esthesis.edge")
 public interface EdgeProperties {
 
+  String toString();
+
   // The value to send as Bearer token in the authorization header for requests to the admin API.
   String adminSecret();
 
@@ -33,6 +35,8 @@ public interface EdgeProperties {
   Core core();
 
   interface Locale {
+
+    String toString();
 
     // Whether data is synchronised to the InfluxDB.
     boolean enabled();
@@ -58,6 +62,8 @@ public interface EdgeProperties {
 
   interface Core {
 
+    String toString();
+
     // The certificate of the CA that has generated the certificated being used by the esthesis
     // CORE MQTT server.
     Optional<String> cert();
@@ -73,6 +79,8 @@ public interface EdgeProperties {
 
     interface Push {
 
+      String toString();
+
       // Whether data is synchronised to the esthesis CORE.
       boolean enabled();
 
@@ -87,6 +95,8 @@ public interface EdgeProperties {
     }
 
     interface Registration {
+
+      String toString();
 
       // Whether device registration is enabled (i.e. EDGE devices are registered to esthesis CORE).
       boolean enabled();

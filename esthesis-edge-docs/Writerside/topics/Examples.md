@@ -1,11 +1,56 @@
 # Examples
 
-For convenience, here are some examples of possible configurations:
+Here are some possible examples of setting up esthesis EDGE in different environments. Those examples contain sample
+values for some of the critical environment variables, and you should replace them with your own values.
+
+## Standalone installation
+Start esthesis EDGE as a Docker container, connecting it to an external MariaDB and InfluxDB. Enable Enedis module, and
+configure local data sync, as well as esthesis CORE data sync and device registration:
+
+```Bash
+docker run --rm \
+  -p 9080:8080 \
+  -e QUARKUS_DATASOURCE_JDBC_URL="jdbc:mariadb://192.168.50.124:3306/esthesis-edge" \
+  -e QUARKUS_REST_CLIENT_ESTHESIS_AGENT_SERVICE_CLIENT_URL="http://192.168.40.236:59070" \
+  -e ESTHESIS_EDGE_ADMIN_SECRET="e35b9b5d-8831-4466-ac50-419b2a89c8b6" \
+  -e ESTHESIS_EDGE_LOCAL_ENABLED="true" \
+  -e ESTHESIS_EDGE_LOCAL_INFLUX_DB_URL="http://192.168.50.124:8086" \
+  -e ESTHESIS_EDGE_LOCAL_INFLUX_DB_TOKEN="Bfe-aqkUXEh9owtXKSu1V5zZ4D_1L88kD365dFYrv_trVjjqSoGEqo41j3aXfrflxfibE6PCWILchlqUymrWTw==" \
+  -e ESTHESIS_EDGE_CORE_PUSH_ENABLED="true" \
+  -e ESTHESIS_EDGE_CORE_PUSH_URL="ssl://192.168.50.221:8883" \
+  -e ESTHESIS_EDGE_CORE_REGISTRATION_ENABLED="true" \
+  -e ESTHESIS_EDGE_MODULES_ENEDIS_ENABLED="true" \
+  -e ESTHESIS_EDGE_MODULES_ENEDIS_CLIENT_ID="ezLeB5eMv5IJKZFykDfYXjS0jdAa" \
+  -e ESTHESIS_EDGE_MODULES_ENEDIS_CLIENT_SECRET="nFfbBuxVZU4IfwNSe6uhxaIPmJsa" \
+  -e ESTHESIS_EDGE_MODULES_ENEDIS_FETCH_TYPES_DC_ENABLED="true" \
+  -e ESTHESIS_EDGE_MODULES_ENEDIS_FETCH_TYPES_DCMP_ENABLED="true" \
+  -e ESTHESIS_EDGE_MODULES_ENEDIS_FETCH_TYPES_DP_ENABLED="true" \
+  -e ESTHESIS_EDGE_MODULES_ENEDIS_SELF_REGISTRATION_ENABLED="true" \
+  -e ESTHESIS_EDGE_MODULES_ENEDIS_SELF_REGISTRATION_STATE_CHECKING="false" \
+  -e ESTHESIS_EDGE_MODULES_ENEDIS_SELF_REGISTRATION_PAGE_LOGO1_URL="https://www.eurodyn.com/wp-content/uploads/2018/11/logo_ed.png" \
+  -e ESTHESIS_EDGE_MODULES_ENEDIS_SELF_REGISTRATION_PAGE_LOGO1_ALT="European Dynamics" \
+  -e ESTHESIS_EDGE_MODULES_ENEDIS_SELF_REGISTRATION_PAGE_LOGO2_URL="https://quarkus.io/assets/images/brand/quarkus_icon_1024px_default.png" \
+  -e ESTHESIS_EDGE_MODULES_ENEDIS_SELF_REGISTRATION_PAGE_LOGO2_ALT="Quarkus" \
+  -e ESTHESIS_EDGE_CORE_CERT="LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUMxRENDQWJ5Z0F3SUJBZ0lCQVRBTkJna3Foa2lHOXcwQkFRc0ZBREFiTVJrd0Z3WURWUVFEREJCbGMzUm8KWlhOcGN5MWpiM0psTFdOaE1CNFhEVEkwTURZeE9UQTVNRGt4TkZvWERUTTVNVEl6TURJeU1EQXdNRm93R3pFWgpNQmNHQTFVRUF3d1FaWE4wYUdWemFYTXRZMjl5WlMxallUQ0NBU0l3RFFZSktvWklodmNOQVFFQkJRQURnZ0VQCkFEQ0NBUW9DZ2dFQkFOandnNUFqMG9vOWtycDJ0NGdTR2FORFVFbSt6WnkxUytvSlBKYTJMcXN3VU1halFyQlMKVjROY3FsSGVYc3lNcGJKclBZNHlGZGx0WldnUFBTVXgvck1qUmV4ZlBNSVc5cENucFZscEZaNGZqTXhBOWptaAo5MnB1NTZuNEc0M0hiOTQyOHI0bmRsSmNmVDNqRGkwNC9JVFpYNXAyejZQekpMTVhaWVE0d3hlOWdJVm44WHplClhoUXRmV3FuTWNRRGFQek9zUUtrd3RML3Azak13cnZYOURGWjNFMFFQOUpNT2dmdzBhZlB2ZGd0ckkzbStIMWoKY3RHQkZKUWx6ZGdNUlh6M01XQXg0WjVEM3pKUE9ycDQ1SGswL1l3S3V2WlRpTjJsVUZXOTRscVVCTW9lYjdOOAphb3RTbzh5dHR3REtTMzNEcnFQaVhiNWJJcm14VUdYMUlWTUNBd0VBQWFNak1DRXdEd1lEVlIwVEFRSC9CQVV3CkF3RUIvekFPQmdOVkhROEJBZjhFQkFNQ0FRWXdEUVlKS29aSWh2Y05BUUVMQlFBRGdnRUJBQjJhSnl3MVJQQy8KUllrcEpTaG9JQjZiUFM1aHN4cHRrOExPaFNLQytab294cE5zTU05S1AxVEJrSjY3ZXQvYWs2RXRiMTIxSlNCdQpUVWFCWWVLcm9xMi9LNGI5a1E1ZVJRTGt6SUtrYTY1WkJGR0xuaklSR0pYL255SHJtanNMOUxRUTlXYWdpcDhiCms3VDYyOWhVWkkveVlmRGs4MWtaV0ROaEtwNjdZNEQwL1I0dFZZSTBBdEh3R2tpTEFETTB2M3JPMWt5RjNsYVoKV3VZcG9PVktmQkp5NXhKQmJXVGJVeGR0dU5VY25KeUIrZ054RFV3WnRoL3AxMWJzV2ltT05heFBWZGpFN1RpVgpMUWdwZ0tNeVdCL2hxK3lBQmJ0NkVlSWdvd0gvSVJjS0xiUEswOTd5alp6c25vYzAvdkUyK0o5WTBtOU9BQjlsCkZXdkl0Q1NRQ3hrPQotLS0tLUVORCBDRVJUSUZJQ0FURS0tLS0tCg==" \
+  --name esthesis-edge \
+  esthesisiot/esthesis-edge:latest
+```
+
+#### Test administration API authentication
+```curl -H "X-ESTHESIS-EDGE-ADMIN-SECRET: e35b9b5d-8831-4466-ac50-419b2a89c8b6" localhost:9080/admin/auth```
+
+#### Get registered devices
+```curl -H "X-ESTHESIS-EDGE-ADMIN-SECRET: e35b9b5d-8831-4466-ac50-419b2a89c8b6" localhost:9080/admin/devices```
+
+#### List queued data
+```curl -H "X-ESTHESIS-EDGE-ADMIN-SECRET: e35b9b5d-8831-4466-ac50-419b2a89c8b6" localhost:9080/admin/queue```
+
+#### Open Enedis self-registration page
+[](http://localhost:9080/enedis/public/self-registration)
+
+#### Get Enedis configuration
+```curl -H "X-ESTHESIS-EDGE-ADMIN-SECRET: e35b9b5d-8831-4466-ac50-419b2a89c8b6" localhost:9080/enedis/admin/config```
 
 ## Compose installation
 
-
 ## Kubernetes installation
-```
-
-```

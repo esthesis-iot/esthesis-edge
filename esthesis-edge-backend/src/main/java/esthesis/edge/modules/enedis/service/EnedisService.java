@@ -10,7 +10,6 @@ import esthesis.edge.model.DeviceModuleConfigEntity;
 import esthesis.edge.modules.enedis.client.EnedisClient;
 import esthesis.edge.modules.enedis.config.EnedisConstants;
 import esthesis.edge.modules.enedis.config.EnedisProperties;
-import esthesis.edge.modules.enedis.dto.EnedisConfigDTO;
 import esthesis.edge.modules.enedis.dto.datahub.EnedisAuthTokenDTO;
 import esthesis.edge.modules.enedis.templates.EnedisTemplates;
 import esthesis.edge.services.DeviceService;
@@ -135,48 +134,6 @@ public class EnedisService {
               .build(), List.of(MODULE_NAME, EDGE));
       log.info("Device with hardwareId '{}' created.", deviceDTO.getHardwareId());
     }
-  }
-
-  /**
-   * Get the Enedis module configuration.
-   *
-   * @return The Enedis module configuration.
-   */
-  public EnedisConfigDTO getConfig() {
-    EnedisConfigDTO config = new EnedisConfigDTO();
-    config.setEnabled(enedisProperties.enabled())
-        .setCron(enedisProperties.cron())
-        .setClientId(enedisProperties.clientId())
-        .setClientSecret(enedisProperties.clientSecret())
-        .setMaxDevices(enedisProperties.maxDevices())
-        .setSelfRegistrationEnabled(enedisProperties.selfRegistration().enabled())
-        .setSelfRegistrationStateChecking(enedisProperties.selfRegistration().stateChecking())
-        .setSelfRegistrationWelcomeUrl(
-            enedisProperties.selfRegistration().welcomeUrl().orElse(null))
-        .setSelfRegistrationRedirectUrl(enedisProperties.selfRegistration().redirectUrl())
-        .setSelfRegistrationDuration(enedisProperties.selfRegistration().duration())
-        .setSelfRegistrationPageLogo1Url(
-            enedisProperties.selfRegistration().page().logo1Url().orElse(null))
-        .setSelfRegistrationPageLogo1Alt(
-            enedisProperties.selfRegistration().page().logo1Alt().orElse(null))
-        .setSelfRegistrationPageLogo2Url(
-            enedisProperties.selfRegistration().page().logo2Url().orElse(null))
-        .setSelfRegistrationPageLogo2Alt(
-            enedisProperties.selfRegistration().page().logo2Alt().orElse(null))
-        .setSelfRegistrationPageRegistrationTitle(
-            enedisProperties.selfRegistration().page().registration().title())
-        .setSelfRegistrationPageRegistrationMessage(
-            enedisProperties.selfRegistration().page().registration().message())
-        .setSelfRegistrationPageSuccessTitle(
-            enedisProperties.selfRegistration().page().success().title())
-        .setSelfRegistrationPageSuccessMessage(
-            enedisProperties.selfRegistration().page().success().message())
-        .setSelfRegistrationPageErrorTitle(
-            enedisProperties.selfRegistration().page().error().title())
-        .setSelfRegistrationPageErrorMessage(
-            enedisProperties.selfRegistration().page().error().message());
-
-    return config;
   }
 
   /**

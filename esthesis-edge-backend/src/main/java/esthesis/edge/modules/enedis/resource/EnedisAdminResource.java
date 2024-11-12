@@ -1,7 +1,7 @@
 package esthesis.edge.modules.enedis.resource;
 
 import esthesis.edge.model.DeviceEntity;
-import esthesis.edge.modules.enedis.dto.EnedisConfigDTO;
+import esthesis.edge.modules.enedis.config.EnedisProperties;
 import esthesis.edge.modules.enedis.service.EnedisService;
 import esthesis.edge.security.AdminEndpoint;
 import esthesis.edge.security.ModuleEndpoint;
@@ -25,6 +25,7 @@ import lombok.extern.slf4j.Slf4j;
 public class EnedisAdminResource {
 
   private final EnedisService enedisService;
+  private final EnedisProperties enedisProperties;
 
   /**
    * Gets the configuration of the Enedis module.
@@ -36,8 +37,8 @@ public class EnedisAdminResource {
   @Path("/config")
   @Produces("application/json")
   @ModuleEndpoint(enabledProperty = "esthesis.edge.modules.enedis.enabled")
-  public EnedisConfigDTO getConfiguration() {
-    return enedisService.getConfig();
+  public String getConfiguration() {
+    return enedisProperties.toString();
   }
 
   /**

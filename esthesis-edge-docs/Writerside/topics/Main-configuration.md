@@ -59,3 +59,4 @@ The main configuration options of esthesis EDGE consist of the following paramet
 | **ESTHESIS_EDGE_CORE_REGISTRATION_SECRET**<br/>--set esthesis.edge.core.registration.secret   | The secret token to use when registering new devices in esthesis CORE.                                  |
 | **ESTHESIS_EDGE_CORE_TAGS**<br/>--set esthesis.edge.core.registration.tags                    | The tags used to identify the device in esthesis CORE.<br/>Default: edge                                |
 | **ESTHESIS_EDGE_CORE_KEY_ALGORITHM**<br/>--set esthesis.edge.core.keyAlgorithm                | The algorithm used to generate the device keys by esthesis CORE.<br/>Default: RSA                       |
+| **ESTHESIS_EDGE_CORE_CERT**<br/>--set esthesis.edge.core.cert                                 | esthesis CORE certificate in Base64 format. Needed when connecting to MQTT via ssl://.                  |

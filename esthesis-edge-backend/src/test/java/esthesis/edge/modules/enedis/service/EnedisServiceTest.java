@@ -70,11 +70,6 @@ class EnedisServiceTest {
   }
 
   @Test
-  void getConfig() {
-    assertNotNull(enedisService.getConfig());
-  }
-
-  @Test
   void getSelfRegistrationPage() {
     String state = UUID.randomUUID().toString();
     assertTrue(enedisService.getSelfRegistrationPage(state).contains(state));

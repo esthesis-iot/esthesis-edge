@@ -65,6 +65,15 @@ class AdminResourceTest {
   }
 
   @Test
+  void testConfig() {
+    given()
+        .header(AdminRequestFilter.ADMIN_SECRET_HEADER_NAME, adminSecret)
+        .when().get("/admin/config")
+        .then()
+        .statusCode(200);
+  }
+
+  @Test
   void testDeleteDeviceByHardwareId() {
     given()
         .header(AdminRequestFilter.ADMIN_SECRET_HEADER_NAME, adminSecret)

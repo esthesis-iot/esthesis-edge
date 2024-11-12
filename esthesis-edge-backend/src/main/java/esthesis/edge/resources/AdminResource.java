@@ -1,5 +1,6 @@
 package esthesis.edge.resources;
 
+import esthesis.edge.config.EdgeProperties;
 import esthesis.edge.dto.DeviceDTO;
 import esthesis.edge.dto.QueueItemDTO;
 import esthesis.edge.jobs.PurgeJob;
@@ -17,6 +18,7 @@ import jakarta.ws.rs.core.Response;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
 
 /**
  * Administration resource for EDGE. Access to the resources defined here need to use the configured
@@ -31,6 +33,10 @@ public class AdminResource {
   private final QueueService queueService;
   private final SyncJob syncJob;
   private final PurgeJob purgeJob;
+  private final EdgeProperties edgeProperties;
+
+  @ConfigProperty(name = "quarkus.rest-client.EsthesisAgentServiceClient.url")
+  String abc;
 
   /**
    * Endpoint to check if the admin endpoint is working.
@@ -127,4 +133,14 @@ public class AdminResource {
     return Response.ok().build();
   }
 
+  @GET
+  @AdminEndpoint
+  @Path("/config")
+  @Produces("application/json")
+  public String config() {
+    System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>");
+    System.out.println(abc);
+    System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>");
+    return edgeProperties.toString();
+  }
 }

@@ -39,6 +39,8 @@ public interface EnedisProperties {
 
   interface FetchTypes {
 
+    String toString();
+
     // Daily consumption Enedis API endpoint configuration.
     Dc dc();
 
@@ -55,6 +57,8 @@ public interface EnedisProperties {
 
       // The number of errors that can be tolerated before the endpoint is disabled.
       int errorsThreshold();
+
+      String toString();
     }
 
     // Daily production Enedis API endpoint configuration.
@@ -73,6 +77,8 @@ public interface EnedisProperties {
 
       // The number of errors that can be tolerated before the endpoint is disabled.
       int errorsThreshold();
+
+      String toString();
     }
 
     // Daily consumption maximum power Enedis API endpoint configuration.
@@ -91,6 +97,8 @@ public interface EnedisProperties {
 
       // The number of errors that can be tolerated before the endpoint is disabled.
       int errorsThreshold();
+
+      String toString();
     }
   }
 
@@ -113,6 +121,8 @@ public interface EnedisProperties {
 
     // Built-in pages configuration.
     Page page();
+
+    String toString();
 
     interface Page {
 
@@ -137,6 +147,8 @@ public interface EnedisProperties {
       // Error page configuration.
       Error error();
 
+      String toString();
+
       interface Registration {
 
         // The title of the registration page.
@@ -144,6 +156,8 @@ public interface EnedisProperties {
 
         // The message of the registration page.
         String message();
+
+        String toString();
       }
 
       interface Success {
@@ -153,6 +167,8 @@ public interface EnedisProperties {
 
         // The message of the success page.
         String message();
+
+        String toString();
       }
 
       interface Error {
@@ -162,7 +178,11 @@ public interface EnedisProperties {
 
         // The message of the error page.
         String message();
+
+        String toString();
       }
     }
   }
+
+  String toString();
 }

@@ -12,10 +12,10 @@ quarkus:
       url: jdbc:mariadb://localhost:4306/esthesis-edge
   rest-client:
     EsthesisAgentServiceClient:
-      url: http://localhost:59070
+      url: "${QUARKUS_REST_CLIENT_ESTHESIS_AGENT_SERVICE_CLIENT_URL:http://localhost:59070}"
       scope: Singleton
     EnedisClient:
-      url: https://ext.prod-sandbox.api.enedis.fr
+      url: "${QUARKUS_REST_CLIENT_ENEDIS_CLIENT_URL:https://ext.prod-sandbox.api.enedis.fr}"
       scope: Singleton
 
 # noinspection YAMLSchemaValidation
@@ -45,6 +45,7 @@ esthesis:
       tags:
         - edge
       key-algorithm: RSA
+      cert: "<base64 cert>"
     modules:
       enedis:
         enabled: false

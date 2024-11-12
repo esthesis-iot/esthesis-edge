@@ -11,13 +11,13 @@
         <toc-element topic="Container-engine.md"/>
         <toc-element topic="Kubernetes.md"/>
         <toc-element topic="Configuration.md">
-            <toc-element topic="Main.md"/>
+            <toc-element topic="Main-configuration.md"/>
             <toc-element topic="ModulesConfiguration.md">
                 <toc-element topic="EnedisConfiguration.md"/>
             </toc-element>
         </toc-element>
+        <toc-element topic="Examples.md"/>
     </toc-element>
-    <toc-element topic="Examples.md"/>
     <toc-element topic="Users-guide.md">
         <toc-element topic="How-it-works.md"/>
         <toc-element topic="Modules.md">
