@@ -46,6 +46,8 @@ public interface EdgeProperties {
 
     interface InfluxDB {
 
+      String toString();
+
       // The URL of the InfluxDB.
       String url();
 
