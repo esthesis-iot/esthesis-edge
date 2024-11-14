@@ -24,6 +24,8 @@ quarkus:
     # -- The URL of the Enedis API.
     enedisClient:
       url: "https://gw.ext.prod-sandbox.api.enedis.fr"
+  log:
+    level: "INFO"
 
 esthesis:
   edge:
@@ -62,7 +64,7 @@ esthesis:
         # -- The token used to access the local InfluxDB database.
         token: "fVfC4PNVzPnO_qsYY4X3lsvYmqIZNFHE3kE6fI8hpZqR"
         # -- The bucket used to store data in the local InfluxDB database.
-        bucket: "esthesis-edge"
+        bucket: "edge"
         # -- The organisation used to store data in the local InfluxDB database.
         org: "esthesis"
     core:
@@ -85,6 +87,8 @@ esthesis:
           - edge
       # -- The algorithm used to generate keys for devices in esthesis CORE.
       keyAlgorithm: "RSA"
+      # -- The certificate used by esthesis CORE MQTT server.
+      cert: "<base64 cert>"
     modules:
       enedis:
         # -- Whether the Enedis module is enabled.
@@ -94,7 +98,7 @@ esthesis:
         # -- The maximum number of devices that can be registered by the Enedis module.
         maxDevices: 1000
         # -- The number of days in the past for which data is fetched from Enedis when a new device is registered.
-        pastDaysInit: 7
+        pastDaysInit: 30
         # -- The client ID used to access the Enedis API.
         clientId: myclientid
         # -- The client secret used to access the Enedis API.
@@ -152,7 +156,7 @@ esthesis:
             # -- The alt text of the third logo being displayed on the self-registration page, if the welcome URL is empty.
             logo3Alt:
             # -- The URL of the Enedis forward-button being displayed on the self-registration page.
-            buttonUrl:
+            buttonUrl: https://datahub-enedis.fr/wp-content/uploads/2018/11/vert-enedis.png
             registration:
               # -- The title of the self-registration page, if the welcome URL is empty.
               title: "Connect your Enedis account"
@@ -202,7 +206,7 @@ influxdb:
       # -- The organisation name of the esthesis EDGE user for InfluxDB.
       org: "esthesis"
       # -- The bucket name of esthesis EDGE in InfluxDB.
-      bucket: "esthesisedge"
+      bucket: "edge"
       # -- The username of the esthesis EDGE user for InfluxDB.
       username: "esthesis-admin"
       # -- The password of the esthesis EDGE user for InfluxDB.
