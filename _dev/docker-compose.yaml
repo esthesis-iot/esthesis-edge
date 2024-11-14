@@ -29,7 +29,7 @@ services:
       DOCKER_INFLUXDB_INIT_PASSWORD: esthesis-system
       DOCKER_INFLUXDB_INIT_ORG: esthesis
       DOCKER_INFLUXDB_INIT_BUCKET: edge
-      DOCKER_INFLUXDB_INIT_ADMIN_TOKEN: esthesis
+      DOCKER_INFLUXDB_INIT_ADMIN_TOKEN: esthesis-edge
     volumes:
       - edge-influxdb-vol-data:/var/lib/influxdb2
       - edge-influxdb-vol-config:/etc/influxdb2

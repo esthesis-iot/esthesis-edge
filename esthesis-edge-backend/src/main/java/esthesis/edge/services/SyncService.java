@@ -2,7 +2,7 @@ package esthesis.edge.services;
 
 import com.influxdb.client.InfluxDBClient;
 import com.influxdb.client.InfluxDBClientFactory;
-import com.influxdb.client.WriteApi;
+import com.influxdb.client.WriteApiBlocking;
 import com.influxdb.client.domain.WritePrecision;
 import com.influxdb.client.write.Point;
 import esthesis.common.avro.AvroUtils;
@@ -70,13 +70,11 @@ public class SyncService {
         }
 
         // Write point to InfluxDB.
-        try (WriteApi writeApi = influxDBClient.makeWriteApi()) {
-          log.debug("InfluxDB writing point '{}'.", point.toLineProtocol());
-          writeApi.writePoint(point);
-        }
+        WriteApiBlocking writeApiBlocking = influxDBClient.getWriteApiBlocking();
+        log.debug("InfluxDB writing point '{}'.", point.toLineProtocol());
+        writeApiBlocking.writePoint(point);
+        log.debug("InfluxDB synced queue item '{}'.", queueItemEntity.getId());
       }
-
-      log.debug("InfluxDB synced queue item '{}'.", queueItemEntity.getId());
     }
   }
 
@@ -153,6 +151,7 @@ public class SyncService {
         log.debug("Local syncing queue item '{}'.", queueItem.getId());
         try {
           influxDBPost(queueItem);
+          log.debug("Marking queue item '{}' as processed.", queueItem.getId());
           queueItem.setProcessedLocalAt(Instant.now());
           queueItem.persist();
         } catch (Exception e) {
