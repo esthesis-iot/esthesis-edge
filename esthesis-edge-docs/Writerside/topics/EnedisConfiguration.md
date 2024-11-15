@@ -1,7 +1,3 @@
----
-sidebar_label: Enedis
----
-
 # Enedis
 
 The configuration for the esthesis EDGE Enedis module consists of the following parameters.
