@@ -15,6 +15,8 @@ import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.eclipse.microprofile.openapi.annotations.Operation;
+import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 
 /**
  * Public resource for Enedis module. This resource is used to handle the self-registration of
@@ -23,6 +25,8 @@ import org.apache.commons.lang3.StringUtils;
 @Slf4j
 @Path("/enedis/public")
 @RequiredArgsConstructor
+@Tag(name = "EnedisPublicResource", description = "Public API endpoints for the Enedis module. "
+    + "This resource is used to handle the self-registration of Enedis devices.")
 public class EnedisPublicResource {
 
   // The list of states being tracked while displaying the welcome page.
@@ -52,6 +56,11 @@ public class EnedisPublicResource {
   @Path("self-registration")
   @Produces(MediaType.TEXT_HTML)
   @ModuleEndpoint(enabledProperty = "esthesis.edge.modules.enedis.enabled")
+  @Operation(
+      summary = "Display the self-registration page for Enedis devices.",
+      description = "This endpoint will present the user with a welcome page and a button to "
+          + "redirect to the Enedis self-registration page. Alternatively, if a welcome URL is "
+          + "configured, the user will be redirected to that URL.")
   public Response selfRegistration() {
     if (cfg.selfRegistration().enabled()) {
       // Check if the maximum allowed number of devices has been reached.
@@ -87,6 +96,11 @@ public class EnedisPublicResource {
   @Path("redirect-handler")
   @Produces(MediaType.TEXT_HTML)
   @ModuleEndpoint(enabledProperty = "esthesis.edge.modules.enedis.enabled")
+  @Operation(
+      summary = "Handles the redirection from Enedis.",
+      description = "This endpoint will create the device in the database and present the user "
+          + "with a success page, after the user has provided consent in the Enedis DataHub "
+          + "application.")
   public Response redirectHandler(@QueryParam("State") String state,
       @QueryParam("usage_point_id") String usagePointId, @QueryParam("code") String code) {
     // Check the state received is one we have previously created, if not return an error.

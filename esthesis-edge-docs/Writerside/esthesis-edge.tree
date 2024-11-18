@@ -23,6 +23,7 @@
         <toc-element topic="Modules.md">
             <toc-element topic="enedis.md"/>
         </toc-element>
+        <toc-element topic="API-documentation.md"/>
     </toc-element>
     <toc-element topic="Developers-guide.md">
         <toc-element topic="Dev-environment-setup.md"/>

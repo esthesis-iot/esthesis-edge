@@ -22,6 +22,19 @@ quarkus:
     category:
       esthesis:
         min-level: TRACE
+  swagger-ui:
+    always-include: true
+    path: /api/openapi-ui
+    title: esthesis EDGE API
+    operations-sorter: alpha
+    tags-sorter: alpha
+    default-models-expand-depth: -1
+  smallrye-openapi:
+    path: /api/openapi
+    security-scheme: api-key
+    security-scheme-name: X-ESTHESIS-EDGE-ADMIN-SECRET
+    api-key-parameter-in: header
+    api-key-parameter-name: X-ESTHESIS-EDGE-ADMIN-SECRET
 
 # noinspection YAMLSchemaValidation
 esthesis:

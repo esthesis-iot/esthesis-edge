@@ -33,7 +33,8 @@ in the Enedis module configuration, with a default value of 30 days.
 ## Data types and adaptive error handling
 As mentioned above, the Enedis module handles three types of data: daily consumption, daily maximum consumption, and daily
 production. However, the Enedis DataHub API does not always return all three types of data as, for example, a user
-might not produce electricity. At the time being, the Enedis DataHub API does not provide an interface for third-parties
+might not produce electricity, or might not have provided consent for a specific data type. 
+At the time being, the Enedis DataHub API does not provide an interface for third-parties
 to discover what kind of data is available. For this reason, the esthesis EDGE Enedis module is operating on a 
 "trial and error" basis, trying to fetch all three types of data and graciously handle any errors that might occur 
 (i.e. an error while trying to fetch data type X does not prevent the module from fetching data type Y).
@@ -41,7 +42,8 @@ to discover what kind of data is available. For this reason, the esthesis EDGE E
 In order for the Enedis module to not keep trying to fetch data that is not available forever, each time an error occurs 
 this is logged. Once the number of errors reaches a certain threshold, the Enedis module will stop trying to fetch this
 specific type of data for this user. The threshold can be configured in the Enedis module configuration, and you should
-tune it to your needs.
+tune it to your needs. Due to this nature of operation, you should expect to see some error messages in the logs, until
+the Enedis module has discovered what kind of data is available for a specific user.
 
 The Enedis module's administration API provides two endpoints allowing to get a list of errors and to reset the error 
 count. 

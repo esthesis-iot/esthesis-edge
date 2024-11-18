@@ -14,14 +14,17 @@ import jakarta.ws.rs.core.Response;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.eclipse.microprofile.openapi.annotations.Operation;
+import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 
 /**
- * Administration resource for Enedis module. Access to the resources defined here need to use the
- * configured secret as a Bearer authorization header.
+ * Administration resource for Enedis module, requiring authentication with the configured secret.
  */
 @Slf4j
 @Path("/enedis/admin")
 @RequiredArgsConstructor
+@Tag(name = "EnedisAdminResource", description = "Administration resource for Enedis module, "
+    + "requiring authentication with the configured secret.")
 public class EnedisAdminResource {
 
   private final EnedisService enedisService;
@@ -35,8 +38,11 @@ public class EnedisAdminResource {
   @GET
   @AdminEndpoint
   @Path("/config")
-  @Produces("application/json")
+  @Produces("application/text")
   @ModuleEndpoint(enabledProperty = "esthesis.edge.modules.enedis.enabled")
+  @Operation(
+      summary = "Show current configuration of Enedis module",
+      description = "Show the current configuration of the Enedis module.")
   public String getConfiguration() {
     return enedisProperties.toString();
   }
@@ -51,6 +57,9 @@ public class EnedisAdminResource {
   @Path("/fetch")
   @Produces("application/json")
   @ModuleEndpoint(enabledProperty = "esthesis.edge.modules.enedis.enabled")
+  @Operation(
+      summary = "Fetch data from Enedis",
+      description = "Initiates data fetching from Enedis for all devices configured in the module.")
   public Response fetchData() {
     enedisService.fetchData();
     return Response.ok().build();
@@ -67,6 +76,10 @@ public class EnedisAdminResource {
   @Path("/errors")
   @Produces("application/json")
   @ModuleEndpoint(enabledProperty = "esthesis.edge.modules.enedis.enabled")
+  @Operation(
+      summary = "Show devices with fetch errors",
+      description = "Show the devices that have encountered errors during the data fetch job, "
+          + "together with their error counters.")
   public List<DeviceEntity> errors() {
     return enedisService.getFetchErrors();
   }
@@ -82,6 +95,10 @@ public class EnedisAdminResource {
   @Path("/reset-errors")
   @Produces("application/json")
   @ModuleEndpoint(enabledProperty = "esthesis.edge.modules.enedis.enabled")
+  @Operation(
+      summary = "Reset fetch errors for a device",
+      description = "Reset the error counters for a device that has encountered errors during the "
+          + "data fetch job.")
   public DeviceEntity resetErrors(@QueryParam("hardwareId") String hardwareId) {
     return enedisService.resetFetchErrors(hardwareId);
   }
