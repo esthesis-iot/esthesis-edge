@@ -209,6 +209,9 @@ public class EnedisService {
    */
   @Scheduled(cron = "{esthesis.edge.modules.enedis.cron}")
   public void fetchData() {
+    if (!enedisProperties.enabled()) {
+      return;
+    }
     log.debug("Fetching data from Enedis.");
 
     // Get all Enedis devices.

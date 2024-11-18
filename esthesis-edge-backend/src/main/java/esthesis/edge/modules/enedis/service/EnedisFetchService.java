@@ -40,7 +40,6 @@ public class EnedisFetchService {
   private final QueueService dataService;
   private final EnedisProperties enedisProperties;
   private final EnedisELPMapperService enedisELPMapperService;
-  //TODO reset errors when successfully fetch
 
   /**
    * A helper method to increase by one the number of errors for a specific configuration key. If
@@ -59,6 +58,23 @@ public class EnedisFetchService {
       DeviceModuleConfigEntity newConfig = DeviceModuleConfigEntity.create(configKey, "1");
       newConfig.setDevice(DeviceEntity.findByHardwareId(hardwareId).orElseThrow());
       newConfig.persist();
+    }
+  }
+
+  /**
+   * A helper method to reset (to zero) the number of errors for a specific configuration key.
+   *
+   * @param hardwareId The hardware ID of the device.
+   * @param configKey  The configuration key.
+   */
+  private void resetErrors(String hardwareId, String configKey) {
+    Optional<DeviceModuleConfigEntity> config = DeviceModuleConfigEntity.getConfig(hardwareId,
+        configKey);
+    if (config.isPresent()) {
+      config.get().setConfigValue("0");
+    } else {
+      log.warn("Failed to reset errors for device '{}' as config key '{}' does not exist.",
+          hardwareId, configKey);
     }
   }
 
@@ -82,6 +98,7 @@ public class EnedisFetchService {
       dailyConsumptionDTO = enedisRestClient.getDailyConsumption(
           lastFetch, EnedisUtil.instantToYmd(Instant.now()),
           enedisPrm, "Bearer " + accessToken);
+      resetErrors(hardwareId, EnedisConstants.CONFIG_DC_ERRORS);
       log.debug("Fetched Daily Consumption '{}'.", dailyConsumptionDTO);
     } catch (Exception e) {
       log.warn("Failed to fetch Daily Consumption for device '{}'.", hardwareId, e);
@@ -140,6 +157,7 @@ public class EnedisFetchService {
               lastFetch, EnedisUtil.instantToYmd(Instant.now()),
               enedisPrm, "Bearer " + accessToken);
       log.debug("Fetched Daily Consumption Max Power '{}'.", dailyConsumptionMaxPowerDTO);
+      resetErrors(hardwareId, EnedisConstants.CONFIG_DCMP_ERRORS);
     } catch (Exception e) {
       log.warn("Failed to fetch Daily Consumption Max Power for device '{}'.", hardwareId, e);
       increaseErrors(hardwareId, EnedisConstants.CONFIG_DCMP_ERRORS);
@@ -194,6 +212,7 @@ public class EnedisFetchService {
           lastFetch, EnedisUtil.instantToYmd(Instant.now()),
           enedisPrm, "Bearer " + accessToken);
       log.debug("Fetched Daily Production '{}'.", dailyProductionDTO);
+      resetErrors(hardwareId, EnedisConstants.CONFIG_DP_ERRORS);
     } catch (Exception e) {
       log.warn("Failed to fetch Daily Production for device '{}'.", hardwareId, e);
       increaseErrors(hardwareId, EnedisConstants.CONFIG_DP_ERRORS);
