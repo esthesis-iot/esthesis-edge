@@ -1,30 +1,22 @@
 {
-  "testsErrorsCount" : 1,
+  "testsErrorsCount" : 0,
   "testsTotal" : 175,
-  "testsWarningsCount" : 2,
-  "testsPassedCount" : 172,
+  "testsWarningsCount" : 1,
+  "testsPassedCount" : 174,
   "testsWarnings" : {
-    "INT002" : [ {
-      "id" : "INT002---Enedis---in-esthesis-edge-tree-16-17---------esthesis-edge-tree-24-13",
-      "problemId" : "INT002",
-      "name" : "Map ID is not unique",
-      "description" : "\"\"Enedis\"\" in esthesis-edge.tree:16:17 -> <br/>    esthesis-edge.tree:24:13"
-    } ],
     "VIS011" : [ {
       "id" : "VIS011------images-big-logo_dark-png---in-Introduction-md-3-1",
       "problemId" : "VIS011",
       "name" : "Dark version of image or video file cannot be found",
       "description" : "\"\"../images/big-logo_dark.png\"\" in Introduction.md:3:1"
+    }, {
+      "id" : "VIS011---enedis-welcome-page_dark-png---in-enedis-md-23-1",
+      "problemId" : "VIS011",
+      "name" : "Dark version of image or video file cannot be found",
+      "description" : "\"\"enedis-welcome-page_dark.png\"\" in enedis.md:23:1"
     } ]
   },
-  "testsErrors" : {
-    "REF002" : [ {
-      "id" : "REF002---Main-md---in-Configuration-md-14-3",
-      "problemId" : "REF002",
-      "name" : "Referenced topic doesn't exist",
-      "description" : "\"\"Main.md\"\" in Configuration.md:14:3"
-    } ]
-  },
+  "testsErrors" : { },
   "idsAndTitles" : {
     "CDE001" : "The <compare> element must contain exactly two code blocks",
     "CDE002" : "The 'collapsed-title-line-number' attribute value on a 'code-block' element is not a valid number",
@@ -521,6 +513,12 @@
       "name" : "Error description template is not found",
       "description" : ""
     } ],
+    "INT002" : [ {
+      "id" : "INT002-",
+      "problemId" : "INT002",
+      "name" : "Map ID is not unique",
+      "description" : ""
+    } ],
     "INT004" : [ {
       "id" : "INT004-",
       "problemId" : "INT004",
@@ -945,6 +943,12 @@
       "id" : "REF001-",
       "problemId" : "REF001",
       "name" : "Cannot link to a topic that is not included in the current instance",
+      "description" : ""
+    } ],
+    "REF002" : [ {
+      "id" : "REF002-",
+      "problemId" : "REF002",
+      "name" : "Referenced topic doesn't exist",
       "description" : ""
     } ],
     "REF003" : [ {
