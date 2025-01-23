@@ -2,5 +2,5 @@
 
 esthesis EDGE can be deployed using a container engine, or in a Kubernetes cluster:
 
-- [](Container-engine.md)
-- [Kubernetes installation guide](Kubernetes.md)
+- [Installation on a Container Engine](Container-engine.md)
+- [Installation on a Kubernetes cluster](Kubernetes.md)

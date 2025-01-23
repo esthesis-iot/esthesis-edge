@@ -34,8 +34,8 @@ available under `esthesis-edge-backend` directory. The default configuration par
 well as the ones setup in `application.yaml` will get you up and running with no additional changes.
 
 ## Notes
-1. You can create a local-env.sh script alongside the dev.sh script to customise your local development environment. 
-If such a file exist, it will be sourced by the dev.sh. Your local-env.sh file can be used to set environment variables
+1. You can create a `local-env.sh` script alongside the `dev.sh` script to customise your local development environment. 
+If such a file exist, it will be sourced by the `dev.sh`. Your `local-env.sh` file can be used to set environment variables
 unique to your own development environment, for example:
     ```
     export ESTHESIS_EDGE_MODULES_ENEDIS_CLIENT_ID="myclientId"

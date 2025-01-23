@@ -4,7 +4,7 @@ esthesis EDGE configuration comes in two parts: The configuration of esthesis ED
 supported modules. 
 
 According to the initial installation method (standalone container, compose, or Kubernetes), 
-configuration parameters should be specified appropriately.
+configuration parameters should be specified appropriately:
 - Parameter names in capital, indicate environment variables that can be set when setting up esthesis EDGE in a
   container engine or via Compose.
 - Parameter names in lowercase, indicate configuration options that can be set when setting up esthesis EDGE in Kubernetes.

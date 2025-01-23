@@ -12,7 +12,7 @@ You need to have an Enedis application account, verified by Enedis, allowed to a
 
 ## User consent
 In order for the esthesis EDGE to be able to fetch data from the Enedis DataHub API, the user must first give their 
-consent following Enedis' procedures. The process starts with the user visiting an application page where a information
+consent following Enedis' procedures. The process starts with the user visiting an application page where information
 about the application as well as the purpose of the data collection is displayed. If the user agrees, they are redirected
 to the Enedis login page where they can log in and give their consent. After the user has given their consent, they are
 redirected back to the application where the consent is stored and the application can start fetching data.
@@ -39,10 +39,10 @@ to discover what kind of data is available. For this reason, the esthesis EDGE E
 "trial and error" basis, trying to fetch all three types of data and graciously handle any errors that might occur 
 (i.e. an error while trying to fetch data type X does not prevent the module from fetching data type Y).
 
-In order for the Enedis module to not keep trying to fetch data that is not available forever, each time an error occurs 
-this is logged. Once the number of errors reaches a certain threshold, the Enedis module will stop trying to fetch this
+In order for the Enedis module to not keep trying forever to fetch data that is not available, each time an error occurs 
+it is logged. Once the number of errors reaches a certain threshold the Enedis module will stop trying to fetch this
 specific type of data for this user. The threshold can be configured in the Enedis module configuration, and you should
-tune it to your needs. Due to this nature of operation, you should expect to see some error messages in the logs, until
+tune it to your needs. Due to this nature of operation you should expect to see some error messages in the logs, until
 the Enedis module has discovered what kind of data is available for a specific user.
 
 The Enedis module's administration API provides two endpoints allowing to get a list of errors and to reset the error 

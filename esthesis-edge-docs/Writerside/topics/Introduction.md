@@ -8,11 +8,11 @@ synchroniser, retrieving information from third-party systems, such as sensors, 
 at the edge of a network.
 
 Once the data is fetched, esthesis EDGE processes and stores it locally, ensuring low-latency responses and high 
-availability, even when the connection to the central system, Esthesis CORE, is intermittent. It then synchronises 
+availability, even when the connection to the central system, esthesis CORE, is intermittent. It then synchronises 
 the collected data with esthesis CORE, which serves as the central hub for managing, analysing, and storing aggregated 
 data from multiple edge or standalone/agent-based deployments.
 
-Key features of Esthesis EDGE include:
+Key features of esthesis EDGE include:
 
 1.	**Data Collection**: Fetches data from various third-party systems, such as IoT devices, databases, or external APIs.
 2.	**Edge Deployment**t: Operates close to the data source to minimize latency and ensure reliable operation even 

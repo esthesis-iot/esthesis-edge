@@ -8,11 +8,11 @@ multiple third-party systems. Modules are developed in an incremental fashion, p
 nature that may be of interest to other users. If you want to integrate a third-party system into esthesis EDGE, please
 suggest so in our [GitHub repository](https://github.com/esthesis-iot/esthesis-edge/issues).
 
-Fetching data from third-party system and the synchronising it is a two-step process as presented next.
+Fetching data from a third-party system and then synchronising it is a two-step process as presented next:
 
 ```mermaid
 ---
-title: How data is moved in esthesis EDGE
+title: Fetching, processing, and data synchronisation in esthesis EDGE
 ---
 sequenceDiagram
     esthesis EDGE-->>+Module A: Cron trigger 
@@ -33,7 +33,7 @@ To fetch data from a third-party system you need to enable the module of that sp
 on how you have installed esthesis EDGE, you must enable the appropriate module and provide its configuration 
 (client secrets, tokens, keys, etc.).
 
-Data is fetched from third-party systems at regular intervals, using a cron job. Each module has its own cron job 
+Data is fetched from third-party systems at regular intervals using an internal cron job. Each module has its own cron job 
 expression, so you can specify the frequency of fetching data for each module separately. Once a cron job for a specific
 module is triggered, the module fetches data from the third-party system and stores it in a queue table in the MariaDB 
 database of esthesis EDGE. Before stored in the queue, remotely-fetched data is transformed to the esthesis Line 
@@ -46,11 +46,11 @@ as well as to esthesis CORE. Both targets are optional, and you can enable or di
 esthesis EDGE.
 
 The duration for which data is kept in the local queue depends on two conditions:
-1. Data that has been fully synchronised (i.e. posted to all targets you have enabled) is removed from the queue based on
+1. Data that has been fully synchronised (i.e. successfully persisted to all targets you have enabled) is removed from the queue based on
 a configurable retention period. The frequency of how often the retention period is checked is also configurable. This
 option allows you to keep data in the queue for a certain period, in case you want to re-synchronise it or to keep it for
 debugging purposes.
-2. Data that has not been fully synchronised (i.e. not posted to all targets you have enabled) is kept in the queue until
+2. Data that has not been fully synchronised (i.e. not successfully persisted to all targets you have enabled) is kept in the queue until
 a configurable time limit is reached. The frequency of how often the time limit is checked is also configurable. This
 option allows you to clean up the queue from data that for one reason or another could not be synchronised, so that your
 queue does not grow indefinitely.
