@@ -1,9 +1,9 @@
 package esthesis.edge.clients;
 
-import esthesis.edge.crypto.EdgeCryptoUtil;
-import esthesis.edge.crypto.dto.SSLSocketFactoryCertificateDTO;
-import esthesis.edge.crypto.dto.SSLSocketFactoryDTO;
-import esthesis.edge.crypto.dto.SSLSocketFactoryPrivateKeyDTO;
+import esthesis.common.crypto.CryptoUtil;
+import esthesis.common.crypto.dto.SSLSocketFactoryCertificateDTO;
+import esthesis.common.crypto.dto.SSLSocketFactoryDTO;
+import esthesis.common.crypto.dto.SSLSocketFactoryPrivateKeyDTO;
 import java.io.IOException;
 import java.security.KeyManagementException;
 import java.security.KeyStoreException;
@@ -80,7 +80,7 @@ public class MqttPublisher {
         .algorithm(keyAlgorithm)
         .build());
 
-    SSLSocketFactory sslSocketFactory = EdgeCryptoUtil.createSSLSocketFactory(sslSocketFactoryDTO);
+    SSLSocketFactory sslSocketFactory = CryptoUtil.createSSLSocketFactory(sslSocketFactoryDTO);
 
     // Connect to the broker with SSL.
     MqttConnectOptions options = new MqttConnectOptions();
