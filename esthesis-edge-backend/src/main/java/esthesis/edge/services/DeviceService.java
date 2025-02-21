@@ -13,11 +13,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
+
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Service class for managing devices.
  */
+@Slf4j
 @Transactional
 @ApplicationScoped
 @RequiredArgsConstructor
@@ -36,20 +40,32 @@ public class DeviceService {
    */
   public DeviceDTO createDevice(DeviceDTO deviceDTO, List<String> tags) {
     DeviceEntity deviceEntity =
-        DeviceEntity.findByHardwareId(deviceDTO.getHardwareId()).orElse(null);
+            DeviceEntity.findByHardwareId(deviceDTO.getHardwareId()).orElse(null);
+
+    boolean newDevice = deviceEntity == null;
 
     // Create or update the device.
-    if (deviceEntity == null) {
+    if (newDevice) {
       deviceEntity = new DeviceEntity();
       deviceEntity.setId(UUID.randomUUID().toString());
       deviceEntity.setHardwareId(deviceDTO.getHardwareId());
       deviceEntity.setModuleName(deviceDTO.getModuleName());
       deviceEntity.setCreatedAt(Instant.now());
       deviceEntity.setEnabled(deviceDTO.getEnabled());
+      if (tags != null && !tags.isEmpty()) {
+        deviceEntity.setTags(String.join(",", tags));
+      }
     }
 
     // Persist the device.
     deviceEntity.persist();
+
+    if (newDevice) {
+      log.info("Device with hardwareId '{}' created.", deviceDTO.getHardwareId());
+    } else {
+      log.info("Device with hardwareId '{}' updated.", deviceDTO.getHardwareId());
+    }
+
 
     // Create the module configuration for the device.
     if (deviceDTO.getModuleConfig() != null) {
@@ -208,5 +224,15 @@ public class DeviceService {
    */
   public Optional<Instant> getDeviceConfigValueAsInstant(String hardwareId, String configKey) {
     return getDeviceConfigValueAsString(hardwareId, configKey).map(Instant::parse);
+  }
+
+  /**
+   * Lists all devices pending registration with esthesis CORE.
+   *
+   * @param moduleName The module name.
+   * @return The list of devices.
+   */
+  public List<DeviceDTO> listDevicesPendingCoreRegistration(String moduleName) {
+    return deviceMapper.toDTO(DeviceEntity.list("moduleName = ?1 and coreRegisteredAt IS NULL", moduleName));
   }
 }

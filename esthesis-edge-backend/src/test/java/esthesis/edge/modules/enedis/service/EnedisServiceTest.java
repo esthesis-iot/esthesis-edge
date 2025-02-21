@@ -124,7 +124,7 @@ class EnedisServiceTest {
     when(enedisFetchService.fetchDailyProduction(any(String.class), any(String.class),
         any(String.class))).thenReturn(0);
 
-    enedisService.fetchData();
+    assertDoesNotThrow(() -> enedisService.fetchData());
   }
 
 }

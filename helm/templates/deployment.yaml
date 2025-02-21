@@ -76,6 +76,8 @@ spec:
               value: "{{ .Values.esthesis.edge.core.push.topicPing }}"
             - name: "ESTHESIS_EDGE_CORE_REGISTRATION_ENABLED"
               value: "{{ .Values.esthesis.edge.core.registration.enabled }}"
+            - name: "ESTHESIS_EDGE_CORE_REGISTRATION_CRON"
+              value: "{{ .Values.esthesis.edge.core.registration.cron }}"
             - name: "ESTHESIS_EDGE_CORE_REGISTRATION_SECRET"
               value: "{{ .Values.esthesis.edge.core.registration.secret }}"
             - name: "ESTHESIS_EDGE_CORE_REGISTRATION_TAGS"

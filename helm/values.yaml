@@ -80,6 +80,8 @@ esthesis:
       registration:
         # -- Whether device registration in esthesis CORE takes place when a new device is registered in esthesis EDGE.
         enabled: false
+        # -- The cron expression used to schedule how often new EDGE devices should be registered in esthesis CORE.
+        cron: "0 0 * * * ?"
         # -- The secret used to access the registration API of esthesis CORE.
         secret: "esthesis-edge"
         # -- The tags added to an esthesis EDGE devices registered in esthesis CORE.

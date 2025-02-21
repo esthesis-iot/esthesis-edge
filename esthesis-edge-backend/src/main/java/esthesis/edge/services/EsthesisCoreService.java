@@ -11,8 +11,12 @@ import esthesis.edge.config.EdgeProperties;
 import esthesis.edge.model.DeviceEntity;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
+
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
+
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -22,6 +26,7 @@ import org.eclipse.microprofile.rest.client.inject.RestClient;
  * Service class for interacting with esthesis CORE.
  */
 @Slf4j
+@Transactional
 @ApplicationScoped
 @RequiredArgsConstructor
 public class EsthesisCoreService {
@@ -65,6 +70,7 @@ public class EsthesisCoreService {
       device.setCertificate(response.getCertificate());
       device.setPublicKey(response.getPublicKey());
       device.setPrivateKey(response.getPrivateKey());
+      device.setCoreRegisteredAt(Instant.now());
       device.persist();
       log.info("Device with hardware id '{}' registered with esthesis CORE.", hardwareId);
     } catch (Exception e) {

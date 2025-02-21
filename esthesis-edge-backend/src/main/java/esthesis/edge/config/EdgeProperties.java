@@ -22,6 +22,7 @@ public interface EdgeProperties {
   // A Quartz cron expression for the purge job, deleting data from the queue table.
   String purgeCron();
 
+
   // The number of minutes to keep data successfully synchronised in the queue table before purging.
   int purgeSuccessfulMinutes();
 
@@ -105,6 +106,9 @@ public interface EdgeProperties {
 
       // The shared secret used during device registration.
       Optional<String> secret();
+
+      // A Quartz cron expression for the core registration job, registering devices to esthesis CORE.
+      String cron();
     }
 
     // The tags to add to the device registration.

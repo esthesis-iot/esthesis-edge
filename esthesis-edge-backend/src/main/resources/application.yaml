@@ -60,6 +60,7 @@ esthesis:
       registration:
         enabled: false
         secret:
+        cron: "0 0 * * * ?"
       tags:
         - edge
       key-algorithm: RSA

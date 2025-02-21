@@ -1,12 +1,5 @@
 package esthesis.edge.services;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
-import static org.wildfly.common.Assert.assertTrue;
-
 import esthesis.common.agent.dto.AgentRegistrationRequest;
 import esthesis.common.agent.dto.AgentRegistrationResponse;
 import esthesis.edge.clients.EsthesisAgentServiceClient;
@@ -16,13 +9,21 @@ import io.quarkus.test.InjectMock;
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
+import org.eclipse.microprofile.rest.client.inject.RestClient;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import org.eclipse.microprofile.rest.client.inject.RestClient;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
+import static org.wildfly.common.Assert.assertTrue;
 
 
 @QuarkusTest
@@ -40,7 +41,12 @@ class DeviceServiceTest {
   public void setup() {
     // Mock the esthesis CORE registration.
     when(esthesisAgentServiceClient.register(any(AgentRegistrationRequest.class)))
-        .thenReturn(new AgentRegistrationResponse());
+        .thenReturn(new AgentRegistrationResponse()
+                .setCertificate("test-certificate")
+                .setPrivateKey("test-private-key")
+                .setMqttServer("test-mqtt-server")
+                .setPublicKey("test-public-key")
+                .setRootCaCertificate("test-root-ca-certificate"));
   }
 
   private DeviceEntity createTestDevice(String hardwareId) {
@@ -91,12 +97,21 @@ class DeviceServiceTest {
 
   @Test
   void createDevice() {
+
     // Device with no config.
     DeviceDTO deviceDTO = new DeviceDTO();
     deviceDTO.setHardwareId(UUID.randomUUID().toString());
     deviceDTO.setModuleName("test");
     deviceDTO.setEnabled(true);
     assertNotNull(deviceService.createDevice(deviceDTO));
+
+    // Check if the device has been registered with esthesis CORE.
+    DeviceEntity deviceEntity = DeviceEntity.findByHardwareId(deviceDTO.getHardwareId()).orElse(null);
+    assertNotNull(deviceEntity);
+    assertNotNull(deviceEntity.getCoreRegisteredAt());
+    assertNotNull(deviceEntity.getPublicKey());
+    assertNotNull(deviceEntity.getPrivateKey());
+    assertNotNull(deviceEntity.getCertificate());
 
     // Device with config.
     deviceDTO = new DeviceDTO();
@@ -108,6 +123,10 @@ class DeviceServiceTest {
         .setModuleConfig(Map.of("key2", "value2"))
         .setModuleConfig(Map.of("key3", "value3"));
     assertNotNull(deviceService.createDevice(deviceDTO));
+    deviceEntity = DeviceEntity.findByHardwareId(deviceDTO.getHardwareId()).orElse(null);
+    assertNotNull(deviceEntity);
+    assertNotNull(deviceEntity.getModuleConfig());
+
 
     // Device with no config with tags.
     deviceDTO = new DeviceDTO();
@@ -115,6 +134,10 @@ class DeviceServiceTest {
     deviceDTO.setModuleName("test");
     deviceDTO.setEnabled(true);
     assertNotNull(deviceService.createDevice(deviceDTO, List.of("tag1", "tag2")));
+    deviceEntity = DeviceEntity.findByHardwareId(deviceDTO.getHardwareId()).orElse(null);
+    assertNotNull(deviceEntity);
+    assertNotNull(deviceEntity.getTags());
+
   }
 
   @Test

@@ -46,6 +46,7 @@ class SyncServiceCoreSSLTest {
     deviceEntity.setModuleName("test");
     deviceEntity.setEnabled(true);
     deviceEntity.setCreatedAt(Instant.now());
+    deviceEntity.setCoreRegisteredAt(Instant.now());
     deviceEntity.setCertificate(HiveMQSSLTC.loadResourceFileAsText("mqtt/client.crt"));
     deviceEntity.setPrivateKey(HiveMQSSLTC.loadResourceFileAsText("mqtt/client.key"));
     deviceEntity.persist();

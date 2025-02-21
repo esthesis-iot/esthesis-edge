@@ -122,7 +122,7 @@ public class EnedisService {
 
     for (String enedisId : usagePointId.split(";")) {
       Instant now = Instant.now();
-      DeviceDTO deviceDTO = deviceService.createDevice(
+      deviceService.createDevice(
           DeviceDTO.builder()
               .hardwareId(hardwareId)
               .moduleName(MODULE_NAME)
@@ -132,7 +132,6 @@ public class EnedisService {
               .config(EnedisConstants.CONFIG_PMR_ENABLED_AT, now.toString())
               .config(EnedisConstants.CONFIG_PMR_EXPIRES_AT, calculatePMRExpiration(now).toString())
               .build(), List.of(MODULE_NAME, EDGE));
-      log.info("Device with hardwareId '{}' created.", deviceDTO.getHardwareId());
     }
   }
 

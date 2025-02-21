@@ -188,10 +188,17 @@ public class SyncService {
     hardwareIdToProcess.forEach(hardwareId -> {
       log.debug("esthesis CORE syncing hardwareId '{}'.", hardwareId);
       List<QueueItemEntity> itemsToPost = QueueItemEntity.findByHardwareIdNotProcessedCore(
-          hardwareId);
+              hardwareId);
       try {
-        mqttPost(DeviceEntity.findByHardwareId(hardwareId).orElseThrow(), itemsToPost);
-        log.debug("esthesis CORE synced hardwareId '{}'.", hardwareId);
+        DeviceEntity device = DeviceEntity.findByHardwareId(hardwareId).orElseThrow();
+        // Check if the device is registered with esthesis CORE before syncing.
+        if (device.getCoreRegisteredAt() != null) {
+          mqttPost(device, itemsToPost);
+          log.debug("esthesis CORE synced hardwareId '{}'.", hardwareId);
+        } else {
+          log.debug("Device with hardwareId '{}' is not registered with esthesis CORE, skipping sync.", hardwareId);
+        }
+
       } catch (Exception e) {
         log.error("Error syncing hardwareId '{}'.", hardwareId, e);
         hasErrors.set(true);
