@@ -5,14 +5,7 @@ import esthesis.edge.modules.enedis.dto.datahub.EnedisDailyConsumptionDTO;
 import esthesis.edge.modules.enedis.dto.datahub.EnedisDailyConsumptionMaxPowerDTO;
 import esthesis.edge.modules.enedis.dto.datahub.EnedisDailyProductionDTO;
 import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.ws.rs.Consumes;
-import jakarta.ws.rs.FormParam;
-import jakarta.ws.rs.GET;
-import jakarta.ws.rs.HeaderParam;
-import jakarta.ws.rs.POST;
-import jakarta.ws.rs.Path;
-import jakarta.ws.rs.Produces;
-import jakarta.ws.rs.QueryParam;
+import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import org.eclipse.microprofile.rest.client.inject.RegisterRestClient;
 
@@ -94,6 +87,22 @@ public interface EnedisClient {
   EnedisDailyProductionDTO getDailyProduction(
       @QueryParam("start") String startDate,
       @QueryParam("end") String endDate,
+      @QueryParam("usage_point_id") String usagePointId,
+      @HeaderParam("Authorization") String bearerToken
+  );
+
+  /**
+   * Get contract information available for a given usage point. Unfortunately, this endpoint returns
+   * application/octet-stream or application/text, irrespectively of asking for JSON, so the user of
+   * this client needs to manually parse the response to {@see EnedisContractDTO}.
+   * @param usagePointId The usage point ID (Enedis PRM).
+   * @param bearerToken The bearer token to authenticate with.
+   * @return The contract information.
+   */
+  @GET
+  @Path("customers_upc/v5/usage_points/contracts")
+  @Produces(MediaType.APPLICATION_JSON)
+  String getContracts(
       @QueryParam("usage_point_id") String usagePointId,
       @HeaderParam("Authorization") String bearerToken
   );

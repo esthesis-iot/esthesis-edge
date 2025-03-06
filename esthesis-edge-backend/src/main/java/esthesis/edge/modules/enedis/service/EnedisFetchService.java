@@ -15,13 +15,14 @@ import esthesis.edge.services.QueueService;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.eclipse.microprofile.rest.client.inject.RestClient;
+
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Optional;
 import java.util.UUID;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.eclipse.microprofile.rest.client.inject.RestClient;
 
 /**
  * A service to fetch data from the Enedis API.
@@ -34,7 +35,7 @@ public class EnedisFetchService {
   @Inject
   @RestClient
   @SuppressWarnings("java:S6813")
-  EnedisClient enedisRestClient;
+  EnedisClient enedisClient;
 
   private final DeviceService deviceService;
   private final QueueService dataService;
@@ -95,7 +96,7 @@ public class EnedisFetchService {
     log.debug("Fetching Daily Consumption for device '{}', from '{}'.", hardwareId, lastFetch);
     EnedisDailyConsumptionDTO dailyConsumptionDTO = null;
     try {
-      dailyConsumptionDTO = enedisRestClient.getDailyConsumption(
+      dailyConsumptionDTO = enedisClient.getDailyConsumption(
           lastFetch, EnedisUtil.instantToYmd(Instant.now()),
           enedisPrm, "Bearer " + accessToken);
       resetErrors(hardwareId, EnedisConstants.CONFIG_DC_ERRORS);
@@ -153,7 +154,7 @@ public class EnedisFetchService {
     EnedisDailyConsumptionMaxPowerDTO dailyConsumptionMaxPowerDTO = null;
     try {
       dailyConsumptionMaxPowerDTO =
-          enedisRestClient.getDailyConsumptionMaxPower(
+          enedisClient.getDailyConsumptionMaxPower(
               lastFetch, EnedisUtil.instantToYmd(Instant.now()),
               enedisPrm, "Bearer " + accessToken);
       log.debug("Fetched Daily Consumption Max Power '{}'.", dailyConsumptionMaxPowerDTO);
@@ -208,7 +209,7 @@ public class EnedisFetchService {
     log.debug("Fetching Daily Production for device '{}', from '{}'.", hardwareId, lastFetch);
     EnedisDailyProductionDTO dailyProductionDTO = null;
     try {
-      dailyProductionDTO = enedisRestClient.getDailyProduction(
+      dailyProductionDTO = enedisClient.getDailyProduction(
           lastFetch, EnedisUtil.instantToYmd(Instant.now()),
           enedisPrm, "Bearer " + accessToken);
       log.debug("Fetched Daily Production '{}'.", dailyProductionDTO);

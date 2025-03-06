@@ -14,9 +14,9 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * Service class for managing devices.
@@ -35,12 +35,11 @@ public class DeviceService {
    * Creates a new device.
    *
    * @param deviceDTO The device to create.
-   * @param tags      The tags to associate with the device.
    * @return The created device.
    */
-  public DeviceDTO createDevice(DeviceDTO deviceDTO, List<String> tags) {
+  public DeviceDTO createDevice(DeviceDTO deviceDTO) {
     DeviceEntity deviceEntity =
-            DeviceEntity.findByHardwareId(deviceDTO.getHardwareId()).orElse(null);
+        DeviceEntity.findByHardwareId(deviceDTO.getHardwareId()).orElse(null);
 
     boolean newDevice = deviceEntity == null;
 
@@ -52,8 +51,15 @@ public class DeviceService {
       deviceEntity.setModuleName(deviceDTO.getModuleName());
       deviceEntity.setCreatedAt(Instant.now());
       deviceEntity.setEnabled(deviceDTO.getEnabled());
-      if (tags != null && !tags.isEmpty()) {
-        deviceEntity.setTags(String.join(",", tags));
+      if (StringUtils.isNotBlank(deviceDTO.getTags())) {
+        deviceEntity.setTags(deviceDTO.getTags());
+      }
+      if (deviceDTO.getAttributes() != null && !deviceDTO.getAttributes().isEmpty()) {
+        deviceEntity.setAttributes(deviceDTO.getAttributes().entrySet().stream()
+            .map(e -> e.getKey().replace("=", "").replace(";", "").replace(",", "")
+                + "="
+                + e.getValue().replace("=", "").replace(";", "").replace(",", ""))
+            .collect(Collectors.joining(",")));
       }
     }
 
@@ -66,7 +72,6 @@ public class DeviceService {
       log.info("Device with hardwareId '{}' updated.", deviceDTO.getHardwareId());
     }
 
-
     // Create the module configuration for the device.
     if (deviceDTO.getModuleConfig() != null) {
       for (Map.Entry<String, String> entry : deviceDTO.getModuleConfig().entrySet()) {
@@ -76,20 +81,10 @@ public class DeviceService {
 
     // Register the device with esthesis CORE.
     if (edgeProperties.core().registration().enabled()) {
-      esthesisCoreService.registerDevice(deviceDTO.getHardwareId(), tags);
+      esthesisCoreService.registerDevice(deviceDTO.getHardwareId());
     }
 
     return deviceMapper.toDTO(deviceEntity);
-  }
-
-  /**
-   * Creates a new device.
-   *
-   * @param deviceDTO The device to create.
-   * @return The created device.
-   */
-  public DeviceDTO createDevice(DeviceDTO deviceDTO) {
-    return createDevice(deviceDTO, null);
   }
 
   /**
@@ -227,12 +222,23 @@ public class DeviceService {
   }
 
   /**
+   * Gets a configuration value for a device as a Boolean.
+   *
+   * @param hardwareId The hardware ID of the device.
+   * @param configKey  The configuration key to search for.
+   */
+  public Optional<Boolean> getDeviceConfigValueAsBoolean(String hardwareId, String configKey) {
+    return getDeviceConfigValueAsString(hardwareId, configKey).map(Boolean::parseBoolean);
+  }
+
+  /**
    * Lists all devices pending registration with esthesis CORE.
    *
    * @param moduleName The module name.
    * @return The list of devices.
    */
   public List<DeviceDTO> listDevicesPendingCoreRegistration(String moduleName) {
-    return deviceMapper.toDTO(DeviceEntity.list("moduleName = ?1 and coreRegisteredAt IS NULL", moduleName));
+    return deviceMapper.toDTO(
+        DeviceEntity.list("moduleName = ?1 and coreRegisteredAt IS NULL", moduleName));
   }
 }

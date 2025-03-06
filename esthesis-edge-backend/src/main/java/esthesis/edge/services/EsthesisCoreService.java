@@ -11,12 +11,9 @@ import esthesis.edge.config.EdgeProperties;
 import esthesis.edge.model.DeviceEntity;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
-
-import java.time.Instant;
-import java.util.List;
-import java.util.Optional;
-
 import jakarta.transaction.Transactional;
+import java.time.Instant;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -40,11 +37,10 @@ public class EsthesisCoreService {
    * Registers a device with esthesis CORE.
    *
    * @param hardwareId The hardware ID of the device to register.
-   * @param tags       The tags to associate with the device.
    */
-  public void registerDevice(String hardwareId, List<String> tags) {
+  public void registerDevice(String hardwareId) {
     DeviceEntity device = DeviceEntity.findByHardwareId(hardwareId).orElseThrow(() ->
-        new QDoesNotExistException("Device with hardware ID {} does not exist.", hardwareId));
+        new QDoesNotExistException("Device with hardware ID '{}' does not exist.", hardwareId));
 
     try {
       // Create registration request.
@@ -54,8 +50,11 @@ public class EsthesisCoreService {
           .capability(Capability.PING)
           .capability(Capability.TELEMETRY)
           .capability(Capability.METADATA);
-      if (tags != null && !tags.isEmpty()) {
-        requestBuilder.tags(String.join(",", tags));
+      if (StringUtils.isNotBlank(device.getTags())) {
+        requestBuilder.tags(device.getTags());
+      }
+      if (StringUtils.isNotBlank(device.getAttributes())) {
+        requestBuilder.attributes(device.getAttributes());
       }
 
       // Add registration secret, if present.
@@ -72,9 +71,9 @@ public class EsthesisCoreService {
       device.setPrivateKey(response.getPrivateKey());
       device.setCoreRegisteredAt(Instant.now());
       device.persist();
-      log.info("Device with hardware id '{}' registered with esthesis CORE.", hardwareId);
+      log.info("Device with hardware ID '{}' registered with esthesis CORE.", hardwareId);
     } catch (Exception e) {
-      log.error("Failed to register device with hardware id '{}'.", hardwareId, e);
+      log.error("Failed to register device with hardware ID '{}'.", hardwareId, e);
     }
   }
 }

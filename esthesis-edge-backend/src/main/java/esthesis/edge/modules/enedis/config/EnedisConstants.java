@@ -20,6 +20,12 @@ public class EnedisConstants {
   // The date at which the RPM expires.
   public static final String CONFIG_PMR_EXPIRES_AT = "pmr_expires_at";
 
+  // Indicates that the RPM is for a consumer device.
+  public static final String CONFIG_CONSUMER = "segment_consumer";
+
+  // Indicates that the RPM is for a producer device.
+  public static final String CONFIG_PRODUCER = "segment_producer";
+
   // The last date 'daily consumption' was fetched.
   public static final String CONFIG_DC_LAST_FETCHED_AT = "dc_last_fetched_at";
 
@@ -43,4 +49,8 @@ public class EnedisConstants {
 
   // The maximum number of requests per hour Enedis API allows.
   public static final int REQUESTS_PER_HOUR = 10000;
+
+  // Producer and Consumer segment types.
+  public static final String SEGMENT_TYPE_CONSUMER = "C5";
+  public static final String SEGMENT_TYPE_PRODUCER = "P4";
 }

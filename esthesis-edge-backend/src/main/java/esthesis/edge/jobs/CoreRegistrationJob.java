@@ -1,5 +1,7 @@
 package esthesis.edge.jobs;
 
+import static esthesis.edge.modules.enedis.config.EnedisConstants.MODULE_NAME;
+
 import esthesis.edge.config.EdgeProperties;
 import esthesis.edge.services.DeviceService;
 import esthesis.edge.services.EsthesisCoreService;
@@ -7,10 +9,6 @@ import io.quarkus.scheduler.Scheduled;
 import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-
-import java.util.List;
-
-import static esthesis.edge.modules.enedis.config.EnedisConstants.MODULE_NAME;
 
 /**
  * Job for registering pending devices with esthesis CORE.
@@ -33,11 +31,8 @@ public class CoreRegistrationJob {
             log.debug("Core registration job started.");
             deviceService.listDevicesPendingCoreRegistration(MODULE_NAME).forEach(device -> {
                 try {
-                    // Retrieve the tags for the device.
-                    List<String> tags = device.getTags() != null ? List.of(device.getTags().split(",")) : List.of();
-
                     // Call the esthesis CORE service to register the device.
-                    esthesisCoreService.registerDevice(device.getHardwareId(), tags);
+                    esthesisCoreService.registerDevice(device.getHardwareId());
                 } catch (Exception e) {
                     log.error("Failed to register device '{}'.", device.getHardwareId(), e);
                 }

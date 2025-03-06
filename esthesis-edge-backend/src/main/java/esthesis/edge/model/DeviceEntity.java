@@ -99,6 +99,10 @@ public class DeviceEntity extends PanacheEntityBase {
   @Column(length = 512, name = "tags")
   private String tags;
 
+  // A key1=val1;type1,key2=val2;type2,etc. string with device attributes.
+  @Column(length = 1024, name = "attributes")
+  private String attributes;
+
   /**
    * Finds a device by its hardware ID.
    *

@@ -1,5 +1,12 @@
 package esthesis.edge.services;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
+import static org.wildfly.common.Assert.assertTrue;
+
 import esthesis.common.agent.dto.AgentRegistrationRequest;
 import esthesis.common.agent.dto.AgentRegistrationResponse;
 import esthesis.edge.clients.EsthesisAgentServiceClient;
@@ -9,21 +16,13 @@ import io.quarkus.test.InjectMock;
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
-import org.eclipse.microprofile.rest.client.inject.RestClient;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
-import static org.wildfly.common.Assert.assertTrue;
+import org.eclipse.microprofile.rest.client.inject.RestClient;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 
 @QuarkusTest
@@ -133,7 +132,9 @@ class DeviceServiceTest {
     deviceDTO.setHardwareId(UUID.randomUUID().toString());
     deviceDTO.setModuleName("test");
     deviceDTO.setEnabled(true);
-    assertNotNull(deviceService.createDevice(deviceDTO, List.of("tag1", "tag2")));
+    deviceDTO.setTags("tag1,tag2,tag3");
+    deviceDTO.setAttributes(Map.of("key", "value"));
+    assertNotNull(deviceService.createDevice(deviceDTO));
     deviceEntity = DeviceEntity.findByHardwareId(deviceDTO.getHardwareId()).orElse(null);
     assertNotNull(deviceEntity);
     assertNotNull(deviceEntity.getTags());

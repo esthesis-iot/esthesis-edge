@@ -57,6 +57,10 @@ public class DeviceDTO {
   @Singular("config")
   private Map<String, String> moduleConfig;
 
+  // Attributes to be created in esthesis CORE.
+  @Singular("attribute")
+  private Map<String, String> attributes;
+
   // The date and time when the device was registered with esthesis CORE.
   private Instant coreRegisteredAt;
 

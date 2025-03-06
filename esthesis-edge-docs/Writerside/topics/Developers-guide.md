@@ -9,8 +9,7 @@ you to add new features, fetching data from any third-party system you can commu
 a new module, you should take into account whether the specific third-party system you want to integrate with is
 of a generic-enough nature, to be part of esthesis EDGE. For private or very specific third-party systems, it is
 recommended to integrate them with an esthesis CORE agent running alongside them. At any rate, before you decide to
-create a new module, you can open a new issue on our [GitHub](https://github.com/esthesis-iot/esthesis-edge/issues)
-to discuss it first.
+create a new module, you can open a new issue on our [GitHub](https://github.com/esthesis-iot/esthesis-edge/issues) to discuss it first.
 
 ## Module structure
 
@@ -71,9 +70,7 @@ naming strategy is to prefix hardware IDs with the name of your module, followed
 #### Devices configuration
 
 You can maintain device-specific configuration in esthesis EDGE. This configuration is stored in the MariaDB of esthesis
-and allows you to store any configuration options you need for your devices. You can maintain any number of
-configuration
-options for each device, and you can update them at any time.
+EDGE. You can maintain any number of configuration options for each device, and you can update them at any time.
 
 <tip>
 esthesis EDGE provides a DeviceService class that can help you create devices and maintain their configuration.
@@ -87,9 +84,9 @@ synchronised with a local InfluxDB and/or esthesis CORE. Those two phases are se
 of esthesis EDGE, where the data is stored until it is synchronised.
 
 The way in which data is fetched as well as all necessary data structures to support this are totally up to you.
-To be able to queue your data for esthesis EDGE to synchronise you should use the esthesis Line Protocol 
-(eLP). The specification of eLP can be found in esthesis CORE and esthesis EDGE provide helper classes to make it easier 
-for you to create eLP representations our of your own data structures via tha `QueueService` class.
+To be able to queue your data for esthesis EDGE to synchronise them to esthesis CORE you should use the esthesis Line 
+Protocol (eLP). The specification of eLP can be found in esthesis CORE, and esthesis EDGE provide helper classes to 
+make it easier for you to create eLP representations our of your own data structures via tha `QueueService` class.
 
 You can prepare a new item to be queued using the `QueueItem` class. `QueueService` class provides a 
 `queue(QueueItemDTO queueItemDTO)` method allowing you to persist your data in the queue. eLP comes into play in the
