@@ -10,6 +10,9 @@ quarkus:
     password: esthesis-system
     jdbc:
       url: jdbc:mariadb://localhost:4306/esthesis-edge
+  liquibase:
+    change-log: db/changeLog.xml
+    migrate-at-start: true
   rest-client:
     EsthesisAgentServiceClient:
       url: "${QUARKUS_REST_CLIENT_ESTHESIS_AGENT_SERVICE_CLIENT_URL:http://localhost:59070}"

@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+
+    <changeSet author="European Dynamics SA" id="esthesis-edge-1">
+        <preConditions>
+            <tableExists tableName="device"/>
+            <tableExists tableName="device_module_config"/>
+        </preConditions>
+        <comment>Insert initial segment type configuration for current ENEDIS devices.</comment>
+        <sql>
+            INSERT INTO device_module_config (id, config_key, config_value, device_id)
+            SELECT
+                UUID() AS id,
+                'segment_consumer' AS config_key,
+                'true' AS config_value,
+                id AS device_id
+            FROM device
+            WHERE NOT EXISTS (
+                SELECT 1 FROM device_module_config
+                         WHERE device_id = device.id AND (config_key = 'segment_consumer' OR config_key = 'segment_producer')
+            );
+        </sql>
+    </changeSet>
+</databaseChangeLog>
