@@ -10,6 +10,8 @@ quarkus:
       scope: ApplicationScoped
     EnedisClient:
       scope: ApplicationScoped
+  liquibase:
+    enabled: false
 
 esthesis:
   edge:
