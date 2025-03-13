@@ -14,10 +14,12 @@ spec:
       labels:
         app: esthesis-edge
     spec:
-      {{ if .Values.global.imagePullSecret }}
+      {{- if .Values.global.imagePullSecrets }}
       imagePullSecrets:
-        - name: "{{ .Values.global.imagePullSecret }}"
-      {{ end }}
+      {{- range .Values.global.imagePullSecrets }}
+        - name: "{{ . }}"
+      {{- end }}
+      {{- end }}
       containers:
         - name: esthesis-edge
           {{- if .Values.global.esthesisRegistry }}
