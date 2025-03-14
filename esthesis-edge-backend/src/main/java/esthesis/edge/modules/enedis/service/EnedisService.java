@@ -366,6 +366,19 @@ public class EnedisService {
               enedisAuthTokenDTO.getAccessToken());
           log.debug("Queued '{}' items from Daily Consumption Max Power API.", itemsQueued);
         }
+
+        // Consumption Load Curve.
+        int clcErrors = deviceService.getDeviceConfigValueAsString(hardwareId,
+                EnedisConstants.CONFIG_CLC_ERRORS).map(Integer::parseInt).orElse(0);
+        if (enedisProperties.fetchTypes().clc().enabled() &&
+                clcErrors < enedisProperties.fetchTypes().clc().errorsThreshold()) {
+          perSecondLimiter.acquirePermission();
+          perHourLimiter.acquirePermission();
+          int itemsQueued = enedisFetchService.fetchConsumptionLoadCurve(hardwareId, enedisPrm,
+                  enedisAuthTokenDTO.getAccessToken());
+          log.debug("Queued '{}' items from Consumption Load Curve API.", itemsQueued);
+        }
+
       } else {
         log.debug("Device ID '{}' is not a consumer.", hardwareId);
       }
@@ -384,6 +397,19 @@ public class EnedisService {
               enedisAuthTokenDTO.getAccessToken());
           log.debug("Queued '{}' items from Daily Production API.", itemsQueued);
         }
+
+        // Production Load Curve.
+        int plcErrors = deviceService.getDeviceConfigValueAsString(hardwareId,
+                EnedisConstants.CONFIG_PLC_ERRORS).map(Integer::parseInt).orElse(0);
+        if (enedisProperties.fetchTypes().plc().enabled() &&
+                plcErrors < enedisProperties.fetchTypes().plc().errorsThreshold()) {
+          perSecondLimiter.acquirePermission();
+          perHourLimiter.acquirePermission();
+          int itemsQueued = enedisFetchService.fetchProductionLoadCurve(hardwareId, enedisPrm,
+                  enedisAuthTokenDTO.getAccessToken());
+          log.debug("Queued '{}' items from Production Load Curve API.", itemsQueued);
+        }
+
       } else {
         log.debug("Device ID '{}' is not a producer.", hardwareId);
       }

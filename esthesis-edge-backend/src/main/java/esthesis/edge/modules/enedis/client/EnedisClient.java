@@ -1,9 +1,11 @@
 package esthesis.edge.modules.enedis.client;
 
 import esthesis.edge.modules.enedis.dto.datahub.EnedisAuthTokenDTO;
+import esthesis.edge.modules.enedis.dto.datahub.EnedisConsumptionLoadCurveDTO;
 import esthesis.edge.modules.enedis.dto.datahub.EnedisDailyConsumptionDTO;
 import esthesis.edge.modules.enedis.dto.datahub.EnedisDailyConsumptionMaxPowerDTO;
 import esthesis.edge.modules.enedis.dto.datahub.EnedisDailyProductionDTO;
+import esthesis.edge.modules.enedis.dto.datahub.EnedisProductionLoadCurveDTO;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
@@ -105,5 +107,43 @@ public interface EnedisClient {
   String getContracts(
       @QueryParam("usage_point_id") String usagePointId,
       @HeaderParam("Authorization") String bearerToken
+  );
+
+  /**
+   * Get load curve consumption data from Enedis per 30 minutes.
+   *
+   * @param startDate    The start date to fetch from, in YYYY-MM-DD format.
+   * @param endDate      The end date to fetch to, in YYYY-MM-DD format.
+   * @param usagePointId The usage point ID (Enedis PRM).
+   * @param bearerToken  The bearer token to authenticate with.
+   * @return The average load curve consumption data for the given period.
+   */
+  @GET
+  @Path("metering_data_clc/v5/consumption_load_curve")
+  @Produces(MediaType.APPLICATION_JSON)
+  EnedisConsumptionLoadCurveDTO getConsumptionLoadCurve(
+          @QueryParam("start") String startDate,
+          @QueryParam("end") String endDate,
+          @QueryParam("usage_point_id") String usagePointId,
+          @HeaderParam("Authorization") String bearerToken
+  );
+
+  /**
+   * Get load curve production data from Enedis per 30 minutes.
+   *
+   * @param startDate    The start date to fetch from, in YYYY-MM-DD format.
+   * @param endDate      The end date to fetch to, in YYYY-MM-DD format.
+   * @param usagePointId The usage point ID (Enedis PRM).
+   * @param bearerToken  The bearer token to authenticate with.
+   * @return The average load curve production data for the given period.
+   */
+  @GET
+  @Path("metering_data_plc/v5/production_load_curve")
+  @Produces(MediaType.APPLICATION_JSON)
+  EnedisProductionLoadCurveDTO getProductionLoadCurve(
+          @QueryParam("start") String startDate,
+          @QueryParam("end") String endDate,
+          @QueryParam("usage_point_id") String usagePointId,
+          @HeaderParam("Authorization") String bearerToken
   );
 }

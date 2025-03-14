@@ -92,6 +92,16 @@ esthesis:
             category: "energy"
             measurement: "dp"
             errors-threshold: 10
+          clc:
+            enabled: true
+            category: "energy"
+            measurement: "clc"
+            errors-threshold: 10
+          plc:
+            enabled: true
+            category: "energy"
+            measurement: "plc"
+            errors-threshold: 10
         self-registration:
           enabled: true
           state-checking: true

@@ -133,6 +133,24 @@ esthesis:
             measurement: "dp"
             # -- The number of errors after which the fetching of Data Production data is stopped.
             errorsThreshold: 10
+          clc:
+            # -- Whether  Consumption Load Curve data is fetched from Enedis.
+            enabled: true
+            # -- The category name used to store Consumption Load Curve data (used both in local InfluxDB database and in eLP).
+            category: "energy"
+            # -- The measurement name used to store Consumption Load Curve data (used both in local InfluxDB database and in eLP).
+            measurement: "clc"
+            # -- The number of errors after which the fetching of Consumption Load Curve data is stopped.
+            errorsThreshold: 10
+          plc:
+            # -- Whether  Production Load Curve data is fetched from Enedis.
+            enabled: true
+            # -- The category name used to store Production Load Curve data (used both in local InfluxDB database and in eLP).
+            category: "energy"
+            # -- The measurement name used to store Production Load Curve data (used both in local InfluxDB database and in eLP).
+            measurement: "plc"
+            # -- The number of errors after which the fetching of Production Load Curve data is stopped.
+            errorsThreshold: 10
         selfRegistration:
           # -- Whether the self-registration page and functionality is enabled for the Enedis module.
           enabled: false

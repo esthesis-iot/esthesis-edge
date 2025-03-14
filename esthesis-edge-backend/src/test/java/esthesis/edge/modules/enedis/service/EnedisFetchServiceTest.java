@@ -7,9 +7,11 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import esthesis.edge.TestUtils;
 import esthesis.edge.modules.enedis.client.EnedisClient;
+import esthesis.edge.modules.enedis.dto.datahub.EnedisConsumptionLoadCurveDTO;
 import esthesis.edge.modules.enedis.dto.datahub.EnedisDailyConsumptionDTO;
 import esthesis.edge.modules.enedis.dto.datahub.EnedisDailyConsumptionMaxPowerDTO;
 import esthesis.edge.modules.enedis.dto.datahub.EnedisDailyProductionDTO;
+import esthesis.edge.modules.enedis.dto.datahub.EnedisProductionLoadCurveDTO;
 import io.quarkus.test.InjectMock;
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
@@ -134,4 +136,83 @@ class EnedisFetchServiceTest {
     Assert.assertTrue(
         enedisFetchService.fetchDailyProduction(hardwareId, "test", "test") == 1);
   }
+
+  @Test
+  void fetchConsumptionLoadCurve() throws IOException {
+    String hardwareId = "test4";
+    testUtils.createDevice(hardwareId);
+
+    EnedisConsumptionLoadCurveDTO dto = objectMapper.readValue("""
+            {
+                "meter_reading": {
+                    "usage_point_id": "16401220101758",
+                    "start": "2025-03-12",
+                    "end": "2025-03-13",
+                    "quality": "BRUT",
+                    "reading_type": {
+                        "unit": "W",
+                        "measurement_kind": "power",
+                        "aggregate": "average"
+                    },
+                    "interval_reading": [
+                        {
+                            "value": "2249",
+                            "date": "2025-03-12 00:30:00",
+                            "interval_length": "PT30M",
+                            "measure_type": "B"
+                        },
+                        {
+                            "value": "1032",
+                            "date": "2025-03-12 01:00:00",
+                            "interval_length": "PT30M",
+                            "measure_type": "B"
+                        }
+                    ]
+                }
+            }""", EnedisConsumptionLoadCurveDTO.class);
+    when(enedisRestClient.getConsumptionLoadCurve(any(String.class), any(String.class),
+            any(String.class), any(String.class)))
+            .thenReturn(dto);
+    Assert.assertTrue(enedisFetchService.fetchConsumptionLoadCurve(hardwareId, "test", "test") == 1);
+  }
+
+  @Test
+  void fetchProductionLoadCurve() throws IOException {
+      String hardwareId = "test5";
+      testUtils.createDevice(hardwareId);
+
+      EnedisProductionLoadCurveDTO dto = objectMapper.readValue("""
+              {
+                  "meter_reading": {
+                      "usage_point_id": "16401220101758",
+                      "start": "2025-03-12",
+                      "end": "2025-03-13",
+                      "quality": "BRUT",
+                      "reading_type": {
+                          "unit": "W",
+                          "measurement_kind": "power",
+                          "aggregate": "average"
+                      },
+                      "interval_reading": [
+                          {
+                              "value": "338",
+                              "date": "2025-03-12 00:30:00",
+                              "interval_length": "PT30M",
+                              "measure_type": "B"
+                          },
+                          {
+                              "value": "512",
+                              "date": "2025-03-12 01:00:00",
+                              "interval_length": "PT30M",
+                              "measure_type": "B"
+                          }           \s
+                      ]
+                  }
+              }""", EnedisProductionLoadCurveDTO.class);
+      when(enedisRestClient.getProductionLoadCurve(any(String.class), any(String.class),
+              any(String.class), any(String.class)))
+              .thenReturn(dto);
+      Assert.assertTrue(enedisFetchService.fetchProductionLoadCurve(hardwareId, "test", "test") == 1);
+  }
+
 }

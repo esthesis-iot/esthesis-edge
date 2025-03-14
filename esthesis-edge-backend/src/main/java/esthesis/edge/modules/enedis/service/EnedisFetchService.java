@@ -7,9 +7,11 @@ import esthesis.edge.modules.enedis.EnedisUtil;
 import esthesis.edge.modules.enedis.client.EnedisClient;
 import esthesis.edge.modules.enedis.config.EnedisConstants;
 import esthesis.edge.modules.enedis.config.EnedisProperties;
+import esthesis.edge.modules.enedis.dto.datahub.EnedisConsumptionLoadCurveDTO;
 import esthesis.edge.modules.enedis.dto.datahub.EnedisDailyConsumptionDTO;
 import esthesis.edge.modules.enedis.dto.datahub.EnedisDailyConsumptionMaxPowerDTO;
 import esthesis.edge.modules.enedis.dto.datahub.EnedisDailyProductionDTO;
+import esthesis.edge.modules.enedis.dto.datahub.EnedisProductionLoadCurveDTO;
 import esthesis.edge.services.DeviceService;
 import esthesis.edge.services.QueueService;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -242,6 +244,116 @@ public class EnedisFetchService {
       }
     } else {
       log.debug("No Daily Production data to queue.");
+    }
+
+    return itemsQueued;
+  }
+
+  /**
+   * Fetch consumption load curve data from Enedis API.
+   *
+   * @param hardwareId  The hardware ID of the device.
+   * @param enedisPrm   The Enedis PRM.
+   * @param accessToken The access token.
+   * @return
+   */
+  @Transactional(Transactional.TxType.REQUIRES_NEW)
+  public int fetchConsumptionLoadCurve(String hardwareId, String enedisPrm, String accessToken) {
+    // Fetch data.
+    String lastFetch = EnedisUtil.instantToYmd(deviceService
+            .getDeviceConfigValueAsInstant(hardwareId, EnedisConstants.CONFIG_CLC_LAST_FETCHED_AT)
+            .orElse(Instant.now().minus(Duration.ofDays(enedisProperties.pastDaysInit()))));
+    log.debug("Fetching Consumption Load Curve for device '{}', from '{}'.", hardwareId, lastFetch);
+    EnedisConsumptionLoadCurveDTO consumptionLoadCurveDTO = null;
+    try {
+      consumptionLoadCurveDTO = enedisClient.getConsumptionLoadCurve(
+              lastFetch, EnedisUtil.instantToYmd(Instant.now()),
+              enedisPrm, "Bearer " + accessToken);
+      resetErrors(hardwareId, EnedisConstants.CONFIG_CLC_ERRORS);
+      log.debug("Fetched Consumption Load Curve '{}'.", consumptionLoadCurveDTO);
+    } catch (Exception e) {
+      log.warn("Failed to fetch Consumption Load Curve for device '{}'.", hardwareId, e);
+      increaseErrors(hardwareId, EnedisConstants.CONFIG_CLC_ERRORS);
+    }
+
+    // Queue data for processing.
+    int itemsQueued = 0;
+    if (consumptionLoadCurveDTO != null) {
+      if (!consumptionLoadCurveDTO.getMeterReading().getIntervalReading().isEmpty()) {
+        log.debug("Queuing Consumption Load Curve:\n{}",
+                enedisELPMapperService.toELP(consumptionLoadCurveDTO));
+        dataService.queue(
+                QueueItemDTO.builder()
+                        .id(UUID.randomUUID().toString())
+                        .createdAt(Instant.now())
+                        .hardwareId(hardwareId)
+                        .dataObject(enedisELPMapperService.toELP(consumptionLoadCurveDTO))
+                        .build());
+
+        // Update last fetched at, only if data was fetched. This is due to the fact that data might
+        // not be available at the time of fetching, however it may become available later on.
+        deviceService.updateDeviceConfig(hardwareId, EnedisConstants.CONFIG_CLC_LAST_FETCHED_AT,
+                Instant.now().toString());
+
+        itemsQueued++;
+      } else {
+        log.debug("No Consumption Load Curve data to queue.");
+      }
+    }
+
+    return itemsQueued;
+  }
+
+  /**
+   * Fetch production load curve data from Enedis API.
+   *
+   * @param hardwareId  The hardware ID of the device.
+   * @param enedisPrm   The Enedis PRM.
+   * @param accessToken The access token.
+   * @return
+   */
+  @Transactional(Transactional.TxType.REQUIRES_NEW)
+  public int fetchProductionLoadCurve(String hardwareId, String enedisPrm, String accessToken) {
+    // Fetch data.
+    String lastFetch = EnedisUtil.instantToYmd(deviceService
+            .getDeviceConfigValueAsInstant(hardwareId, EnedisConstants.CONFIG_PLC_LAST_FETCHED_AT)
+            .orElse(Instant.now().minus(Duration.ofDays(enedisProperties.pastDaysInit()))));
+    log.debug("Fetching Production Load Curve for device '{}', from '{}'.", hardwareId, lastFetch);
+    EnedisProductionLoadCurveDTO productionLoadCurveDTO = null;
+    try {
+      productionLoadCurveDTO = enedisClient.getProductionLoadCurve(
+              lastFetch, EnedisUtil.instantToYmd(Instant.now()),
+              enedisPrm, "Bearer " + accessToken);
+      resetErrors(hardwareId, EnedisConstants.CONFIG_PLC_ERRORS);
+      log.debug("Fetched Production Load Curve '{}'.", productionLoadCurveDTO);
+    } catch (Exception e) {
+      log.warn("Failed to fetch Production Load Curve for device '{}'.", hardwareId, e);
+      increaseErrors(hardwareId, EnedisConstants.CONFIG_PLC_ERRORS);
+    }
+
+    // Queue data for processing.
+    int itemsQueued = 0;
+    if (productionLoadCurveDTO != null) {
+      if (!productionLoadCurveDTO.getMeterReading().getIntervalReading().isEmpty()) {
+        log.debug("Queuing Production Load Curve:\n{}",
+                enedisELPMapperService.toELP(productionLoadCurveDTO));
+        dataService.queue(
+                QueueItemDTO.builder()
+                        .id(UUID.randomUUID().toString())
+                        .createdAt(Instant.now())
+                        .hardwareId(hardwareId)
+                        .dataObject(enedisELPMapperService.toELP(productionLoadCurveDTO))
+                        .build());
+
+        // Update last fetched at, only if data was fetched. This is due to the fact that data might
+        // not be available at the time of fetching, however it may become available later on.
+        deviceService.updateDeviceConfig(hardwareId, EnedisConstants.CONFIG_CLC_LAST_FETCHED_AT,
+                Instant.now().toString());
+
+        itemsQueued++;
+      } else {
+        log.debug("No Production Load Curve data to queue.");
+      }
     }
 
     return itemsQueued;
