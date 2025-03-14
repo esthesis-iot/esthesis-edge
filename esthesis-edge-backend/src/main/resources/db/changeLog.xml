@@ -6,7 +6,7 @@
         http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
 
     <changeSet author="European Dynamics SA" id="esthesis-edge-1">
-        <preConditions>
+        <preConditions  onFail="MARK_RAN">
             <tableExists tableName="device"/>
             <tableExists tableName="device_module_config"/>
         </preConditions>
