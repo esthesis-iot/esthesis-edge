@@ -3,7 +3,7 @@ quarkus:
     enabled: false
   hibernate-orm:
     database:
-      generation: update
+      generation: none
   datasource:
     db-kind: mariadb
     username: esthesis-system

@@ -5,8 +5,100 @@
         xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
         http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
 
+    <!-- Create device table if not exists. -->
     <changeSet author="European Dynamics SA" id="esthesis-edge-1">
-        <preConditions  onFail="MARK_RAN">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="device"/>
+            </not>
+        </preConditions>
+        <createTable tableName="device">
+            <column name="id" type="VARCHAR(255)">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="hardware_id" type="VARCHAR(512)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="module_name" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="public_key" type="VARCHAR(4096)"/>
+            <column name="private_key" type="VARCHAR(4096)"/>
+            <column name="certificate" type="VARCHAR(4096)"/>
+            <column name="created_at" type="TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="enabled" type="BOOLEAN">
+                <constraints nullable="false"/>
+            </column>
+            <column name="core_registered_at" type="TIMESTAMP"/>
+            <column name="tags" type="VARCHAR(512)"/>
+            <column name="attributes" type="VARCHAR(1024)"/>
+        </createTable>
+    </changeSet>
+
+    <!-- Create device_module_config table if not exists. -->
+    <changeSet author="European Dynamics SA" id="esthesis-edge-2">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="device_module_config"/>
+            </not>
+        </preConditions>
+        <createTable tableName="device_module_config">
+            <column name="id" type="VARCHAR(255)">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="config_key" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="config_value" type="VARCHAR(1024)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="device_id" type="VARCHAR(255)"/>
+        </createTable>
+        <addForeignKeyConstraint
+                baseTableName="device_module_config"
+                baseColumnNames="device_id"
+                referencedTableName="device"
+                referencedColumnNames="id"
+                onDelete="CASCADE"
+                constraintName="fk_device_module_config_device"/>
+    </changeSet>
+
+    <!-- Create queue_item table if not exists. -->
+    <changeSet author="European Dynamics SA" id="esthesis-edge-3">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="queue_item"/>
+            </not>
+        </preConditions>
+        <createTable tableName="queue_item">
+            <column name="id" type="VARCHAR(255)">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="data_object" type="MEDIUMTEXT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="processed_local_at" type="TIMESTAMP"/>
+            <column name="processed_core_at" type="TIMESTAMP"/>
+            <column name="hardware_id" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <createIndex indexName="idx_hid_processed_at" tableName="queue_item">
+            <column name="hardware_id"/>
+            <column name="processed_local_at"/>
+            <column name="processed_core_at"/>
+        </createIndex>
+    </changeSet>
+
+    <!-- Initial Data insertion if tables already exist. -->
+    <changeSet author="European Dynamics SA" id="esthesis-edge-4">
+        <preConditions onFail="MARK_RAN">
             <tableExists tableName="device"/>
             <tableExists tableName="device_module_config"/>
         </preConditions>
@@ -21,7 +113,7 @@
             FROM device
             WHERE NOT EXISTS (
                 SELECT 1 FROM device_module_config
-                         WHERE device_id = device.id AND (config_key = 'segment_consumer' OR config_key = 'segment_producer')
+                WHERE device_id = device.id AND (config_key = 'segment_consumer' OR config_key = 'segment_producer')
             );
         </sql>
     </changeSet>
