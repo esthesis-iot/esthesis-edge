@@ -347,7 +347,7 @@ public class EnedisFetchService {
 
         // Update last fetched at, only if data was fetched. This is due to the fact that data might
         // not be available at the time of fetching, however it may become available later on.
-        deviceService.updateDeviceConfig(hardwareId, EnedisConstants.CONFIG_CLC_LAST_FETCHED_AT,
+        deviceService.updateDeviceConfig(hardwareId, EnedisConstants.CONFIG_PLC_LAST_FETCHED_AT,
                 Instant.now().toString());
 
         itemsQueued++;
