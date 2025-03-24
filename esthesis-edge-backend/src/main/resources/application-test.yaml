@@ -11,7 +11,7 @@ quarkus:
     EnedisClient:
       scope: ApplicationScoped
   liquibase:
-    enabled: false
+    enabled: true
 
 esthesis:
   edge:
