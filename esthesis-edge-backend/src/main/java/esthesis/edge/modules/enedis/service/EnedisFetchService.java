@@ -26,6 +26,8 @@ import java.time.Instant;
 import java.util.Optional;
 import java.util.UUID;
 
+import static esthesis.edge.modules.enedis.config.EnedisConstants.MAX_PAST_DAYS_LOAD_CURVE;
+
 /**
  * A service to fetch data from the Enedis API.
  */
@@ -262,7 +264,8 @@ public class EnedisFetchService {
     // Fetch data.
     String lastFetch = EnedisUtil.instantToYmd(deviceService
             .getDeviceConfigValueAsInstant(hardwareId, EnedisConstants.CONFIG_CLC_LAST_FETCHED_AT)
-            .orElse(Instant.now().minus(Duration.ofDays(enedisProperties.pastDaysInit()))));
+            .orElse(Instant.now().minus(Duration.ofDays(
+                    Math.min(enedisProperties.pastDaysInit(), MAX_PAST_DAYS_LOAD_CURVE)))));
     log.debug("Fetching Consumption Load Curve for device '{}', from '{}'.", hardwareId, lastFetch);
     EnedisConsumptionLoadCurveDTO consumptionLoadCurveDTO = null;
     try {
@@ -317,7 +320,8 @@ public class EnedisFetchService {
     // Fetch data.
     String lastFetch = EnedisUtil.instantToYmd(deviceService
             .getDeviceConfigValueAsInstant(hardwareId, EnedisConstants.CONFIG_PLC_LAST_FETCHED_AT)
-            .orElse(Instant.now().minus(Duration.ofDays(enedisProperties.pastDaysInit()))));
+            .orElse(Instant.now().minus(Duration.ofDays(
+                    Math.min(enedisProperties.pastDaysInit(), MAX_PAST_DAYS_LOAD_CURVE)))));
     log.debug("Fetching Production Load Curve for device '{}', from '{}'.", hardwareId, lastFetch);
     EnedisProductionLoadCurveDTO productionLoadCurveDTO = null;
     try {

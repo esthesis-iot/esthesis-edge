@@ -65,4 +65,7 @@ public class EnedisConstants {
   // Producer and Consumer segment types.
   public static final String SEGMENT_TYPE_CONSUMER = "C5";
   public static final String SEGMENT_TYPE_PRODUCER = "P4";
+
+  // The maximum number of past days allowed to fetch data from the load curve endpoints.
+  public static final int MAX_PAST_DAYS_LOAD_CURVE = 7;
 }
