@@ -23,3 +23,9 @@ You now have an application in sandbox mode (i.e. you cannot access real users' 
 
 Under `_dev/rest-test/modules/enedis` you can find several REST requests you can use to interact with the Enedis API of
 esthesis EDGE, allowing you to register sandbox devices, initiate data fetch, etc.
+
+## Fronius
+
+In case you have no real Fronius devices, you can use mock servers to simulate the Fronius Solr API. 
+All the Solar API requests and responses are availabe in its official documentation.  
+Please check the [Fronius Module](Fronius.md) for the official documentation.

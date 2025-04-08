@@ -20,6 +20,9 @@ quarkus:
     EnedisClient:
       url: "${QUARKUS_REST_CLIENT_ENEDIS_CLIENT_URL:https://gw.ext.prod-sandbox.api.enedis.fr}"
       scope: Singleton
+    FroniusClient:
+      url: "${QUARKUS_REST_CLIENT_FRONIUS_CLIENT_URL:http://localhost:80/solar_api}"
+      scope: Singleton
   log:
     min-level: TRACE
     category:
@@ -128,3 +131,17 @@ esthesis:
             error:
               title: "Error connecting account"
               message: "An error occurred while connecting your account. Please try again later."
+      fronius:
+        enabled: false
+        cron: "0 0 6 * * ?"
+        max-devices: 1000
+        fetch-types:
+          pfr:
+            enabled: true
+            errors-threshold: 10
+            eday:
+              category: "energy"
+              measurement: "dailyProduction"
+            inverters-hardware-ids:
+              - "fronius-pfr-inverter-0"
+
