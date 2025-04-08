@@ -10,6 +10,8 @@ quarkus:
       scope: ApplicationScoped
     EnedisClient:
       scope: ApplicationScoped
+    FroniusClient:
+      scope: ApplicationScoped
   liquibase:
     enabled: true
 
@@ -24,3 +26,5 @@ esthesis:
         enabled: true
         self-registration:
           state-checking: false
+      fronius:
+        enabled: true
