@@ -9,7 +9,7 @@ docker run  \
 	Xvfb :99 &
 	/opt/builder/bin/idea.sh helpbuilderinspect \
 	--source-dir /opt/sources \
-	--product Writerside/esthesis-edge \
+	--product edge-docs/esthesis-edge \
 	--runner other \
 	--output-dir /opt/target
 	"
