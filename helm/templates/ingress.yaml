@@ -34,5 +34,10 @@ spec:
     - hosts:
         - {{ .Values.esthesis.edge.ingress.hostname }}
       secretName: esthesis-edge-ingress-tls
+  {{- else if .Values.esthesis.edge.ingress.ingressTlsSecret }}
+  tls:
+    - hosts:
+        - {{ .Values.esthesis.edge.ingress.hostname }}
+      secretName: {{ .Values.esthesis.edge.ingress.ingressTlsSecret }}
   {{- end }}
 {{- end }}
