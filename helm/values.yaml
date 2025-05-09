@@ -55,6 +55,8 @@ esthesis:
       className:
       # -- The hostname of the ingress resource.
       hostname:
+      # -- The name of the Kubernetes TLS secret that contains the TLS certificate and private key for securing the Ingress with HTTPS.
+      ingressTlsSecret:
     local:
       # -- Whether the local InfluxDB database is updated with data fetched.
       enabled: false
@@ -181,7 +183,8 @@ esthesis:
               # -- The title of the self-registration page, if the welcome URL is empty.
               title: "Connect your Enedis account"
               # -- The message displayed on the self-registration page, if the welcome URL is empty.
-              message: "You will be redirected to Enedis, where you have to authenticate with your
+              message:
+                "You will be redirected to Enedis, where you have to authenticate with your
                 Enedis account, and authorise this application to retrieve your electricity consumption
                 data. The authorisation will be valid for 1 year. Your data will be used by us to provide
                 you with insights and recommendations on how to save energy."

@@ -28,16 +28,17 @@ The main configuration options of esthesis EDGE consist of the following paramet
 
 ## Service and Ingress configuration
 
-| **NAME**                                                            | **DESCRIPTION**                                                                                |
-|---------------------------------------------------------------------|------------------------------------------------------------------------------------------------|
-| **ESTHESIS_EDGE_SERVICE_PORT**<br/>--set esthesis.edge.service.port | The port on which the esthesis EDGE service is exposed.<br/>Default: 80                        |
-| **ESTHESIS_EDGE_INFLUX_DB_SERVICE_PORT**                            | The port on which InfluxDB service is exposed.<br/>Default: 8086                               |
-| --set esthesis.edge.service.type                                    | The type of the service to use when exposing the esthesis EDGE service.<br/>Default: ClusterIP |
-| --set esthesis.edge.ingress.enabled                                 | Whether to create an Ingress resource for the esthesis EDGE service or not.<br/>Default: false |
-| --set esthesis.edge.ingress.certManagerClusterIssuer                | The name of the ClusterIssuer to use when creating the Ingress resource.                       |
-| --set esthesis.edge.ingress.certManagerIssuer                       | The name of the Issuer to use when creating the Ingress resource.                              |
-| --set esthesis.edge.ingress.className                               | The class name of the Ingress resource to use when creating the Ingress resource.              |
-| --set esthesis.edge.ingress.hostname                                | The host name to use when creating the Ingress resource.                                       |
+| **NAME**                                                            | **DESCRIPTION**                                                                                                              |
+|---------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------|
+| **ESTHESIS_EDGE_SERVICE_PORT**<br/>--set esthesis.edge.service.port | The port on which the esthesis EDGE service is exposed.<br/>Default: 80                                                      |
+| **ESTHESIS_EDGE_INFLUX_DB_SERVICE_PORT**                            | The port on which InfluxDB service is exposed.<br/>Default: 8086                                                             |
+| --set esthesis.edge.service.type                                    | The type of the service to use when exposing the esthesis EDGE service.<br/>Default: ClusterIP                               |
+| --set esthesis.edge.ingress.enabled                                 | Whether to create an Ingress resource for the esthesis EDGE service or not.<br/>Default: false                               |
+| --set esthesis.edge.ingress.certManagerClusterIssuer                | The name of the ClusterIssuer to use when creating the Ingress resource.                                                     |
+| --set esthesis.edge.ingress.certManagerIssuer                       | The name of the Issuer to use when creating the Ingress resource.                                                            |
+| --set esthesis.edge.ingress.className                               | The class name of the Ingress resource to use when creating the Ingress resource.                                            |
+| --set esthesis.edge.ingress.hostname                                | The host name to use when creating the Ingress resource.                                                                     |
+| --set esthesis.edge.ingress.ingressTlsSecret                        | The name of the Kubernetes TLS secret that contains the TLS certificate and private key for securing the Ingress with HTTPS. |
 
 ## InfluxDB configuration (local data sync)
 
