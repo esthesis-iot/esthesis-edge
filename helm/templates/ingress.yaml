@@ -29,12 +29,7 @@ spec:
                 name: esthesis-edge-service
                 port:
                   number: {{ .Values.esthesis.edge.service.port }}
-  {{- if or .Values.esthesis.edge.ingress.certManagerClusterIssuer .Values.esthesis.edge.ingress.certManagerIssuer }}
-  tls:
-    - hosts:
-        - {{ .Values.esthesis.edge.ingress.hostname }}
-      secretName: esthesis-edge-ingress-tls
-  {{- else if .Values.esthesis.edge.ingress.ingressTlsSecret }}
+  {{- if or .Values.esthesis.edge.ingress.certManagerClusterIssuer .Values.esthesis.edge.ingress.certManagerIssuer .Values.esthesis.edge.ingress.ingressTlsSecret }}
   tls:
     - hosts:
         - {{ .Values.esthesis.edge.ingress.hostname }}
