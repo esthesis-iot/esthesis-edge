@@ -55,7 +55,7 @@ esthesis:
       className:
       # -- The hostname of the ingress resource.
       hostname:
-      # -- The secret name of the tls certificate
+      # -- The name of the Kubernetes TLS secret that contains the TLS certificate and private key for securing the Ingress with HTTPS.
       ingressTlsSecret:
     local:
       # -- Whether the local InfluxDB database is updated with data fetched.
