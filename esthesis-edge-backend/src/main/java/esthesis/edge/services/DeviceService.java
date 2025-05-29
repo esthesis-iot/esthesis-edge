@@ -94,8 +94,24 @@ public class DeviceService {
    * @return True if the device was disabled, false otherwise.
    */
   public boolean disableDevice(String hardwareId) {
+    log.info("Disabling device with hardware ID: '{}'.", hardwareId);
     DeviceEntity deviceEntity = DeviceEntity.findByHardwareId(hardwareId).orElseThrow();
     deviceEntity.setEnabled(false);
+    deviceEntity.persist();
+
+    return deviceEntity.getEnabled();
+  }
+
+  /**
+   * Enables a device.
+   *
+   * @param hardwareId The hardware ID of the device to disable.
+   * @return True if the device was enabled, false otherwise.
+   */
+  public boolean enableDevice(String hardwareId) {
+    log.info("Enabling device with hardware ID: '{}'.", hardwareId);
+    DeviceEntity deviceEntity = DeviceEntity.findByHardwareId(hardwareId).orElseThrow();
+    deviceEntity.setEnabled(true);
     deviceEntity.persist();
 
     return deviceEntity.getEnabled();
