@@ -23,6 +23,7 @@ pipeline {
                 securityContext:
                   runAsUser: 0
                   runAsGroup: 0
+                  fsGroup: 0
                 containers:
                 - name: esthesis-edge-builder
                   image: eddevopsd2/ubuntu-dind:docker24-mvn3.9.6-jdk21-node18.16-go1.23-buildx-helm
@@ -38,7 +39,6 @@ pipeline {
                   securityContext:
                     privileged: true
                     runAsUser: 0
-                    fsGroup: 0
                 imagePullSecrets:
                 - name: regcred
                 volumes:
