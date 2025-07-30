@@ -67,5 +67,5 @@ public class EnedisConstants {
   public static final String SEGMENT_TYPE_PRODUCER = "P4";
 
   // The maximum number of past days allowed to fetch data from the load curve endpoints.
-  public static final int MAX_PAST_DAYS_LOAD_CURVE = 7;
+  public static final int MAX_PAST_DAYS_LOAD_CURVE = 5;
 }
