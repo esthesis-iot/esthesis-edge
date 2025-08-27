@@ -2,6 +2,7 @@ package esthesis.edge.modules.fronius.service;
 
 import esthesis.edge.modules.fronius.FroniusTestUtils;
 import esthesis.edge.modules.fronius.client.FroniusClient;
+import esthesis.edge.services.DeviceService;
 import esthesis.edge.services.QueueService;
 import io.quarkus.test.InjectMock;
 import io.quarkus.test.junit.QuarkusTest;
@@ -29,18 +30,27 @@ class FroniusFetchServiceTest {
     QueueService queueService;
 
     @Inject
+    DeviceService deviceService;
+
+    @Inject
     FroniusTestUtils froniusTestUtils;
+
+    @Inject
+    FroniusService froniusService;
 
 
     @BeforeEach
     @Transactional
     void setUp() {
         queueService.list().forEach(queue -> queueService.remove(queue.getId()));
+        deviceService.deleteAllDevices();
 
     }
 
     @Test
     void fetchPowerFlowRealtimeData() {
+
+        froniusService.updateDevices();
 
         // Mock the FroniusClient to return a valid response.
         when(froniusClient.getPowerFlowRealtimeData()).thenReturn(froniusTestUtils.createFroniusPowerFlowRealtimeDataDTO());

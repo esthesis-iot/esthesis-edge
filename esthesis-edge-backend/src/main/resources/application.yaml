@@ -23,6 +23,9 @@ quarkus:
     FroniusClient:
       url: "${QUARKUS_REST_CLIENT_FRONIUS_CLIENT_URL:http://localhost:80/solar_api}"
       scope: Singleton
+    DeddieClient:
+      url: "${QUARKUS_REST_CLIENT_DEDDIE_CLIENT_URL:https://apps.deddie.gr/mdp/rest}"
+      scope: Singleton
   log:
     min-level: TRACE
     category:
@@ -144,4 +147,51 @@ esthesis:
               measurement: "dailyProduction"
             inverters-hardware-ids:
               - "fronius-pfr-inverter-0"
+      deddie:
+        enabled: false
+        cron: "0 0 6 * * ?"
+        max-devices: 1000
+        past-days-init: 7
+        fetch-types:
+          cac:
+            enabled: true
+            category: "energy"
+            measurement: "active"
+            errors-threshold: 10
+          crp:
+            enabled: true
+            category: "energy"
+            measurement: "reactive"
+            errors-threshold: 10
+          cep:
+            enabled: true
+            category: "energy"
+            measurement: "produced"
+            errors-threshold: 10
+          cei:
+            enabled: true
+            category: "energy"
+            measurement: "injected"
+            errors-threshold: 10
+        self-registration:
+          enabled: true
+          page:
+            logo1-url: https://deddie.gr/images/svgs/deddie-el.svg
+            logo1-alt: Deddie
+            logo2-url: https://www.eurodyn.com/wp-content/uploads/2018/11/logo_ed.png
+            logo2-alt: European Dynamics
+            logo3-url: https://esthes.is/docs/edge/images/logo.png
+            logo3-alt: esthesis EDGE
+            registration:
+              title: "DEDDIE Data Registration"
+              message: "Please provide your Tax Number and the Access Token obtained from DEDDIE's Metering Data Portal. Optionally, you may enter one or more Supply Numbers. If no Supply Numbers are provided, all supplies linked to your Tax Number will be retrieved."
+              placeholder-tax-number: "Tax Number (required)"
+              placeholder-access-token: "Access Token (required)"
+              placeholder-supply-number: "Supply Number (optional)"
+            success:
+              title: "Registration Successful"
+              message: "Your information has been registered successfully. You may now close this window."
+            error:
+              title: "Registration Failed"
+              message: "We were unable to complete your registration. Please verify the information provided and try again."
 
