@@ -11,18 +11,17 @@ icon: https://esthes.is/media/logo.png
 version: "1.0.21-SNAPSHOT"
 appVersion: "1.0.21-SNAPSHOT"
 dependencies:
-  - name: mariadb-cluster
-    version: "25.8.3"
-    repository: "https://github.com/mariadb-operator/mariadb-operator/deploy/charts"
-    condition: mariadb-cluster.enabled
+  # If you wish to install mariadb via the operator you will first to install the mariadb-operator-crds chart:
+  # helm repo add mariadb-operator https://helm.mariadb.com/mariadb-operator
+  # helm install mariadb-operator-crds mariadb-operator/mariadb-operator-crds
   - name: mariadb-operator
     version: "25.8.3"
-    repository: "https://github.com/mariadb-operator/mariadb-operator/deploy/charts"
+    repository: "https://helm.mariadb.com/mariadb-operator"
     condition: mariadb-operator.enabled
-  - name: mariadb-operator-crds
+  - name: mariadb-cluster
     version: "25.8.3"
-    repository: "https://github.com/mariadb-operator/mariadb-operator/deploy/charts"
-    condition: mariadb-operator-crds.enabled
+    repository: "https://helm.mariadb.com/mariadb-operator"
+    condition: mariadb-cluster.enabled
   - name: influxdb2
     version: "2.1.2"
     repository: "https://helm.influxdata.com"

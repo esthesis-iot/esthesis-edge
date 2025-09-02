@@ -16,7 +16,7 @@ quarkus:
     password: "esthesis-system"
     jdbc:
       # -- The JDBC URL of MariaDB used by esthesis EDGE.
-      url: "jdbc:mariadb://edge-mariadb:3306/esthesis-edge"
+      url: "jdbc:mariadb://esthesis-edge-mariadb-cluster:3306/esthesis-edge"
   restClient:
     # -- The URL of the esthesis Agent Service.
     esthesisAgentServiceClient:
@@ -203,21 +203,10 @@ mariadb-operator:
   # -- Whether the MariaDB operator will be installed.
   enabled: true
 
-mariadb-operator-crds:
-  # -- Whether the MariaDB operator CRDs will be installed.
-  enabled: true
-
 mariadb-cluster:
   # -- Whether the MariaDB cluster will be installed.
   enabled: true
   mariadb:
-    rootPasswordSecretKeyRef:
-      # The name of the secret that contains the root password for MariaDB.
-      name: esthesis-edge
-      # The key in the secret that contains the root password for MariaDB.
-      key: root-password
-      # The actual root password for MariaDB.
-      password: "root"
     storage:
       size: 10Gi
     replicas: 1
@@ -232,11 +221,9 @@ mariadb-cluster:
       # The password of the database user that will be created for esthesis EDGE.
       passwordSecretKeyRef:
         # The name of the secret that contains the password for the esthesis-system user.
-        name: esthesis-edge
+        name: mariadb
         # The key in the secret that contains the password for the esthesis-system user.
         key: password
-        # The actual password for the esthesis-system user.
-        password: "esthesis-system"
   # Grants ALL privileges to the esthesis-system user on the esthesis-edge database.
   grants:
     - name: esthesis-edge
@@ -245,6 +232,9 @@ mariadb-cluster:
       database: "esthesis-edge"
       table: "*"
       username: esthesis-system
+  auth:
+    password: "esthesis-system"
+    rootPassword: "root"
 
 influxdb2:
   # -- Whether InfluxDB will be installed.
