@@ -199,41 +199,74 @@ esthesis:
               # -- The message of the error message displayed after an unsuccessful self-registration.
               message: "An error occurred while connecting your account. Please try again later."
 
-mariadb:
-  # -- Whether MariaDB will be installed.
+mariadb-operator:
+  # -- Whether the MariaDB operator will be installed.
   enabled: true
-  auth:
-    # -- The password for the root MariaDB user.
-    rootPassword: "esthesis-system"
-    # -- The name of the database that will be created for esthesis EDGE.
-    database: "esthesis-edge"
-    # -- The username of the database user that will be created for esthesis EDGE.
-    username: "esthesis-system"
-    # -- The password of the database user that will be created for esthesis EDGE.
-    password: "esthesis-system"
 
-influxdb:
+mariadb-operator-crds:
+  # -- Whether the MariaDB operator CRDs will be installed.
+  enabled: true
+
+mariadb-cluster:
+  # -- Whether the MariaDB cluster will be installed.
+  enabled: true
+  mariadb:
+    rootPasswordSecretKeyRef:
+      # The name of the secret that contains the root password for MariaDB.
+      name: esthesis-edge
+      # The key in the secret that contains the root password for MariaDB.
+      key: root-password
+      # The actual root password for MariaDB.
+      password: "root"
+    storage:
+      size: 10Gi
+    replicas: 1
+    galera:
+      enabled: false
+  databases:
+    # The name of the database that will be created for esthesis EDGE.
+    - name: esthesis-edge
+  users:
+    # The username of the database user that will be created for esthesis EDGE.
+    - name: esthesis-system
+      # The password of the database user that will be created for esthesis EDGE.
+      passwordSecretKeyRef:
+        # The name of the secret that contains the password for the esthesis-system user.
+        name: esthesis-edge
+        # The key in the secret that contains the password for the esthesis-system user.
+        key: password
+        # The actual password for the esthesis-system user.
+        password: "esthesis-system"
+  # Grants ALL privileges to the esthesis-system user on the esthesis-edge database.
+  grants:
+    - name: esthesis-edge
+      privileges:
+        - "ALL PRIVILEGES"
+      database: "esthesis-edge"
+      table: "*"
+      username: esthesis-system
+
+influxdb2:
   # -- Whether InfluxDB will be installed.
   enabled: true
-  auth:
-    # -- Whether a user token will be created during deployment.
-    createUserToken: true
-    admin:
-      # -- The username of the InfluxDB admin user.
-      username: "esthesis-system"
-      # -- The password of the InfluxDB admin user.
-      password: "esthesis-system"
-      # -- The token that will be created for InfluxDB.
-      token: "fVfC4PNVzPnO_qsYY4X3lsvYmqIZNFHE3kE6fI8hpZqR"
-    user:
-      # -- The organisation name of the esthesis EDGE user for InfluxDB.
-      org: "esthesis"
-      # -- The bucket name of esthesis EDGE in InfluxDB.
-      bucket: "edge"
-      # -- The username of the esthesis EDGE user for InfluxDB.
-      username: "esthesis-admin"
-      # -- The password of the esthesis EDGE user for InfluxDB.
-      password: "esthesis-admin"
+  # -- The full name override for the InfluxDB release.
+  fullnameOverride: "influxdb"
+  image:
+    # -- The InfluxDB image secret used to pull the image from a private registry.
+    pullSecrets: []
+  adminUser:
+    # -- The organisation name for InfluxDB.
+    organization: esthesis
+    # -- The bucket name of esthesis EDGE in InfluxDB.
+    bucket: edge
+    # -- The username of the InfluxDB admin user.
+    user: esthesis-system
+    # -- The password of the InfluxDB admin user.
+    password: esthesis-system
+    # -- The token that will be created for InfluxDB.
+    token: "fVfC4PNVzPnO_qsYY4X3lsvYmqIZNFHE3kE6fI8hpZqR"
   persistence:
+    # -- Whether persistence is enabled for InfluxDB.
+    enabled: true
     # -- The size of the persistent volume claim for InfluxDB.
-    size: "32Gi"
+    size: 32Gi

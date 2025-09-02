@@ -11,11 +11,19 @@ icon: https://esthes.is/media/logo.png
 version: "1.0.21-SNAPSHOT"
 appVersion: "1.0.21-SNAPSHOT"
 dependencies:
-  - name: mariadb
-    version: "11.4.3"
-    repository: "oci://registry-1.docker.io/bitnamicharts"
-    condition: mariadb.enabled
-  - name: influxdb
-    version: "5.6.1"
-    repository: "oci://registry-1.docker.io/bitnamicharts"
-    condition: influxdb.enabled
+  - name: mariadb-cluster
+    version: "25.8.3"
+    repository: "https://github.com/mariadb-operator/mariadb-operator/deploy/charts"
+    condition: mariadb-cluster.enabled
+  - name: mariadb-operator
+    version: "25.8.3"
+    repository: "https://github.com/mariadb-operator/mariadb-operator/deploy/charts"
+    condition: mariadb-operator.enabled
+  - name: mariadb-operator-crds
+    version: "25.8.3"
+    repository: "https://github.com/mariadb-operator/mariadb-operator/deploy/charts"
+    condition: mariadb-operator-crds.enabled
+  - name: influxdb2
+    version: "2.1.2"
+    repository: "https://helm.influxdata.com"
+    condition: influxdb2.enabled
