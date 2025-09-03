@@ -16,7 +16,7 @@ quarkus:
     password: "esthesis-system"
     jdbc:
       # -- The JDBC URL of MariaDB used by esthesis EDGE.
-      url: "jdbc:mariadb://edge-mariadb:3306/esthesis-edge"
+      url: "jdbc:mariadb://esthesis-edge-mariadb:3306/esthesis-edge"
   restClient:
     # -- The URL of the esthesis Agent Service.
     esthesisAgentServiceClient:
@@ -68,7 +68,7 @@ esthesis:
       enabled: false
       influxDb:
         # -- The URL of the local InfluxDB database.
-        url: "http://influxdb:8088"
+        url: "http://esthesis-edge-influxdb:8088"
         # -- The token used to access the local InfluxDB database.
         token: "fVfC4PNVzPnO_qsYY4X3lsvYmqIZNFHE3kE6fI8hpZqR"
         # -- The bucket used to store data in the local InfluxDB database.
