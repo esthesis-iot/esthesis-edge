@@ -24,6 +24,12 @@ quarkus:
     # -- The URL of the Enedis API.
     enedisClient:
       url: "https://gw.ext.prod-sandbox.api.enedis.fr"
+    # -- The URL of the Fronius Solar API.
+    froniusClient:
+      url: "http://localhost:8080/solar_api"
+    # -- The URL of the DEDDIE API.
+    deddieClient:
+        url: "https://apps.deddie.gr/mdp/rest"
   log:
     level: "INFO"
 
@@ -198,6 +204,120 @@ esthesis:
               title: "Error connecting account"
               # -- The message of the error message displayed after an unsuccessful self-registration.
               message: "An error occurred while connecting your account. Please try again later."
+
+      fronius:
+        # -- Whether the Fronius module is enabled.
+        enabled: false
+        # -- The cron expression used to schedule how often data is fetched from Fronius Solar API.
+        cron: "0 0 6 * * ?"
+        # -- The maximum number of devices that can be registered by the Fronius module.
+        maxDevices: 1000
+        fetchTypes:
+          pfr:
+            # -- Whether  Power Flow data is fetched from Fronius.
+            enabled: true
+            # -- The number of errors after which the fetching of Power Flow data is stopped.
+            errorsThreshold: 10
+            # -- Daily AC energy configuration.
+            eday:
+              # -- The category name used to store daily production data (used both in local InfluxDB database and in eLP).
+              category: "energy"
+              # -- The measurement name used to store daily production data (used both in local InfluxDB database and in eLP).
+              measurement: "dailyProduction"
+
+            # -- The hardware IDs of the inverters whose Power Flow data is fetched from Fronius.
+            # -- The order of the inverters is important, as it should match the order of the inverters in the Fronius API response.
+            invertersHardwareIds:
+              - "fronius-pfr-inverter-0"
+
+      deddie:
+        # -- Whether the DEDDIE module is enabled.
+        enabled: false
+        # -- The cron expression used to schedule how often data is fetched from DEDDIE.
+        cron: "0 0 6 * * ?"
+        # -- The maximum number of devices that can be registered by the DEDDIE module.
+        maxDevices: 1000
+        # -- The number of days in the past for which data is fetched from DEDDIE when a new device is registered.
+        pastDaysInit: 7
+        fetchTypes:
+          cac:
+            # -- Whether Active Consumption data is fetched from DEDDIE.
+            enabled: true
+            # -- The category name used to store Active Consumption data (used both in local InfluxDB database and in eLP).
+            category: "energy"
+            # -- The measurement name used to store Active Consumption data (used both in local InfluxDB database and in eLP).
+            measurement: "active"
+            # -- The number of errors after which the fetching of Active Consumption data is stopped.
+            errorsThreshold: 10
+          crp:
+            # -- Whether Reactive Power data is fetched from DEDDIE.
+            enabled: true
+            # -- The category name used to store Reactive Consumption data (used both in local InfluxDB database and in eLP).
+            category: "energy"
+            # -- The measurement name used to store Reactive Consumption data (used both in local InfluxDB database and in eLP).
+            measurement: "reactive"
+            # -- The number of errors after which the fetching of Reactive Consumption data is stopped.
+            errorsThreshold: 10
+          cep:
+            # -- Whether Energy Produced data is fetched from DEDDIE.
+            enabled: true
+            # -- The category name used to store Energy Produced data (used both in local InfluxDB database and in eLP).
+            category: "energy"
+            # -- The measurement name used to store Energy Produced data (used both in local InfluxDB database and in eLP).
+            measurement: "produced"
+            # -- The number of errors after which the fetching of Energy Produced data is stopped.
+            errorsThreshold: 10
+          cei:
+            # -- Whether Energy Injected data is fetched from DEDDIE.
+            enabled: true
+            # -- The category name used to store Energy Injected data (used both in local InfluxDB database and in eLP).
+            category: "energy"
+            # -- The measurement name used to store Energy Injected data (used both in local InfluxDB database and in eLP).
+            measurement: "injected"
+            # -- The number of errors after which the fetching of Energy Injected data is stopped.
+            errorsThreshold: 10
+        selfRegistration:
+          # -- Whether the self-registration page and functionality is enabled for the DEDDIE module.
+          enabled: true
+          page:
+            # -- The URL of the first logo being displayed on the self-registration page.
+            logo1Url: https://deddie.gr/images/svgs/deddie-el.svg
+            # -- The alt text of the first logo being displayed on the self-registration page.
+            logo1Alt: Deddie
+            # -- The URL of the second logo being displayed on the self-registration page.
+            logo2Url: https://www.eurodyn.com/wp-content/uploads/2018/11/logo_ed.png
+            # -- The alt text of the second logo being displayed on the self-registration page.
+            logo2Alt: European Dynamics
+            # -- The URL of the third logo being displayed on the self-registration page.
+            logo3Url: https://esthes.is/docs/edge/images/logo.png
+            # -- The alt text of the third logo being displayed on the self-registration page.
+            logo3Alt: esthesis EDGE
+            registration:
+              # -- The title of the self-registration page.
+              title: "DEDDIE Data Registration"
+              # -- The message displayed on the self-registration page.
+              message:
+                "Please provide your Tax Number and the Access Token obtained from DEDDIE's Metering Data Portal. 
+                 Optionally, you may enter one or more Supply Numbers. If no Supply Numbers are provided, all supplies 
+                 linked to your Tax Number will be retrieved."
+              # -- The placeholder text for the Tax Number input field on the self-registration page.
+              placeholderTaxNumber: "Tax Number (required)"
+              # -- The placeholder text for the Access Token input field on the self-registration page.
+              placeholderAccessToken: "Access Token (required)"
+                # -- The placeholder text for the Supply Numbers input field on the self-registration page.
+              placeholderSupplyNumber: "Supply Number (optional)"
+            success:
+              # -- The title of the success message displayed after a successful self-registration.
+              title: "Registration Successful"
+              # -- The message of the success message displayed after a successful self-registration.
+              message: "Your information has been registered successfully. You may now close this window."
+            error:
+              # -- The title of the error message displayed after an unsuccessful self-registration.
+              title: "Registration Failed"
+              # -- The message of the error message displayed after an unsuccessful self-registration.
+              message: "We were unable to complete your registration. Please verify the information provided and try again."
+
+
 
 mariadb:
   # -- Whether MariaDB will be installed.
