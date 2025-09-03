@@ -9,3 +9,4 @@ suggest so in our [GitHub repository](https://github.com/esthesis-iot/esthesis-e
 The following modules are currently available:
 - [Enedis module](enedis.md), providing integration with [Enedis DataHub API](https://datahub-enedis.fr).
 - [Fronius module](Fronius.md), providing integration with Fronius Solar API.
+- [Deddie module](Deddie.md), providing integration with [Deddie API](https://apps.deddie.gr/).

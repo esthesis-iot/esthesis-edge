@@ -44,12 +44,7 @@ public class FetchHelperService {
     public void resetErrors(String hardwareId, String configKey) {
         Optional<DeviceModuleConfigEntity> config = DeviceModuleConfigEntity.getConfig(hardwareId,
                 configKey);
-        if (config.isPresent()) {
-            config.get().setConfigValue("0");
-        } else {
-            log.warn("Failed to reset errors for device '{}' as config key '{}' does not exist.",
-                    hardwareId, configKey);
-        }
+        config.ifPresent(deviceModuleConfigEntity -> deviceModuleConfigEntity.setConfigValue("0"));
     }
 
 }

@@ -27,6 +27,7 @@ import org.apache.commons.lang3.StringUtils;
 @RequiredArgsConstructor
 public class DeviceService {
 
+
   private final DeviceMapper deviceMapper;
   private final EdgeProperties edgeProperties;
   private final EsthesisCoreService esthesisCoreService;
@@ -69,7 +70,7 @@ public class DeviceService {
     if (newDevice) {
       log.info("Device with hardwareId '{}' created.", deviceDTO.getHardwareId());
     } else {
-      log.info("Device with hardwareId '{}' updated.", deviceDTO.getHardwareId());
+      log.info("Device with hardwareId '{}' already exists.", deviceDTO.getHardwareId());
     }
 
     // Create the module configuration for the device.
@@ -80,7 +81,7 @@ public class DeviceService {
     }
 
     // Register the device with esthesis CORE.
-    if (edgeProperties.core().registration().enabled()) {
+    if (edgeProperties.core().registration().enabled() && deviceEntity.getCoreRegisteredAt() == null) {
       esthesisCoreService.registerDevice(deviceDTO.getHardwareId());
     }
 

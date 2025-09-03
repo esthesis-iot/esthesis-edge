@@ -12,6 +12,8 @@ quarkus:
       scope: ApplicationScoped
     FroniusClient:
       scope: ApplicationScoped
+    DeddieClient:
+      scope: ApplicationScoped
   liquibase:
     enabled: true
 
