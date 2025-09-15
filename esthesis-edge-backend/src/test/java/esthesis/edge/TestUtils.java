@@ -12,13 +12,12 @@ import java.util.UUID;
 public class TestUtils {
 
   @Transactional
-  public DeviceEntity createDevice(String hardwareId, String moduleName) {
+  public void createDevice(String hardwareId, String moduleName) {
     createDevice(hardwareId);
     DeviceEntity deviceEntity = DeviceEntity.findByHardwareId(hardwareId).orElseThrow();
     deviceEntity.setModuleName(moduleName);
     deviceEntity.persist();
 
-    return deviceEntity;
   }
 
   @Transactional
@@ -29,9 +28,17 @@ public class TestUtils {
     deviceEntity.setModuleName("test");
     deviceEntity.setEnabled(true);
     deviceEntity.setCreatedAt(Instant.now());
+    deviceEntity.setCoreRegisteredAt(Instant.now());
     deviceEntity.persist();
 
     return deviceEntity;
+  }
+
+  @Transactional
+  public void createDeviceWithoutCoreRegistration(String hardwareId) {
+    DeviceEntity device =  this.createDevice(hardwareId);
+    device.setCoreRegisteredAt(null);
+    device.persist();
   }
 
   @Transactional

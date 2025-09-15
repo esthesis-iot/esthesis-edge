@@ -1,8 +1,8 @@
 {
-  "testsErrorsCount" : 0,
+  "testsErrorsCount" : 1,
   "testsTotal" : 175,
   "testsWarningsCount" : 1,
-  "testsPassedCount" : 174,
+  "testsPassedCount" : 173,
   "testsWarnings" : {
     "VIS011" : [ {
       "id" : "VIS011------images-big-logo_dark-png---in-Introduction-md-3-1",
@@ -10,13 +10,25 @@
       "name" : "Dark version of image or video file cannot be found",
       "description" : "\"\"../images/big-logo_dark.png\"\" in Introduction.md:3:1"
     }, {
+      "id" : "VIS011---deddie-self-registration-page_dark-png---in-Deddie-md-27-1",
+      "problemId" : "VIS011",
+      "name" : "Dark version of image or video file cannot be found",
+      "description" : "\"\"deddie-self-registration-page_dark.png\"\" in Deddie.md:27:1"
+    }, {
       "id" : "VIS011---enedis-welcome-page_dark-png---in-enedis-md-23-1",
       "problemId" : "VIS011",
       "name" : "Dark version of image or video file cannot be found",
       "description" : "\"\"enedis-welcome-page_dark.png\"\" in enedis.md:23:1"
     } ]
   },
-  "testsErrors" : { },
+  "testsErrors" : {
+    "REF001" : [ {
+      "id" : "REF001---FroniusConfiguration-md---in-Fronius-md-14-86---------ModulesConfiguration-md-6-3",
+      "problemId" : "REF001",
+      "name" : "Cannot link to a topic that is not included in the current instance",
+      "description" : "\"\"FroniusConfiguration.md\"\" in Fronius.md:14:86 -> <br/>    ModulesConfiguration.md:6:3"
+    } ]
+  },
   "idsAndTitles" : {
     "CDE001" : "The <compare> element must contain exactly two code blocks",
     "CDE002" : "The 'collapsed-title-line-number' attribute value on a 'code-block' element is not a valid number",
@@ -937,12 +949,6 @@
       "id" : "PTY007-",
       "problemId" : "PTY007",
       "name" : "Property content is corrupted",
-      "description" : ""
-    } ],
-    "REF001" : [ {
-      "id" : "REF001-",
-      "problemId" : "REF001",
-      "name" : "Cannot link to a topic that is not included in the current instance",
       "description" : ""
     } ],
     "REF002" : [ {

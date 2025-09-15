@@ -65,6 +65,29 @@ class EnedisServiceTest {
 
   @Test
   void createDevice() {
+    when(enedisRestClient.getContracts(any(String.class), any(String.class)))
+        .thenReturn("{\n"
+            + "  \"customer\" : {\n"
+            + "    \"customer_id\" : \"-1151252795\",\n"
+            + "    \"usage_points\" : [ {\n"
+            + "      \"usage_point\" : {\n"
+            + "        \"usage_point_id\" : \"05401157728009\",\n"
+            + "        \"usage_point_status\" : \"com\",\n"
+            + "        \"meter_type\" : \"AMM\"\n"
+            + "      },\n"
+            + "      \"contracts\" : {\n"
+            + "        \"segment\" : \"C5\",\n"
+            + "        \"subscribed_power\" : \"9 kVA\",\n"
+            + "        \"last_activation_date\" : \"2015-05-22+02:00\",\n"
+            + "        \"distribution_tariff\" : \"BTINFMU4\",\n"
+            + "        \"offpeak_hours\" : \"HC (23H30-7H30)\",\n"
+            + "        \"contract_type\" : \"Contrat GRD-F\",\n"
+            + "        \"contract_status\" : \"SERVC\",\n"
+            + "        \"last_distribution_tariff_change_date\" : \"2023-03-16+01:00\"\n"
+            + "      }\n"
+            + "    } ]\n"
+            + "  }\n"
+            + "}");
     enedisService.createDevice("test");
     assertNotNull(DeviceEntity.findByHardwareId("test"));
   }
@@ -124,7 +147,7 @@ class EnedisServiceTest {
     when(enedisFetchService.fetchDailyProduction(any(String.class), any(String.class),
         any(String.class))).thenReturn(0);
 
-    enedisService.fetchData();
+    assertDoesNotThrow(() -> enedisService.fetchData());
   }
 
 }

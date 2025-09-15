@@ -10,14 +10,23 @@ quarkus:
       scope: ApplicationScoped
     EnedisClient:
       scope: ApplicationScoped
+    FroniusClient:
+      scope: ApplicationScoped
+    DeddieClient:
+      scope: ApplicationScoped
+  liquibase:
+    enabled: true
 
 esthesis:
   edge:
     core:
       registration:
         secret: "test"
+        enabled: true
     modules:
       enedis:
         enabled: true
         self-registration:
           state-checking: false
+      fronius:
+        enabled: true

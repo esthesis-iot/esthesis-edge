@@ -3,7 +3,11 @@ package esthesis.edge.modules.enedis.service;
 import static esthesis.edge.config.EdgeConstants.EDGE;
 import static esthesis.edge.modules.enedis.config.EnedisConstants.MODULE_NAME;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import esthesis.common.exception.QProcessingException;
 import esthesis.edge.dto.DeviceDTO;
+import esthesis.edge.dto.DeviceDTO.DeviceDTOBuilder;
 import esthesis.edge.dto.TemplateDTO;
 import esthesis.edge.model.DeviceEntity;
 import esthesis.edge.model.DeviceModuleConfigEntity;
@@ -11,6 +15,7 @@ import esthesis.edge.modules.enedis.client.EnedisClient;
 import esthesis.edge.modules.enedis.config.EnedisConstants;
 import esthesis.edge.modules.enedis.config.EnedisProperties;
 import esthesis.edge.modules.enedis.dto.datahub.EnedisAuthTokenDTO;
+import esthesis.edge.modules.enedis.dto.datahub.EnedisContractDTO;
 import esthesis.edge.modules.enedis.templates.EnedisTemplates;
 import esthesis.edge.services.DeviceService;
 import io.github.resilience4j.ratelimiter.RateLimiter;
@@ -26,7 +31,9 @@ import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Optional;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 
 
@@ -35,35 +42,48 @@ import org.eclipse.microprofile.rest.client.inject.RestClient;
  */
 @Slf4j
 @ApplicationScoped
+@RequiredArgsConstructor
 public class EnedisService {
+
+  @Inject
+  @RestClient
+  EnedisClient enedisClient;
 
   private final DeviceService deviceService;
   private final EnedisProperties enedisProperties;
   private final EnedisFetchService enedisFetchService;
-  @Inject
-  @RestClient
-  EnedisClient enedisRestClient;
+  private final ObjectMapper objectMapper;
+
   // A local reference of the access token, to not keep refreshing when not needed.
   private EnedisAuthTokenDTO enedisAuthTokenDTO;
   // Rate limiters for Enedis API.
-  private RateLimiter perSecondLimiter;
-  private RateLimiter perHourLimiter;
+  private final RateLimiter perSecondLimiter = RateLimiter.of("perSecondLimiter",
+      RateLimiterConfig.custom()
+          .limitForPeriod(EnedisConstants.REQUESTS_PER_SECOND)
+          .limitRefreshPeriod(Duration.ofSeconds(1))
+          .build());
+  private final RateLimiter perHourLimiter = RateLimiter.of("perHourLimiter",
+      RateLimiterConfig.custom()
+          .limitForPeriod(EnedisConstants.REQUESTS_PER_HOUR)
+          .limitRefreshPeriod(Duration.ofHours(1))
+          .build());
 
-  public EnedisService(DeviceService deviceService, EnedisProperties enedisProperties,
-      EnedisFetchService enedisFetchService) {
-    this.deviceService = deviceService;
-    this.enedisProperties = enedisProperties;
-    this.enedisFetchService = enedisFetchService;
-
-    perSecondLimiter = RateLimiter.of("perSecondLimiter", RateLimiterConfig.custom()
-        .limitForPeriod(EnedisConstants.REQUESTS_PER_SECOND)
-        .limitRefreshPeriod(Duration.ofSeconds(1))
-        .build());
-    perHourLimiter = RateLimiter.of("perHourLimiter", RateLimiterConfig.custom()
-        .limitForPeriod(EnedisConstants.REQUESTS_PER_HOUR)
-        .limitRefreshPeriod(Duration.ofHours(1))
-        .build());
-  }
+//  public EnedisService(DeviceService deviceService, EnedisProperties enedisProperties,
+//      EnedisFetchService enedisFetchService) {
+//  public EnedisService() {
+//    this.deviceService = deviceService;
+//    this.enedisProperties = enedisProperties;
+//    this.enedisFetchService = enedisFetchService;
+//
+//    perSecondLimiter = RateLimiter.of("perSecondLimiter", RateLimiterConfig.custom()
+//        .limitForPeriod(EnedisConstants.REQUESTS_PER_SECOND)
+//        .limitRefreshPeriod(Duration.ofSeconds(1))
+//        .build());
+//    perHourLimiter = RateLimiter.of("perHourLimiter", RateLimiterConfig.custom()
+//        .limitForPeriod(EnedisConstants.REQUESTS_PER_HOUR)
+//        .limitRefreshPeriod(Duration.ofHours(1))
+//        .build());
+//  }
 
   /**
    * Calculate the expiration time for the PMR token.
@@ -103,7 +123,7 @@ public class EnedisService {
   public void refreshAuthToken() {
     if (hasAuthTokenExpired()) {
       log.debug("Refreshing access token for Enedis.");
-      enedisAuthTokenDTO = enedisRestClient.getAuthToken("client_credentials",
+      enedisAuthTokenDTO = enedisClient.getAuthToken("client_credentials",
           enedisProperties.clientId(), enedisProperties.clientSecret());
       log.debug("Access token refreshed '{}'.", enedisAuthTokenDTO);
     } else {
@@ -120,19 +140,89 @@ public class EnedisService {
   public void createDevice(String usagePointId) {
     String hardwareId = createHardwareId(usagePointId);
 
+    // Create a device for each PRM.
     for (String enedisId : usagePointId.split(";")) {
       Instant now = Instant.now();
-      DeviceDTO deviceDTO = deviceService.createDevice(
-          DeviceDTO.builder()
-              .hardwareId(hardwareId)
-              .moduleName(MODULE_NAME)
-              .createdAt(now)
-              .enabled(true)
-              .config(EnedisConstants.CONFIG_PRM, enedisId)
-              .config(EnedisConstants.CONFIG_PMR_ENABLED_AT, now.toString())
-              .config(EnedisConstants.CONFIG_PMR_EXPIRES_AT, calculatePMRExpiration(now).toString())
-              .build(), List.of(MODULE_NAME, EDGE));
-      log.info("Device with hardwareId '{}' created.", deviceDTO.getHardwareId());
+      DeviceDTOBuilder deviceDTOBuilder = DeviceDTO.builder()
+          .hardwareId(hardwareId)
+          .moduleName(MODULE_NAME)
+          .createdAt(now)
+          .enabled(true)
+          .config(EnedisConstants.CONFIG_PRM, enedisId)
+          .config(EnedisConstants.CONFIG_PMR_ENABLED_AT, now.toString())
+          .config(EnedisConstants.CONFIG_PMR_EXPIRES_AT, calculatePMRExpiration(now).toString());
+
+      // Check if the PRM is for a producer or a consumer.
+      refreshAuthToken();
+      try {
+        EnedisContractDTO contractDTO = objectMapper.readValue(
+            enedisClient.getContracts(enedisId, "Bearer " + enedisAuthTokenDTO.getAccessToken()),
+            EnedisContractDTO.class);
+        String segmentType = contractDTO.getCustomer().getUsagePoints()[0].getContracts()
+            .getSegment();
+        if (segmentType.equals(EnedisConstants.SEGMENT_TYPE_CONSUMER)) {
+          deviceDTOBuilder.config(EnedisConstants.CONFIG_CONSUMER, "true");
+        } else if (segmentType.equals(EnedisConstants.SEGMENT_TYPE_PRODUCER)) {
+          deviceDTOBuilder.config(EnedisConstants.CONFIG_PRODUCER, "true");
+        } else {
+          throw new QProcessingException("Unknown segment type for PRM '{}'.", segmentType);
+        }
+        deviceDTOBuilder.attribute("segment", segmentType);
+
+        // Add Enedis device attributes for esthesis CORE.
+        String usagePointStatus = contractDTO.getCustomer().getUsagePoints()[0].getUsagePoint()
+            .getUsagePointStatus();
+        String meterType = contractDTO.getCustomer().getUsagePoints()[0].getUsagePoint()
+            .getMeterType();
+        String subscribedPower = contractDTO.getCustomer().getUsagePoints()[0].getContracts()
+            .getSubscribedPower();
+        String lastActivationDate = contractDTO.getCustomer().getUsagePoints()[0].getContracts()
+            .getLastActivationDate();
+        String distributionTariff = contractDTO.getCustomer().getUsagePoints()[0].getContracts()
+            .getDistributionTariff();
+        String offpeakHours = contractDTO.getCustomer().getUsagePoints()[0].getContracts()
+            .getOffpeakHours();
+        String contractType = contractDTO.getCustomer().getUsagePoints()[0].getContracts()
+            .getContractType();
+        String contractStatus = contractDTO.getCustomer().getUsagePoints()[0].getContracts()
+            .getContractStatus();
+        String lastDistributionTariffChangeDate = contractDTO.getCustomer()
+            .getUsagePoints()[0].getContracts().getLastDistributionTariffChangeDate();
+        if (StringUtils.isNotBlank(usagePointStatus)) {
+          deviceDTOBuilder.attribute("usagePointStatus", usagePointStatus);
+        }
+        if (StringUtils.isNotBlank(meterType)) {
+          deviceDTOBuilder.attribute("meterType", meterType);
+        }
+        if (StringUtils.isNotBlank(subscribedPower)) {
+          deviceDTOBuilder.attribute("subscribedPower", subscribedPower);
+        }
+        if (StringUtils.isNotBlank(lastActivationDate)) {
+          deviceDTOBuilder.attribute("lastActivationDate", lastActivationDate);
+        }
+        if (StringUtils.isNotBlank(distributionTariff)) {
+          deviceDTOBuilder.attribute("distributionTariff", distributionTariff);
+        }
+        if (StringUtils.isNotBlank(offpeakHours)) {
+          deviceDTOBuilder.attribute("offpeakHours", offpeakHours);
+        }
+        if (StringUtils.isNotBlank(contractType)) {
+          deviceDTOBuilder.attribute("contractType", contractType);
+        }
+        if (StringUtils.isNotBlank(contractStatus)) {
+          deviceDTOBuilder.attribute("contractStatus", contractStatus);
+        }
+        if (StringUtils.isNotBlank(lastDistributionTariffChangeDate)) {
+          deviceDTOBuilder.attribute("lastDistributionTariffChangeDate",
+              lastDistributionTariffChangeDate);
+        }
+      } catch (JsonProcessingException e) {
+        throw new QProcessingException("Failed to parse Enedis contract data.", e);
+      }
+
+      // Create the device.
+      deviceDTOBuilder.tags(String.join(",", MODULE_NAME, EDGE));
+      deviceService.createDevice(deviceDTOBuilder.build());
     }
   }
 
@@ -236,8 +326,7 @@ public class EnedisService {
           continue;
         }
       } else {
-        log.warn("No PMR expiration date found for device '{}'.",
-            device.getHardwareId());
+        log.warn("No PMR expiration date found for device '{}'.", device.getHardwareId());
       }
 
       // Refresh auth token.
@@ -250,40 +339,79 @@ public class EnedisService {
           .orElseThrow();
       log.debug("Fetching data for device '{}'.", hardwareId);
 
-      // Daily Consumption.
-      int dcErrors = deviceService.getDeviceConfigValueAsString(hardwareId,
-          EnedisConstants.CONFIG_DC_ERRORS).map(Integer::parseInt).orElse(0);
-      if (enedisProperties.fetchTypes().dc().enabled() &&
-          dcErrors < enedisProperties.fetchTypes().dc().errorsThreshold()) {
-        perSecondLimiter.acquirePermission();
-        perHourLimiter.acquirePermission();
-        int itemsQueued = enedisFetchService.fetchDailyConsumption(hardwareId, enedisPrm,
-            enedisAuthTokenDTO.getAccessToken());
-        log.debug("Queued '{}' items from Daily Consumption API.", itemsQueued);
+
+      // Consumer data.
+      if (deviceService.getDeviceConfigValueAsBoolean(device.getHardwareId(),
+              EnedisConstants.CONFIG_CONSUMER).orElse(false)) {
+        // Daily Consumption.
+        int dcErrors = deviceService.getDeviceConfigValueAsString(hardwareId,
+            EnedisConstants.CONFIG_DC_ERRORS).map(Integer::parseInt).orElse(0);
+        if (enedisProperties.fetchTypes().dc().enabled() &&
+            dcErrors < enedisProperties.fetchTypes().dc().errorsThreshold()) {
+          perSecondLimiter.acquirePermission();
+          perHourLimiter.acquirePermission();
+          int itemsQueued = enedisFetchService.fetchDailyConsumption(hardwareId, enedisPrm,
+              enedisAuthTokenDTO.getAccessToken());
+          log.debug("Queued '{}' items from Daily Consumption API.", itemsQueued);
+        }
+
+        // Daily Consumption Max Power.
+        int dcmpErrors = deviceService.getDeviceConfigValueAsString(hardwareId,
+            EnedisConstants.CONFIG_DCMP_ERRORS).map(Integer::parseInt).orElse(0);
+        if (enedisProperties.fetchTypes().dcmp().enabled()
+            && dcmpErrors < enedisProperties.fetchTypes().dcmp().errorsThreshold()) {
+          perSecondLimiter.acquirePermission();
+          perHourLimiter.acquirePermission();
+          int itemsQueued = enedisFetchService.fetchDailyConsumptionMaxPower(hardwareId, enedisPrm,
+              enedisAuthTokenDTO.getAccessToken());
+          log.debug("Queued '{}' items from Daily Consumption Max Power API.", itemsQueued);
+        }
+
+        // Consumption Load Curve.
+        int clcErrors = deviceService.getDeviceConfigValueAsString(hardwareId,
+                EnedisConstants.CONFIG_CLC_ERRORS).map(Integer::parseInt).orElse(0);
+        if (enedisProperties.fetchTypes().clc().enabled() &&
+                clcErrors < enedisProperties.fetchTypes().clc().errorsThreshold()) {
+          perSecondLimiter.acquirePermission();
+          perHourLimiter.acquirePermission();
+          int itemsQueued = enedisFetchService.fetchConsumptionLoadCurve(hardwareId, enedisPrm,
+                  enedisAuthTokenDTO.getAccessToken());
+          log.debug("Queued '{}' items from Consumption Load Curve API.", itemsQueued);
+        }
+
+      } else {
+        log.debug("Device ID '{}' is not a consumer.", hardwareId);
       }
 
-      // Daily Consumption Max Power.
-      int dcmpErrors = deviceService.getDeviceConfigValueAsString(hardwareId,
-          EnedisConstants.CONFIG_DCMP_ERRORS).map(Integer::parseInt).orElse(0);
-      if (enedisProperties.fetchTypes().dcmp().enabled()
-          && dcmpErrors < enedisProperties.fetchTypes().dcmp().errorsThreshold()) {
-        perSecondLimiter.acquirePermission();
-        perHourLimiter.acquirePermission();
-        int itemsQueued = enedisFetchService.fetchDailyConsumptionMaxPower(hardwareId, enedisPrm,
-            enedisAuthTokenDTO.getAccessToken());
-        log.debug("Queued '{}' items from Daily Consumption Max Power API.", itemsQueued);
-      }
+      // Producer data.
+      if (deviceService.getDeviceConfigValueAsBoolean(device.getHardwareId(),
+          EnedisConstants.CONFIG_PRODUCER).orElse(false)) {
+        // Daily Production.
+        int dpErrors = deviceService.getDeviceConfigValueAsString(hardwareId,
+            EnedisConstants.CONFIG_DP_ERRORS).map(Integer::parseInt).orElse(0);
+        if (enedisProperties.fetchTypes().dp().enabled() &&
+            dpErrors < enedisProperties.fetchTypes().dp().errorsThreshold()) {
+          perSecondLimiter.acquirePermission();
+          perHourLimiter.acquirePermission();
+          int itemsQueued = enedisFetchService.fetchDailyProduction(hardwareId, enedisPrm,
+              enedisAuthTokenDTO.getAccessToken());
+          log.debug("Queued '{}' items from Daily Production API.", itemsQueued);
+        }
 
-      // Daily Production.
-      int dpErrors = deviceService.getDeviceConfigValueAsString(hardwareId,
-          EnedisConstants.CONFIG_DP_ERRORS).map(Integer::parseInt).orElse(0);
-      if (enedisProperties.fetchTypes().dp().enabled() &&
-          dpErrors < enedisProperties.fetchTypes().dp().errorsThreshold()) {
-        perSecondLimiter.acquirePermission();
-        perHourLimiter.acquirePermission();
-        int itemsQueued = enedisFetchService.fetchDailyProduction(hardwareId, enedisPrm,
-            enedisAuthTokenDTO.getAccessToken());
-        log.debug("Queued '{}' items from Daily Production API.", itemsQueued);
+        // Production Load Curve.
+        int plcErrors = deviceService.getDeviceConfigValueAsString(hardwareId,
+                EnedisConstants.CONFIG_PLC_ERRORS).map(Integer::parseInt).orElse(0);
+        if (enedisProperties.fetchTypes().plc().enabled() &&
+                plcErrors < enedisProperties.fetchTypes().plc().errorsThreshold()) {
+          perSecondLimiter.acquirePermission();
+          perHourLimiter.acquirePermission();
+          int itemsQueued = enedisFetchService.fetchProductionLoadCurve(hardwareId, enedisPrm,
+                  enedisAuthTokenDTO.getAccessToken());
+          log.debug("Queued '{}' items from Production Load Curve API.", itemsQueued);
+        }
+
+      } else {
+        log.debug("Device ID '{}' is not a producer.", hardwareId);
       }
 
       log.debug("Data fetch completed for device '{}'.", hardwareId);

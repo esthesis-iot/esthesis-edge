@@ -100,6 +100,46 @@ public interface EnedisProperties {
 
       String toString();
     }
+
+    // Consumption Load Curve Enedis API endpoint configuration.
+    Clc clc();
+
+    interface Clc {
+
+      // Whether the endpoint is enabled.
+      boolean enabled();
+
+      // The category name of the data in eLP.
+      String category();
+
+      // The measurement name of the data in eLP.
+      String measurement();
+
+      // The number of errors that can be tolerated before the endpoint is disabled.
+      int errorsThreshold();
+
+      String toString();
+    }
+
+    // Production Load Curve Enedis API endpoint configuration.
+    Plc plc();
+
+    interface Plc {
+
+      // Whether the endpoint is enabled.
+      boolean enabled();
+
+      // The category name of the data in eLP.
+      String category();
+
+      // The measurement name of the data in eLP.
+      String measurement();
+
+      // The number of errors that can be tolerated before the endpoint is disabled.
+      int errorsThreshold();
+
+      String toString();
+    }
   }
 
   interface SelfRegistration {

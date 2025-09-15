@@ -40,7 +40,12 @@ class DeviceServiceTest {
   public void setup() {
     // Mock the esthesis CORE registration.
     when(esthesisAgentServiceClient.register(any(AgentRegistrationRequest.class)))
-        .thenReturn(new AgentRegistrationResponse());
+        .thenReturn(new AgentRegistrationResponse()
+                .setCertificate("test-certificate")
+                .setPrivateKey("test-private-key")
+                .setMqttServer("test-mqtt-server")
+                .setPublicKey("test-public-key")
+                .setRootCaCertificate("test-root-ca-certificate"));
   }
 
   private DeviceEntity createTestDevice(String hardwareId) {
@@ -91,12 +96,21 @@ class DeviceServiceTest {
 
   @Test
   void createDevice() {
+
     // Device with no config.
     DeviceDTO deviceDTO = new DeviceDTO();
     deviceDTO.setHardwareId(UUID.randomUUID().toString());
     deviceDTO.setModuleName("test");
     deviceDTO.setEnabled(true);
     assertNotNull(deviceService.createDevice(deviceDTO));
+
+    // Check if the device has been registered with esthesis CORE.
+    DeviceEntity deviceEntity = DeviceEntity.findByHardwareId(deviceDTO.getHardwareId()).orElse(null);
+    assertNotNull(deviceEntity);
+    assertNotNull(deviceEntity.getCoreRegisteredAt());
+    assertNotNull(deviceEntity.getPublicKey());
+    assertNotNull(deviceEntity.getPrivateKey());
+    assertNotNull(deviceEntity.getCertificate());
 
     // Device with config.
     deviceDTO = new DeviceDTO();
@@ -108,13 +122,23 @@ class DeviceServiceTest {
         .setModuleConfig(Map.of("key2", "value2"))
         .setModuleConfig(Map.of("key3", "value3"));
     assertNotNull(deviceService.createDevice(deviceDTO));
+    deviceEntity = DeviceEntity.findByHardwareId(deviceDTO.getHardwareId()).orElse(null);
+    assertNotNull(deviceEntity);
+    assertNotNull(deviceEntity.getModuleConfig());
+
 
     // Device with no config with tags.
     deviceDTO = new DeviceDTO();
     deviceDTO.setHardwareId(UUID.randomUUID().toString());
     deviceDTO.setModuleName("test");
     deviceDTO.setEnabled(true);
-    assertNotNull(deviceService.createDevice(deviceDTO, List.of("tag1", "tag2")));
+    deviceDTO.setTags("tag1,tag2,tag3");
+    deviceDTO.setAttributes(Map.of("key", "value"));
+    assertNotNull(deviceService.createDevice(deviceDTO));
+    deviceEntity = DeviceEntity.findByHardwareId(deviceDTO.getHardwareId()).orElse(null);
+    assertNotNull(deviceEntity);
+    assertNotNull(deviceEntity.getTags());
+
   }
 
   @Test

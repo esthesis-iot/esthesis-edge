@@ -80,7 +80,7 @@ public class DeviceEntity extends PanacheEntityBase {
   @Column(nullable = false, name = "created_at")
   private Instant createdAt;
 
-  // Whether this disable is enabled or not (disabled devices are ignored when syncing data).
+  // Whether this disable is enabled or not (disabled devices are ignored when fetching data).
   @NotNull
   @Column(nullable = false)
   private Boolean enabled;
@@ -90,6 +90,18 @@ public class DeviceEntity extends PanacheEntityBase {
   @Column(name = "module_config")
   @OneToMany(mappedBy = "device", cascade = CascadeType.ALL, orphanRemoval = true, fetch = EAGER)
   private List<DeviceModuleConfigEntity> moduleConfig;
+
+  // The date and time when the device was registered with esthesis CORE.
+  @Column(name = "core_registered_at")
+  private Instant coreRegisteredAt;
+
+  // The tags to associate with the device separated by commas.
+  @Column(length = 512, name = "tags")
+  private String tags;
+
+  // A key1=val1;type1,key2=val2;type2,etc. string with device attributes.
+  @Column(length = 1024, name = "attributes")
+  private String attributes;
 
   /**
    * Finds a device by its hardware ID.

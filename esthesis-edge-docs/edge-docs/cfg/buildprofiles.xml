@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE buildprofiles SYSTEM "https://resources.jetbrains.com/writerside/1.0/build-profiles.dtd">
+<buildprofiles xsi:noNamespaceSchemaLocation="https://resources.jetbrains.com/writerside/1.0/build-profiles.xsd"
+               xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+
+    <build-profile instance="esthesis-edge">
+        <variables>
+            <noindex-content>false</noindex-content>
+            <primary-color>#fdad00</primary-color>
+            <color-preset>soft</color-preset>
+            <link-color>#fdad00</link-color>
+            <custom-favicons>logo.png</custom-favicons>
+            <header-logo>logo.png</header-logo>
+            <download-title>Get esthesis EDGE</download-title>
+            <download-page>https://esthes.is/edge</download-page>
+            <showDownloadButton>true</showDownloadButton>
+            <content-max-width>2048</content-max-width>
+        </variables>
+    </build-profile>
+
+    <footer>
+        <social type="email" href="mailto:esthesis@eurodyn.com"/>
+        <social type="blog" href="https://www.eurodyn.com"/>
+        <social type="linkedin" href="https://www.linkedin.com/company/european-dynamics"/>
+        <link href="https://www.eurodyn.com">CORE</link>
+        <link href="https://www.eurodyn.com">EDGE</link>
+        <link href="https://www.eurodyn.com">GATEWAY</link>
+        <link href="https://www.eurodyn.com">UNS</link>
+        <link href="https://www.eurodyn.com">HISTORIAN</link>
+        <copyright>European Dynamics, licensed under the EUPL-1.2-or-later</copyright>
+    </footer>
+
+</buildprofiles>

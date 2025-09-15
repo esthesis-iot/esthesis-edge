@@ -20,16 +20,18 @@ public class DeviceMapper {
    */
   public DeviceDTO toDTO(DeviceEntity deviceEntity) {
     DeviceDTOBuilder deviceDTOBuilder = DeviceDTO.builder()
-        .hardwareId(deviceEntity.getHardwareId())
-        .moduleName(deviceEntity.getModuleName())
-        .publicKey(deviceEntity.getPublicKey())
-        .privateKey(deviceEntity.getPrivateKey())
-        .certificate(deviceEntity.getCertificate())
-        .createdAt(deviceEntity.getCreatedAt())
-        .enabled(deviceEntity.getEnabled());
+            .hardwareId(deviceEntity.getHardwareId())
+            .moduleName(deviceEntity.getModuleName())
+            .publicKey(deviceEntity.getPublicKey())
+            .privateKey(deviceEntity.getPrivateKey())
+            .certificate(deviceEntity.getCertificate())
+            .createdAt(deviceEntity.getCreatedAt())
+            .tags(deviceEntity.getTags())
+            .coreRegisteredAt(deviceEntity.getCoreRegisteredAt())
+            .enabled(deviceEntity.getEnabled());
     if (deviceEntity.getModuleConfig() != null && !deviceEntity.getModuleConfig().isEmpty()) {
       deviceEntity.getModuleConfig().forEach(
-          config -> deviceDTOBuilder.config(config.getConfigKey(), config.getConfigValue()));
+              config -> deviceDTOBuilder.config(config.getConfigKey(), config.getConfigValue()));
     }
 
     return deviceDTOBuilder.build();
