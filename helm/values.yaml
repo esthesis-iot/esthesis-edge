@@ -322,6 +322,8 @@ esthesis:
 mariadb:
   # -- Whether MariaDB will be installed.
   enabled: true
+  image: 
+    repository: bitnamilegacy/mariadb
   auth:
     # -- The password for the root MariaDB user.
     rootPassword: "esthesis-system"
@@ -331,10 +333,18 @@ mariadb:
     username: "esthesis-system"
     # -- The password of the database user that will be created for esthesis EDGE.
     password: "esthesis-system"
+  volumePermissions:
+    image:
+      repository: bitnamilegacy/bitnami-shell-archived
+  metrics:
+    image:
+      repository: bitnamilegacy/mysqld-exporter
 
 influxdb:
   # -- Whether InfluxDB will be installed.
   enabled: true
+  image:
+    repository: bitnamilegacy/influxdb
   auth:
     # -- Whether a user token will be created during deployment.
     createUserToken: true
@@ -357,3 +367,16 @@ influxdb:
   persistence:
     # -- The size of the persistent volume claim for InfluxDB.
     size: "32Gi"
+  volumePermissions:
+    image:
+      repository: bitnamilegacy/bitnami-shell-archived
+  backup:
+    google:
+      image:
+        repository: bitnamilegacy/google-cloud-sdk
+    azure:
+      image:
+        repository: bitnamilegacy/azure-cli
+    aws:
+      image:
+        repository: bitnamilegacy/aws-cli
