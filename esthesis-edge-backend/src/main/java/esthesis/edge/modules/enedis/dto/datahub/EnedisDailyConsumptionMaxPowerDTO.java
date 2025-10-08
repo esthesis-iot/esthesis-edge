@@ -60,7 +60,7 @@ public class EnedisDailyConsumptionMaxPowerDTO {
     private Instant date;
 
     public void setDate(String date) {
-      this.date = EnedisUtil.yyyyMMdd_HHmmssToInstant(date);
+      this.date = EnedisUtil.yyyyMMddTHHmmssSSSZToInstantToInstant(date);
     }
   }
 }

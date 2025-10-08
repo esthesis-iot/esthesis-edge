@@ -102,7 +102,9 @@ public class EnedisPublicResource {
           + "with a success page, after the user has provided consent in the Enedis DataHub "
           + "application.")
   public Response redirectHandler(@QueryParam("State") String state,
-      @QueryParam("usage_point_id") String usagePointId, @QueryParam("code") String code) {
+      @QueryParam("usage_point_id") String usagePointId,
+      @QueryParam("autorisation_id") String autorisationId,
+      @QueryParam("code") String code) {
     // Check the state received is one we have previously created, if not return an error.
     if (cfg.selfRegistration().stateChecking() && (StringUtils.isEmpty(state) || !isKnownState(
         state))) {
@@ -116,9 +118,20 @@ public class EnedisPublicResource {
           .entity("No more Enedis devices allowed.").build();
     }
 
+    // Determine usagePointId from either parameter or by fetching it using the autorisationId.
+    String resolvedUsagePointId = usagePointId;
+    if (StringUtils.isEmpty(resolvedUsagePointId) && StringUtils.isNotEmpty(autorisationId)) {
+      try {
+        resolvedUsagePointId = enedisService.fetchUsagePointId(Long.parseLong(autorisationId));
+      } catch (Exception ex) {
+        log.error("Error fetching usagePointId for autorisation_id '{}'.", autorisationId, ex);
+        return Response.status(Response.Status.BAD_REQUEST).entity("Invalid autorisation_id.").build();
+      }
+    }
+
     // Create the device.
     try {
-      enedisService.createDevice(usagePointId);
+      enedisService.createDevice(resolvedUsagePointId);
       return Response.ok(enedisService.getRegistrationSuccessfulPage()).build();
     } catch (Exception ex) {
       log.error("Error while creating device(s).", ex);
