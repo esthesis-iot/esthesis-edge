@@ -29,4 +29,11 @@ class EnedisUtilTest {
         assertEquals(Instant.parse("2023-10-05T12:34:56Z"), result);
     }
 
+    @Test
+    void testYyyyMMddTHHmmssSSSZToInstantToInstant() {
+        String date = "2023-10-05T12:34:56.789Z";
+        Instant result = EnedisUtil.yyyyMMddTHHmmssSSSZToInstantToInstant(date);
+        assertEquals(Instant.parse("2023-10-05T12:34:56.789Z"), result);
+    }
+
 }

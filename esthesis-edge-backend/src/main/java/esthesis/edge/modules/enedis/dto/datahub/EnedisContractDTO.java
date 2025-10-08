@@ -7,11 +7,18 @@ import lombok.NoArgsConstructor;
 import lombok.ToString;
 import lombok.experimental.Accessors;
 
+/**
+ * A DTO representing the contract information received from Enedis.
+ * @deprecated This class is deprecated and will be removed in future versions.
+ * Use the updated contract DTOs instead.
+ */
+
 @Data
 @ToString
 @NoArgsConstructor
 @RegisterForReflection
 @Accessors(chain = true)
+@Deprecated(since = "2026-01", forRemoval = true)
 public class EnedisContractDTO {
 
     private Customer customer;

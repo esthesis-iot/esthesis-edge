@@ -27,7 +27,7 @@ class EnedisELPMapperServiceTest {
     dto.setMeterReading(new EnedisDailyConsumptionDTO.MeterReading());
     dto.getMeterReading()
         .setIntervalReading(List.of(new EnedisDailyConsumptionDTO.IntervalReading()));
-    dto.getMeterReading().getIntervalReading().get(0).setDate("2021-01-01");
+    dto.getMeterReading().getIntervalReading().get(0).setDate("2021-01-01T23:59:59.000Z");
     dto.getMeterReading().getIntervalReading().get(0).setValue("1");
 
     String elp = enedisELPMapperService.toELP(dto);
@@ -43,7 +43,7 @@ class EnedisELPMapperServiceTest {
     dto.setMeterReading(new EnedisDailyProductionDTO.MeterReading());
     dto.getMeterReading()
         .setIntervalReading(List.of(new EnedisDailyProductionDTO.IntervalReading()));
-    dto.getMeterReading().getIntervalReading().get(0).setDate("2021-01-01");
+    dto.getMeterReading().getIntervalReading().get(0).setDate("2021-01-01T23:59:59.000Z");
     dto.getMeterReading().getIntervalReading().get(0).setValue("1");
 
     String elp = enedisELPMapperService.toELP(dto);
@@ -62,7 +62,8 @@ class EnedisELPMapperServiceTest {
     // Note, ENEDIS official API docs show this date as being in the format
     // of "2019-05-06T03:00:00+02:00", however the actual API response uses
     // "2019-05-06 03:00:00", which is the format used here.
-    dto.getMeterReading().getIntervalReading().get(0).setDate("2019-05-06 23:59:59");
+    // ToDo check if this is still the case.
+    dto.getMeterReading().getIntervalReading().get(0).setDate("2019-05-06T23:59:59.000Z");
     dto.getMeterReading().getIntervalReading().get(0).setValue("1");
 
     String elp = enedisELPMapperService.toELP(dto);

@@ -93,6 +93,8 @@ esthesis:
             category: "energy"
             measurement: "dcmp"
             errors-threshold: 10
+            measuring-period: "P1D"
+            physical-quantity: "PMA"
           dp:
             enabled: true
             category: "energy"
@@ -112,7 +114,7 @@ esthesis:
           enabled: true
           state-checking: true
           welcome-url:
-          redirect-url: http://localhost:8080
+          redirect-url: "https://mon-compte-particulier.enedis.fr/dataconnect/v1/oauth2/authorize"
           duration: P1Y
           page:
             logo1-url: https://datahub-enedis.fr/wp-content/uploads/Enedis-signature_couleur_RVB_72-dpi.png

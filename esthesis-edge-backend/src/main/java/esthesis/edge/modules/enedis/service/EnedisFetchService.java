@@ -123,7 +123,8 @@ public class EnedisFetchService {
       dailyConsumptionMaxPowerDTO =
           enedisClient.getDailyConsumptionMaxPower(
               lastFetch, EnedisUtil.instantToYmd(Instant.now()),
-              enedisPrm, "Bearer " + accessToken);
+              enedisPrm, enedisProperties.fetchTypes().dcmp().measuringPeriod(),
+                enedisProperties.fetchTypes().dcmp().physicalQuantity(),"Bearer " + accessToken);
       log.debug("Fetched Daily Consumption Max Power '{}'.", dailyConsumptionMaxPowerDTO);
       fetchHelperService.resetErrors(hardwareId, EnedisConstants.CONFIG_DCMP_ERRORS);
     } catch (Exception e) {

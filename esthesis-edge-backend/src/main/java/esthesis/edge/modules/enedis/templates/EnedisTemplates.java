@@ -232,8 +232,7 @@ public class EnedisTemplates {
       
           <script>
             function redirect() {
-              window.location.href = "https://mon-compte-particulier.enedis.fr/dataconnect/v1/oauth2/" +
-                  "authorize?client_id={clientId}&duration={duration}&response_type=code&state={state}";
+              window.location.href = "{redirectUrl}?client_id={clientId}&duration={duration}&response_type=code&state={state}";
             }
           </script>
       </head>

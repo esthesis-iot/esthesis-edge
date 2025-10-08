@@ -95,6 +95,12 @@ public interface EnedisProperties {
       // The measurement name of the data in eLP.
       String measurement();
 
+      // The measuring period to request from the API, e.g. "P1D" for one day.
+      String measuringPeriod();
+
+      // The physical quantity to request from the API, e.g. "PMA" for average maximum power.
+      String physicalQuantity();
+
       // The number of errors that can be tolerated before the endpoint is disabled.
       int errorsThreshold();
 
@@ -153,7 +159,7 @@ public interface EnedisProperties {
     // The URL of the self-registration page. If left empty, a built-in page is used.
     Optional<String> welcomeUrl();
 
-    // The URL of the redirect after accepting access to the device data in Enedis.
+    // The URL to redirect the user to ENEDIS for consent validation.
     String redirectUrl();
 
     // The duration for which data access is requested.

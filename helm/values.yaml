@@ -166,8 +166,8 @@ esthesis:
           stateChecking: false
           # -- The URL of the self-registration welcome page. If left empty, a default page is provided by the Enedis module.
           welcomeUrl:
-          # -- The URL to which Enedis is redirecting the user after accepting access to their data.
-          redirectUrl: http://localhost:8080
+          # -- The URL to redirect the user to Enedis for authorisation and consent.
+          redirectUrl: "https://mon-compte-particulier.enedis.fr/dataconnect/v1/oauth2/authorize"
           # -- The duration for which the Enedis data access token is requested for (see Enedis API for details).
           duration: P1Y
           page:

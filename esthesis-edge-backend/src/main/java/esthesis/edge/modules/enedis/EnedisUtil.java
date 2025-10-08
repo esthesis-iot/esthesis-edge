@@ -2,6 +2,7 @@ package esthesis.edge.modules.enedis;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
@@ -47,5 +48,17 @@ public class EnedisUtil {
     LocalDateTime localDateTime = LocalDateTime.parse(date, formatter);
 
     return localDateTime.toInstant(ZoneOffset.UTC);
+  }
+
+  /**
+   * Converts a date string in ISO-8601 format with milliseconds (e.g. "2019-05-06T00:00:00.000Z") to an Instant.
+   *
+   * @param date The date string to convert.
+   * @return The given date as an Instant.
+   */
+  public static Instant yyyyMMddTHHmmssSSSZToInstantToInstant(String date) {
+      DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSX");
+      OffsetDateTime odt = OffsetDateTime.parse(date, formatter);
+      return odt.toInstant();
   }
 }
