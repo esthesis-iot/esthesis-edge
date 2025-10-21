@@ -59,7 +59,7 @@ public class HiveMQSSLTC implements QuarkusTestResourceLifecycleManager {
         "test.mqtt.port", container.getFirstMappedPort().toString(),
         "esthesis.edge.core.push.url",
         "ssl://localhost:" + container.getFirstMappedPort().toString(),
-        "esthesis.edge.core.cert",
+        "esthesis.edge.core.mqtt.cert",
         Base64.getEncoder().encodeToString(loadResourceFileAsText("mqtt/ca.crt").getBytes(
             StandardCharsets.UTF_8))
     );

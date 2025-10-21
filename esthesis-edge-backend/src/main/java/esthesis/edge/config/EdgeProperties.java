@@ -67,9 +67,8 @@ public interface EdgeProperties {
 
     String toString();
 
-    // The certificate of the CA that has generated the certificated being used by the esthesis
-    // CORE MQTT server.
-    Optional<String> cert();
+    // esthesis CORE MQTT Broker configuration.
+    Mqtt mqtt();
 
     // The algorithm used for the private key of devices.
     String keyAlgorithm();
@@ -109,6 +108,12 @@ public interface EdgeProperties {
 
       // A Quartz cron expression for the core registration job, registering devices to esthesis CORE.
       String cron();
+    }
+
+    interface Mqtt{
+        // The certificate of the CA that has generated the certificated being used by the esthesis
+        // CORE MQTT server.
+        Optional<String> cert();
     }
 
     // The tags to add to the device registration.

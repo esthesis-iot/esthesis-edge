@@ -73,7 +73,8 @@ esthesis:
       tags:
         - edge
       key-algorithm: RSA
-      cert: "<base64 cert>"
+      mqtt:
+        cert: "<base64 cert>"
     modules:
       enedis:
         enabled: false

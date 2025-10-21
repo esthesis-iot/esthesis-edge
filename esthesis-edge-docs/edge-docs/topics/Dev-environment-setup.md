@@ -40,6 +40,6 @@ unique to your own development environment, for example:
     ```
     export ESTHESIS_EDGE_MODULES_ENEDIS_CLIENT_ID="myclientId"
     export ESTHESIS_EDGE_MODULES_ENEDIS_CLIENT_SECRET="myclientSecret"
-    export ESTHESIS_EDGE_CORE_CERT="myesthesisCRT-as-base64" 
+    export ESTHESIS_EDGE_CORE_MQTT_CERT="myesthesisCRT-as-base64" 
     export ESTHESIS_EDGE_MODULES_ENEDIS_ENABLED="true"
     ```

@@ -97,7 +97,7 @@ public class SyncService {
 
     try {
       if (mqttUrl.startsWith("ssl://")) {
-        mqttPublisher.connect(new String(Base64.getDecoder().decode(edgeProperties.core().cert()
+        mqttPublisher.connect(new String(Base64.getDecoder().decode(edgeProperties.core().mqtt().cert()
                 .orElseThrow(
                     () -> new QDoesNotExistException("esthesis CORE certificate not found.")))),
             deviceEntity.getCertificate(), deviceEntity.getPrivateKey(),
