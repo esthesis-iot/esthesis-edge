@@ -48,5 +48,6 @@ public class EnedisSubscribedServicesResponseDTO {
         private long autorisationId;
         private String autorisationLibelle;
         private String autorisationType;
+        private String autorisationStatut;
     }
 }
