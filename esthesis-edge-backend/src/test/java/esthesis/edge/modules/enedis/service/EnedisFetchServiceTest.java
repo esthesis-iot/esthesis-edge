@@ -76,28 +76,25 @@ class EnedisFetchServiceTest {
         String hardwareId = "test2";
         testUtils.createDevice(hardwareId);
 
-        // Note, ENEDIS official API docs show this date as being in the format
-        // of "2019-05-06T03:00:00+02:00", however the actual API response uses
-        // "2019-05-06 03:00:00", which is the format used here.
-        // ToDo check if this is still the case in the new API.
+        // The new Enedis API returns arrays for value and date fields
         EnedisDailyConsumptionMaxPowerDTO dto = objectMapper.readValue("""
                 {
                   "meter_reading": {
                     "usage_point_id": "14901220101758",
-                    "start": "2019-05-06T00:00:00.000Z",
-                    "end": "2019-05-12T00:00:00.000Z",
+                    "start": "2019-05-06",
+                    "end": "2019-05-12",
                     "quality": "BRUT",
                     "reading_type": {
-                      "flow_direction": "forward",
+                      "flow_direction": ["forward"],
                       "measurement_kind": "power",
                       "measuring_period": "P1D",
-                      "unit": "VA",
+                      "unit": ["VA"],
                       "aggregate": "maximum"
                     },
                     "interval_reading": [
                       {
-                        "value": "540",
-                        "date": "2019-05-06T03:00:00.000Z"
+                        "value": ["540"],
+                        "date": ["2019-05-06"]
                       }
                     ]
                   }

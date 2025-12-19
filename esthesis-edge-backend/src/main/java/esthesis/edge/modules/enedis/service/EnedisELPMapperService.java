@@ -9,6 +9,7 @@ import esthesis.edge.modules.enedis.dto.datahub.EnedisDailyConsumptionMaxPowerDT
 import esthesis.edge.modules.enedis.dto.datahub.EnedisDailyProductionDTO;
 import esthesis.edge.modules.enedis.dto.datahub.EnedisProductionLoadCurveDTO;
 import jakarta.enterprise.context.ApplicationScoped;
+import java.util.List;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 
@@ -57,18 +58,26 @@ public class EnedisELPMapperService {
 
   /**
    * Map EnedisDailyConsumptionMaxPowerDTO to ELP format.
+   * Note: The API returns arrays of values and dates within each interval_reading.
+   * Each value[i] corresponds to date[i].
    *
    * @param dto The DTO to map.
    * @return The ELP formatted string.
    */
   public String toELP(EnedisDailyConsumptionMaxPowerDTO dto) {
     return dto.getMeterReading().getIntervalReading().stream()
-        .map(interval -> ELPEntry.builder()
-            .category(enedisProperties.fetchTypes().dcmp().category())
-            .date(interval.getDate())
-            .measurement(enedisProperties.fetchTypes().dcmp().measurement(),
-                interval.getValue() + "i")
-            .build().toString())
+        .flatMap(interval -> {
+          List<String> values = interval.getValue();
+          List<String> dates = interval.getDate();
+          // Pair each value with its corresponding date
+          return java.util.stream.IntStream.range(0, Math.min(values.size(), dates.size()))
+              .mapToObj(i -> ELPEntry.builder()
+                  .category(enedisProperties.fetchTypes().dcmp().category())
+                  .date(EnedisUtil.ymdToInstant(dates.get(i)))
+                  .measurement(enedisProperties.fetchTypes().dcmp().measurement(),
+                      values.get(i) + "i")
+                  .build().toString());
+        })
         .collect(Collectors.joining("\n"));
   }
 

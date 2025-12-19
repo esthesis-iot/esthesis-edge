@@ -57,19 +57,22 @@ class EnedisELPMapperServiceTest {
   void toELPDCMP() {
     EnedisDailyConsumptionMaxPowerDTO dto = new EnedisDailyConsumptionMaxPowerDTO();
     dto.setMeterReading(new EnedisDailyConsumptionMaxPowerDTO.MeterReading());
-    dto.getMeterReading()
-        .setIntervalReading(List.of(new EnedisDailyConsumptionMaxPowerDTO.IntervalReading()));
-    // Note, ENEDIS official API docs show this date as being in the format
-    // of "2019-05-06T03:00:00+02:00", however the actual API response uses
-    // "2019-05-06 03:00:00", which is the format used here.
-    // ToDo check if this is still the case.
-    dto.getMeterReading().getIntervalReading().get(0).setDate("2019-05-06T23:59:59.000Z");
-    dto.getMeterReading().getIntervalReading().get(0).setValue("1");
+    EnedisDailyConsumptionMaxPowerDTO.IntervalReading intervalReading =
+        new EnedisDailyConsumptionMaxPowerDTO.IntervalReading();
+    // The API returns arrays of values and dates
+    intervalReading.setValue(List.of("1", "2"));
+    intervalReading.setDate(List.of("2019-05-06", "2019-05-07"));
+    dto.getMeterReading().setIntervalReading(List.of(intervalReading));
 
     String elp = enedisELPMapperService.toELP(dto);
     assertNotNull(elp);
-    assertEquals(enedisProperties.fetchTypes().dcmp().category() + " "
+    // Should produce two ELP entries, one for each value/date pair
+    String expectedLine1 = enedisProperties.fetchTypes().dcmp().category() + " "
         + enedisProperties.fetchTypes().dcmp().measurement() + "=1i "
-        + "2019-05-06T23:59:59Z", elp);
+        + "2019-05-06T23:59:59Z";
+    String expectedLine2 = enedisProperties.fetchTypes().dcmp().category() + " "
+        + enedisProperties.fetchTypes().dcmp().measurement() + "=2i "
+        + "2019-05-07T23:59:59Z";
+    assertEquals(expectedLine1 + "\n" + expectedLine2, elp);
   }
 }
