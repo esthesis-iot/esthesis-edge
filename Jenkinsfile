@@ -135,12 +135,18 @@ pipeline {
         stage('Post Dependency-Track Analysis for server') {
             steps {
                 container (name: 'esthesis-edge-builder') {
-                    sh '''
-                        echo '{"project": "bdff74dc-5c01-49ee-a939-a91125558cc6", "bom": "'"$(cat esthesis-edge-backend/target/bom.xml | base64 -w 0)"'"}' > payload.json
-                    '''
-                    sh '''
-                          curl -X "PUT" ${DEPENDENCY_TRACK_URL} -H 'Content-Type: application/json' -H 'X-API-Key: '${DEPENDENCY_TRACK_API_KEY} -d @payload.json
-                    '''
+                     sh '''
+                        DT_BRANCH=$(echo "${BRANCH_NAME:-unknown}" | tr "/ " "__")
+                
+                        curl -sS -X POST "${DEPENDENCY_TRACK_URL}" \
+                          -H "X-Api-Key: ${DEPENDENCY_TRACK_API_KEY}" \
+                          -F "autoCreate=true" \
+                          -F "parentName=esthesis-edge" \
+                          -F "parentVersion=parent" \
+                          -F "projectName=esthesis-edge-backend" \
+                          -F "projectVersion=${DT_BRANCH}" \
+                          -F "bom=@esthesis-edge-backend/target/bom.xml"
+                      '''
                 }
             }
         }
