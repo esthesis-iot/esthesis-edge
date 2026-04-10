@@ -2,11 +2,14 @@ package esthesis.edge.modules.deddie.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import esthesis.edge.TestUtils;
+import esthesis.edge.dto.QueueItemDTO;
+import esthesis.edge.modules.deddie.config.DeddieConstants;
 import esthesis.edge.modules.deddie.client.DeddieClient;
 import esthesis.edge.modules.deddie.dto.DeddieCurvesActiveConsumptionDTO;
 import esthesis.edge.modules.deddie.dto.DeddieCurvesEnergyInjectedDTO;
 import esthesis.edge.modules.deddie.dto.DeddieCurvesEnergyProducedDTO;
 import esthesis.edge.modules.deddie.dto.DeddieCurvesReactivePowerDTO;
+import esthesis.edge.services.DeviceService;
 import esthesis.edge.services.QueueService;
 import io.quarkus.test.InjectMock;
 import io.quarkus.test.junit.QuarkusTest;
@@ -17,7 +20,12 @@ import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.time.Instant;
+import java.util.List;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
@@ -40,6 +48,9 @@ class DeddieFetchServiceTest {
 
     @Inject
     QueueService queueService;
+
+    @Inject
+    DeviceService deviceService;
 
     @BeforeEach
     @Transactional
@@ -82,6 +93,112 @@ class DeddieFetchServiceTest {
                 "test",
                 "test",
                 "test"));
+    }
+
+    @Test
+    @SneakyThrows
+    void fetchCacDataSkipsInvalidCurvesBeforeQueueing() {
+        String hardwareId = "deddie-test-invalid-mixed";
+        testUtils.createDevice(hardwareId);
+
+        DeddieCurvesActiveConsumptionDTO dto = objectMapper.readValue("""
+                        {
+                            "curveSearchParameters": {
+                                "analysisType": 1,
+                                "classType": "active",
+                                "confirmedDataFlag": false,
+                                "fromDate": "2025-08-14T09:00:00+00:00",
+                                "hourAnalysisFlag": false,
+                                "supplyNumber": "123456789",
+                                "taxNumber": "987654321",
+                                "toDate": "2025-08-18T09:00:00+00:00"
+                            },
+                            "curves": [
+                                {
+                                    "certifiedFlag": false,
+                                    "consumption": "0.172",
+                                    "meterDate": "15/08/2025 00:15"
+                                },
+                                {
+                                    "certifiedFlag": false,
+                                    "consumption": null,
+                                    "meterDate": "15/08/2025 00:30"
+                                },
+                                {
+                                    "certifiedFlag": false,
+                                    "consumption": "bad-value",
+                                    "meterDate": "15/08/2025 00:45"
+                                }
+                            ]
+                        }
+                        """
+                , DeddieCurvesActiveConsumptionDTO.class);
+
+        when(deddieClient.getCurvesCurvesActiveConsumption(any(), anyString(), anyString())).thenReturn(dto);
+
+        assertEquals(1, deddieFetchService.fetchCacData(hardwareId,
+                "test",
+                "test",
+                "test"));
+
+        List<QueueItemDTO> queuedItems = queueService.list();
+        assertEquals(1, queuedItems.size());
+        assertTrue(queuedItems.getFirst().getDataObject().contains("=0.172f"));
+        assertFalse(queuedItems.getFirst().getDataObject().contains("nullf"));
+        assertFalse(queuedItems.getFirst().getDataObject().contains("bad-valuef"));
+        assertTrue(deviceService.getDeviceConfigValueAsInstant(hardwareId,
+                DeddieConstants.CONFIG_CAC_LAST_FETCHED_AT).isPresent());
+    }
+
+    @Test
+    @SneakyThrows
+    void fetchCacDataDoesNotQueueOnlyInvalidCurves() {
+        String hardwareId = "deddie-test-invalid-only";
+        testUtils.createDevice(hardwareId);
+        Instant lastFetchedAt = Instant.parse("2025-08-10T00:00:00Z");
+        testUtils.setDeviceConfig(hardwareId,
+                DeddieConstants.CONFIG_CAC_LAST_FETCHED_AT,
+                lastFetchedAt.toString());
+
+        DeddieCurvesActiveConsumptionDTO dto = objectMapper.readValue("""
+                        {
+                            "curveSearchParameters": {
+                                "analysisType": 1,
+                                "classType": "active",
+                                "confirmedDataFlag": false,
+                                "fromDate": "2025-08-14T09:00:00+00:00",
+                                "hourAnalysisFlag": false,
+                                "supplyNumber": "123456789",
+                                "taxNumber": "987654321",
+                                "toDate": "2025-08-18T09:00:00+00:00"
+                            },
+                            "curves": [
+                                {
+                                    "certifiedFlag": false,
+                                    "consumption": null,
+                                    "meterDate": "15/08/2025 00:30"
+                                },
+                                {
+                                    "certifiedFlag": false,
+                                    "consumption": "bad-value",
+                                    "meterDate": "15/08/2025 00:45"
+                                }
+                            ]
+                        }
+                        """
+                , DeddieCurvesActiveConsumptionDTO.class);
+
+        when(deddieClient.getCurvesCurvesActiveConsumption(any(), anyString(), anyString())).thenReturn(dto);
+
+        assertEquals(0, deddieFetchService.fetchCacData(hardwareId,
+                "test",
+                "test",
+                "test"));
+
+        assertTrue(queueService.list().isEmpty());
+        assertEquals(lastFetchedAt,
+                deviceService.getDeviceConfigValueAsInstant(hardwareId,
+                        DeddieConstants.CONFIG_CAC_LAST_FETCHED_AT).orElseThrow());
     }
 
     @Test

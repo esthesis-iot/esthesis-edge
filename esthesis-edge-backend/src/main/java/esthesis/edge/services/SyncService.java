@@ -18,6 +18,7 @@ import esthesis.edge.model.QueueItemEntity;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.transaction.Transactional;
 import java.time.Instant;
+import java.util.Objects;
 import java.util.Base64;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -34,7 +35,7 @@ import org.eclipse.paho.client.mqttv3.MqttException;
 public class SyncService {
 
   private final EdgeProperties edgeProperties;
-  private final AvroUtils avroUtils;
+  private final QueuePayloadSanitizer queuePayloadSanitizer;
   private InfluxDBClient influxDBClient;
 
   /**
@@ -42,39 +43,35 @@ public class SyncService {
    *
    * @param queueItemEntity The queue item to post.
    */
-  private void influxDBPost(QueueItemEntity queueItemEntity) {
+  private void influxDBPost(QueueItemEntity queueItemEntity,
+      QueuePayloadSanitizer.SanitizedQueuePayload sanitizedQueuePayload) {
     log.debug("InfluxDB syncing queue item '{}'.", queueItemEntity.getId());
 
-    // Prepare InfluxDB point by splitting the payload data.
-    String[] dataList = queueItemEntity.getDataObject().split("\n");
-    for (String data : dataList) {
-      PayloadData payloadData = avroUtils.parsePayload(data);
+    for (QueuePayloadSanitizer.SanitizedLine sanitizedLine : sanitizedQueuePayload.lines()) {
+      PayloadData payloadData = sanitizedLine.payloadData();
       Point point = Point.measurement(payloadData.getCategory())
           .addTag("hardwareId", queueItemEntity.getHardwareId())
           .time(Instant.parse(payloadData.getTimestamp()), WritePrecision.S);
-      for (ValueData valueData : payloadData.getValues()) {
-        switch (valueData.getValueType()) {
-          case STRING -> point.addField(valueData.getName(), valueData.getValue());
-          case BOOLEAN ->
-              point.addField(valueData.getName(), Boolean.parseBoolean(valueData.getValue()));
-          case BYTE -> point.addField(valueData.getName(), Byte.parseByte(valueData.getValue()));
-          case SHORT -> point.addField(valueData.getName(), Short.parseShort(valueData.getValue()));
-          case INTEGER ->
-              point.addField(valueData.getName(), Integer.parseInt(valueData.getValue()));
-          case LONG, BIG_INTEGER ->
-              point.addField(valueData.getName(), Long.parseLong(valueData.getValue()));
-          case FLOAT -> point.addField(valueData.getName(), Float.parseFloat(valueData.getValue()));
-          case DOUBLE, BIG_DECIMAL ->
-              point.addField(valueData.getName(), Double.parseDouble(valueData.getValue()));
-          case UNKNOWN -> log.warn("Unknown value type '{}'.", valueData.getValueType());
-        }
+      boolean hasFields = false;
 
-        // Write point to InfluxDB.
-        WriteApiBlocking writeApiBlocking = influxDBClient.getWriteApiBlocking();
-        log.debug("InfluxDB writing point '{}'.", point.toLineProtocol());
-        writeApiBlocking.writePoint(point);
-        log.debug("InfluxDB synced queue item '{}'.", queueItemEntity.getId());
+      for (ValueData valueData : payloadData.getValues()) {
+        Object fieldValue = queuePayloadSanitizer.parseFieldValue(valueData);
+        if (fieldValue != null) {
+          addPointField(point, valueData, fieldValue);
+          hasFields = true;
+        }
       }
+
+      if (!hasFields) {
+        log.warn("Skipping sanitized line '{}' from queue item '{}' because it contains no supported fields.",
+            sanitizedLine.line(), queueItemEntity.getId());
+        continue;
+      }
+
+      WriteApiBlocking writeApiBlocking = influxDBClient.getWriteApiBlocking();
+      log.debug("InfluxDB writing point '{}'.", point.toLineProtocol());
+      writeApiBlocking.writePoint(point);
+      log.debug("InfluxDB synced queue item '{}'.", queueItemEntity.getId());
     }
   }
 
@@ -111,8 +108,19 @@ public class SyncService {
 
       for (QueueItemEntity queueItemEntity : queueItemEntities) {
         try {
+          QueuePayloadSanitizer.SanitizedQueuePayload sanitizedQueuePayload =
+              queuePayloadSanitizer.sanitize(queueItemEntity.getId(), queueItemEntity.getDataObject());
+          persistSanitizedPayload(queueItemEntity, sanitizedQueuePayload);
+          if (!sanitizedQueuePayload.hasValidLines()) {
+            log.warn("Skipping queue item '{}' for esthesis CORE because all payload lines were invalid.",
+                queueItemEntity.getId());
+            queueItemEntity.setProcessedCoreAt(Instant.now());
+            queueItemEntity.persist();
+            continue;
+          }
+
           log.debug("esthesis CORE syncing queue item '{}'.", queueItemEntity.getId());
-          mqttPublisher.publish(telemetryTopic, queueItemEntity.getDataObject());
+          mqttPublisher.publish(telemetryTopic, sanitizedQueuePayload.toDataObject());
           queueItemEntity.setProcessedCoreAt(Instant.now());
           queueItemEntity.persist();
           log.debug("esthesis CORE synced queue item '{}'.", queueItemEntity.getId());
@@ -150,7 +158,15 @@ public class SyncService {
       QueueItemEntity.findNotProcessedLocal().forEach(queueItem -> {
         log.debug("Local syncing queue item '{}'.", queueItem.getId());
         try {
-          influxDBPost(queueItem);
+          QueuePayloadSanitizer.SanitizedQueuePayload sanitizedQueuePayload =
+              queuePayloadSanitizer.sanitize(queueItem.getId(), queueItem.getDataObject());
+          persistSanitizedPayload(queueItem, sanitizedQueuePayload);
+          if (!sanitizedQueuePayload.hasValidLines()) {
+            log.warn("Skipping queue item '{}' for local sync because all payload lines were invalid.",
+                queueItem.getId());
+          } else {
+            influxDBPost(queueItem, sanitizedQueuePayload);
+          }
           log.debug("Marking queue item '{}' as processed.", queueItem.getId());
           queueItem.setProcessedLocalAt(Instant.now());
           queueItem.persist();
@@ -207,6 +223,30 @@ public class SyncService {
 
     log.debug("esthesis CORE syncing finished.");
     return !hasErrors.get();
+  }
+
+  private void persistSanitizedPayload(QueueItemEntity queueItemEntity,
+      QueuePayloadSanitizer.SanitizedQueuePayload sanitizedQueuePayload) {
+    String sanitizedDataObject = sanitizedQueuePayload.toDataObject();
+    if (!Objects.equals(queueItemEntity.getDataObject(), sanitizedDataObject)) {
+      queueItemEntity.setDataObject(sanitizedDataObject);
+      queueItemEntity.persist();
+    }
+  }
+
+  private void addPointField(Point point, ValueData valueData, Object fieldValue) {
+    switch (valueData.getValueType()) {
+      case STRING -> point.addField(valueData.getName(), (String) fieldValue);
+      case BOOLEAN -> point.addField(valueData.getName(), (Boolean) fieldValue);
+      case BYTE -> point.addField(valueData.getName(), (Byte) fieldValue);
+      case SHORT -> point.addField(valueData.getName(), (Short) fieldValue);
+      case INTEGER -> point.addField(valueData.getName(), (Integer) fieldValue);
+      case LONG, BIG_INTEGER -> point.addField(valueData.getName(), (Long) fieldValue);
+      case FLOAT -> point.addField(valueData.getName(), (Float) fieldValue);
+      case DOUBLE, BIG_DECIMAL -> point.addField(valueData.getName(), (Double) fieldValue);
+      case UNKNOWN -> {
+      }
+    }
   }
 
 }

@@ -1,7 +1,10 @@
 package esthesis.edge.services;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import esthesis.edge.TestUtils;
 import esthesis.edge.dto.QueueItemDTO;
 import esthesis.edge.model.QueueItemEntity;
 import esthesis.edge.testcontainers.InfluxDBTC;
@@ -24,6 +27,9 @@ class SyncServiceInfluxDBTest {
 
   @Inject
   QueueService queueService;
+
+  @Inject
+  TestUtils testUtils;
 
   private QueueItemDTO createTestQueueItem(String id, String dataObject) {
     QueueItemDTO queueItem = new QueueItemDTO();
@@ -59,6 +65,33 @@ class SyncServiceInfluxDBTest {
       syncService.syncInfluxDB();
       assertNotNull(((QueueItemEntity) (QueueItemEntity.findById(id))).getProcessedLocalAt());
     }
+  }
+
+  @Test
+  void syncInfluxDBSkipsMalformedLinesAndContinues() {
+    testUtils.createDevice("test");
+
+    String firstId = UUID.randomUUID().toString();
+    QueueItemDTO mixedItem = createTestQueueItem(firstId,
+        "energy active=0.137f 2025-10-29T01:45:00Z\n"
+            + "energy active=nullf 2025-10-29T02:45:00Z\n"
+            + "energy active=0.121f 2025-10-29T03:15:00Z");
+    queueService.queue(mixedItem);
+
+    String secondId = UUID.randomUUID().toString();
+    QueueItemDTO validItem = createTestQueueItem(secondId,
+        "energy active=0.200f 2025-10-29T03:30:00Z");
+    queueService.queue(validItem);
+
+    assertTrue(syncService.syncInfluxDB());
+
+    QueueItemEntity firstEntity = QueueItemEntity.findById(firstId);
+    QueueItemEntity secondEntity = QueueItemEntity.findById(secondId);
+    assertNotNull(firstEntity.getProcessedLocalAt());
+    assertNotNull(secondEntity.getProcessedLocalAt());
+    assertEquals("energy active=0.137f 2025-10-29T01:45:00Z\n"
+            + "energy active=0.121f 2025-10-29T03:15:00Z",
+        firstEntity.getDataObject());
   }
 
   @Test

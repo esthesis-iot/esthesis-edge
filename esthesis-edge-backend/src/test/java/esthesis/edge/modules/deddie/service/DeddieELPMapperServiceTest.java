@@ -39,6 +39,41 @@ class DeddieELPMapperServiceTest {
     }
 
     @Test
+    void toELPCACSkipsInvalidCurves() {
+        DeddieCurvesActiveConsumptionDTO.Curve validCurve = new DeddieCurvesActiveConsumptionDTO.Curve();
+        validCurve.setCertifiedFlag(false);
+        validCurve.setConsumption("1.1");
+        validCurve.setMeterDate("18/08/2025 00:15");
+
+        DeddieCurvesActiveConsumptionDTO.Curve nullCurve = new DeddieCurvesActiveConsumptionDTO.Curve();
+        nullCurve.setCertifiedFlag(false);
+        nullCurve.setConsumption(null);
+        nullCurve.setMeterDate("18/08/2025 00:30");
+
+        DeddieCurvesActiveConsumptionDTO.Curve blankCurve = new DeddieCurvesActiveConsumptionDTO.Curve();
+        blankCurve.setCertifiedFlag(false);
+        blankCurve.setConsumption("   ");
+        blankCurve.setMeterDate("18/08/2025 00:45");
+
+        DeddieCurvesActiveConsumptionDTO.Curve invalidCurve = new DeddieCurvesActiveConsumptionDTO.Curve();
+        invalidCurve.setCertifiedFlag(false);
+        invalidCurve.setConsumption("abc");
+        invalidCurve.setMeterDate("18/08/2025 01:00");
+
+        DeddieCurvesActiveConsumptionDTO dto = new DeddieCurvesActiveConsumptionDTO();
+        dto.setCurveSearchParameters(new DeddieCurvesActiveConsumptionDTO.CurveSearchParametersDTO());
+        dto.setCurves(List.of(validCurve, nullCurve, blankCurve, invalidCurve));
+
+        String elp = deddieELPMapperService.toELP(dto);
+
+        assertEquals(deddieProperties.fetchTypes().cac().category() + " "
+                + deddieProperties.fetchTypes().cac().measurement() + "=1.1f "
+                + "2025-08-18T00:15:00Z", elp);
+        assertFalse(elp.contains("nullf"));
+        assertFalse(elp.contains("abcf"));
+    }
+
+    @Test
     void toELPCRP() {
         DeddieCurvesReactivePowerDTO dto = new DeddieCurvesReactivePowerDTO();
         dto.setCurveSearchParameters(new DeddieCurvesReactivePowerDTO.CurveSearchParametersDTO());

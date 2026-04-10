@@ -92,22 +92,28 @@ public class DeddieFetchService {
         int itemsQueued = 0;
 
         if (curvesDTO != null && curvesDTO.getCurves() != null && !curvesDTO.getCurves().isEmpty()) {
-            log.debug("Queuing Curve Active Consumption data:\n{}", deddieELPMapperService.toELP(curvesDTO));
-            dataService.queue(
-                    QueueItemDTO.builder()
-                            .id(UUID.randomUUID().toString())
-                            .createdAt(Instant.now())
-                            .hardwareId(hardwareId)
-                            .dataObject(deddieELPMapperService.toELP(curvesDTO))
-                            .build());
+            String elp = deddieELPMapperService.toELP(curvesDTO);
+            if (!elp.isBlank()) {
+                log.debug("Queuing Curve Active Consumption data:\n{}", elp);
+                dataService.queue(
+                        QueueItemDTO.builder()
+                                .id(UUID.randomUUID().toString())
+                                .createdAt(Instant.now())
+                                .hardwareId(hardwareId)
+                                .dataObject(elp)
+                                .build());
 
 
-            // Update last fetched at, only if data was fetched. This is due to the fact that data might
-            // not be available at the time of fetching, however it may become available later on.
-            deviceService.updateDeviceConfig(hardwareId,
-                    DeddieConstants.CONFIG_CAC_LAST_FETCHED_AT, Instant.now().toString());
+                // Update last fetched at, only if data was fetched. This is due to the fact that data might
+                // not be available at the time of fetching, however it may become available later on.
+                deviceService.updateDeviceConfig(hardwareId,
+                        DeddieConstants.CONFIG_CAC_LAST_FETCHED_AT, Instant.now().toString());
 
-            itemsQueued++;
+                itemsQueued++;
+            } else {
+                log.warn("Skipping queue insert for Curve Active Consumption of hardwareId '{}' because all fetched rows were invalid.",
+                        hardwareId);
+            }
         } else {
             log.debug("No Curve Active Consumption data found for hardwareId: {}", hardwareId);
         }
@@ -168,19 +174,25 @@ public class DeddieFetchService {
         int itemsQueued = 0;
 
         if (curvesDTO != null && curvesDTO.getCurves() != null && !curvesDTO.getCurves().isEmpty()) {
-            log.debug("Queuing Curve Reactive Power data:\n{}", deddieELPMapperService.toELP(curvesDTO));
-            dataService.queue(
-                    QueueItemDTO.builder()
-                            .id(UUID.randomUUID().toString())
-                            .createdAt(Instant.now())
-                            .hardwareId(hardwareId)
-                            .dataObject(deddieELPMapperService.toELP(curvesDTO))
-                            .build());
-            // Update last fetched at, only if data was fetched. This is due to the fact that data might
-            // not be available at the time of fetching, however it may become available later on.
-            deviceService.updateDeviceConfig(hardwareId,
-                    DeddieConstants.CONFIG_CRP_LAST_FETCHED_AT, Instant.now().toString());
-            itemsQueued++;
+            String elp = deddieELPMapperService.toELP(curvesDTO);
+            if (!elp.isBlank()) {
+                log.debug("Queuing Curve Reactive Power data:\n{}", elp);
+                dataService.queue(
+                        QueueItemDTO.builder()
+                                .id(UUID.randomUUID().toString())
+                                .createdAt(Instant.now())
+                                .hardwareId(hardwareId)
+                                .dataObject(elp)
+                                .build());
+                // Update last fetched at, only if data was fetched. This is due to the fact that data might
+                // not be available at the time of fetching, however it may become available later on.
+                deviceService.updateDeviceConfig(hardwareId,
+                        DeddieConstants.CONFIG_CRP_LAST_FETCHED_AT, Instant.now().toString());
+                itemsQueued++;
+            } else {
+                log.warn("Skipping queue insert for Curve Reactive Power of hardwareId '{}' because all fetched rows were invalid.",
+                        hardwareId);
+            }
         }
 
         return itemsQueued;
@@ -236,20 +248,26 @@ public class DeddieFetchService {
         int itemsQueued = 0;
 
         if (curvesDTO != null && curvesDTO.getCurves() != null && !curvesDTO.getCurves().isEmpty()) {
-            log.debug("Queuing Curve Energy Produced data:\n{}", deddieELPMapperService.toELP(curvesDTO));
-            dataService.queue(
-                    QueueItemDTO.builder()
-                            .id(UUID.randomUUID().toString())
-                            .createdAt(Instant.now())
-                            .hardwareId(hardwareId)
-                            .dataObject(deddieELPMapperService.toELP(curvesDTO))
-                            .build());
+            String elp = deddieELPMapperService.toELP(curvesDTO);
+            if (!elp.isBlank()) {
+                log.debug("Queuing Curve Energy Produced data:\n{}", elp);
+                dataService.queue(
+                        QueueItemDTO.builder()
+                                .id(UUID.randomUUID().toString())
+                                .createdAt(Instant.now())
+                                .hardwareId(hardwareId)
+                                .dataObject(elp)
+                                .build());
 
-            // Update last fetched at, only if data was fetched. This is due to the fact that data might
-            // not be available at the time of fetching, however it may become available later on.
-            deviceService.updateDeviceConfig(hardwareId,
-                    DeddieConstants.CONFIG_CEP_LAST_FETCHED_AT, Instant.now().toString());
-            itemsQueued++;
+                // Update last fetched at, only if data was fetched. This is due to the fact that data might
+                // not be available at the time of fetching, however it may become available later on.
+                deviceService.updateDeviceConfig(hardwareId,
+                        DeddieConstants.CONFIG_CEP_LAST_FETCHED_AT, Instant.now().toString());
+                itemsQueued++;
+            } else {
+                log.warn("Skipping queue insert for Curve Energy Produced of hardwareId '{}' because all fetched rows were invalid.",
+                        hardwareId);
+            }
         }
 
         return itemsQueued;
@@ -307,20 +325,26 @@ public class DeddieFetchService {
         int itemsQueued = 0;
 
         if (curvesDTO != null && curvesDTO.getCurves() != null && !curvesDTO.getCurves().isEmpty()) {
-            log.debug("Queuing Curve Energy Injected data:\n{}", deddieELPMapperService.toELP(curvesDTO));
-            dataService.queue(
-                    QueueItemDTO.builder()
-                            .id(UUID.randomUUID().toString())
-                            .createdAt(Instant.now())
-                            .hardwareId(hardwareId)
-                            .dataObject(deddieELPMapperService.toELP(curvesDTO))
-                            .build());
+            String elp = deddieELPMapperService.toELP(curvesDTO);
+            if (!elp.isBlank()) {
+                log.debug("Queuing Curve Energy Injected data:\n{}", elp);
+                dataService.queue(
+                        QueueItemDTO.builder()
+                                .id(UUID.randomUUID().toString())
+                                .createdAt(Instant.now())
+                                .hardwareId(hardwareId)
+                                .dataObject(elp)
+                                .build());
 
-            // Update last fetched at, only if data was fetched. This is due to the fact that data might
-            // not be available at the time of fetching, however it may become available later on.
-            deviceService.updateDeviceConfig(hardwareId,
-                    DeddieConstants.CONFIG_CEI_LAST_FETCHED_AT, Instant.now().toString());
-            itemsQueued++;
+                // Update last fetched at, only if data was fetched. This is due to the fact that data might
+                // not be available at the time of fetching, however it may become available later on.
+                deviceService.updateDeviceConfig(hardwareId,
+                        DeddieConstants.CONFIG_CEI_LAST_FETCHED_AT, Instant.now().toString());
+                itemsQueued++;
+            } else {
+                log.warn("Skipping queue insert for Curve Energy Injected of hardwareId '{}' because all fetched rows were invalid.",
+                        hardwareId);
+            }
         }
         return itemsQueued;
     }
