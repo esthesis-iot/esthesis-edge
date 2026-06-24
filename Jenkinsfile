@@ -35,7 +35,7 @@ pipeline {
                       memory: "1Gi"
                     limits:
                       cpu: "2"
-                      memory: "2Gi"
+                      memory: "3Gi"
                 imagePullSecrets:
                 - name: regcred
                 volumes:
