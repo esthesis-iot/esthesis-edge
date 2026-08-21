@@ -1,5 +1,6 @@
 package esthesis.edge.modules.enedis.dto.datahub;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import lombok.Data;
@@ -26,7 +27,10 @@ public class EnedisSituationContractAutoDTO {
 
     private String contractor;
 
+    // The Enedis swagger declares "balance_responsable_party" but the live sandbox returns
+    // "balance_responsible_party" — accept both spellings.
     @JsonProperty("balance_responsable_party")
+    @JsonAlias("balance_responsible_party")
     private String balanceResponsableParty;
 
     @JsonProperty("pricing_structure")

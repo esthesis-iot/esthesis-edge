@@ -3,8 +3,6 @@ package esthesis.edge.modules.enedis.service;
 import static esthesis.edge.config.EdgeConstants.EDGE;
 import static esthesis.edge.modules.enedis.config.EnedisConstants.MODULE_NAME;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import esthesis.common.exception.QProcessingException;
 import esthesis.edge.dto.DeviceDTO;
 import esthesis.edge.dto.DeviceDTO.DeviceDTOBuilder;
@@ -14,10 +12,13 @@ import esthesis.edge.model.DeviceModuleConfigEntity;
 import esthesis.edge.modules.enedis.client.EnedisClient;
 import esthesis.edge.modules.enedis.config.EnedisConstants;
 import esthesis.edge.modules.enedis.config.EnedisProperties;
+import esthesis.edge.modules.enedis.dto.datahub.EnedisAlimentationAutoDTO;
 import esthesis.edge.modules.enedis.dto.datahub.EnedisAuthTokenDTO;
-import esthesis.edge.modules.enedis.dto.datahub.EnedisContractDTO;
+import esthesis.edge.modules.enedis.dto.datahub.EnedisDonneesGeneralesAutoDTO;
 import esthesis.edge.modules.enedis.dto.datahub.EnedisSituationContractAutoDTO;
 import esthesis.edge.modules.enedis.dto.datahub.EnedisSubscribedServicesRequestDTO;
+import esthesis.edge.modules.enedis.dto.datahub.EnedisSubscribedServicesResponseDTO;
+import esthesis.edge.modules.enedis.dto.datahub.EnedisSynthContractAutoDTO;
 import esthesis.edge.modules.enedis.templates.EnedisTemplates;
 import esthesis.edge.services.DeviceService;
 import io.github.resilience4j.ratelimiter.RateLimiter;
@@ -35,6 +36,7 @@ import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -57,7 +59,6 @@ public class EnedisService {
     private final DeviceService deviceService;
     private final EnedisProperties enedisProperties;
     private final EnedisFetchService enedisFetchService;
-    private final ObjectMapper objectMapper;
 
     // A local reference of the access token, to not keep refreshing when not needed.
     private EnedisAuthTokenDTO enedisAuthTokenDTO;
@@ -72,23 +73,6 @@ public class EnedisService {
                     .limitForPeriod(EnedisConstants.REQUESTS_PER_HOUR)
                     .limitRefreshPeriod(Duration.ofHours(1))
                     .build());
-
-//  public EnedisService(DeviceService deviceService, EnedisProperties enedisProperties,
-//      EnedisFetchService enedisFetchService) {
-//  public EnedisService() {
-//    this.deviceService = deviceService;
-//    this.enedisProperties = enedisProperties;
-//    this.enedisFetchService = enedisFetchService;
-//
-//    perSecondLimiter = RateLimiter.of("perSecondLimiter", RateLimiterConfig.custom()
-//        .limitForPeriod(EnedisConstants.REQUESTS_PER_SECOND)
-//        .limitRefreshPeriod(Duration.ofSeconds(1))
-//        .build());
-//    perHourLimiter = RateLimiter.of("perHourLimiter", RateLimiterConfig.custom()
-//        .limitForPeriod(EnedisConstants.REQUESTS_PER_HOUR)
-//        .limitRefreshPeriod(Duration.ofHours(1))
-//        .build());
-//  }
 
     /**
      * Calculate the expiration time for the PMR token.
@@ -137,19 +121,18 @@ public class EnedisService {
     }
 
     /**
-     * Create a new device for the given usage point ID.
+     * Create a new device for the given usage point ID. Multiple PRMs can be registered at once by
+     * separating them with a semicolon.
      *
      * @param usagePointId The usage point ID.
      */
     @Transactional
     public void createDevice(String usagePointId) {
-        String hardwareId = createHardwareId(usagePointId);
-
         // Create a device for each PRM.
         for (String enedisId : usagePointId.split(";")) {
             Instant now = Instant.now();
             DeviceDTOBuilder deviceDTOBuilder = DeviceDTO.builder()
-                    .hardwareId(hardwareId)
+                    .hardwareId(createHardwareId(enedisId))
                     .moduleName(MODULE_NAME)
                     .createdAt(now)
                     .enabled(true)
@@ -157,80 +140,188 @@ public class EnedisService {
                     .config(EnedisConstants.CONFIG_PMR_ENABLED_AT, now.toString())
                     .config(EnedisConstants.CONFIG_PMR_EXPIRES_AT, calculatePMRExpiration(now).toString());
 
-            // Check if the PRM is for a producer or a consumer.
             refreshAuthToken();
-            try {
-                EnedisSituationContractAutoDTO contractDTO =
-                        enedisClient.getSituationContractAuto("Bearer " + enedisAuthTokenDTO.getAccessToken(),
-                                enedisId).getFirst();
-
-                String segmentType = contractDTO.getSegment();
-                if (segmentType.equals(EnedisConstants.SEGMENT_TYPE_CONSUMER)) {
-                    deviceDTOBuilder.config(EnedisConstants.CONFIG_CONSUMER, "true");
-                } else if (segmentType.equals(EnedisConstants.SEGMENT_TYPE_PRODUCER)) {
-                    deviceDTOBuilder.config(EnedisConstants.CONFIG_PRODUCER, "true");
-                } else {
-                    throw new QProcessingException("Unknown segment type for PRM '{}'.", segmentType);
-                }
-                deviceDTOBuilder.attribute("segment", segmentType);
-
-                // Add Enedis device attributes for esthesis CORE.
-                String contractType = contractDTO.getContractType();
-                String balanceResponsableParty = contractDTO.getBalanceResponsableParty();
-                String contractor = contractDTO.getContractor();
-                String contractStart = contractDTO.getContractStart();
-                String distributionTariff = contractDTO.getDistributionTariff();
-                String distributionMobilePeak = contractDTO.getDistributionMobilePeak();
-                String pricingStructure = contractDTO.getPricingStructure();
-                String supplierMobilePeak = contractDTO.getSupplierMobilePeak();
-                String subscribedPower = contractDTO.getSubscribedPower() != null ?
-                        contractDTO.getSubscribedPower().getValue() +
-                                contractDTO.getSubscribedPower().getUnit() : "";
-                String distributionTariffProfiles = contractDTO.getDistributionTariffProfile()
-                        .stream()
-                        .map(tariffProfile -> tariffProfile.getName() + " " +
-                                tariffProfile.getPower().getValue() +
-                                tariffProfile.getPower().getUnit())
-                        .collect(Collectors.joining(","));
-
-                if (StringUtils.isNotBlank(contractType)) {
-                    deviceDTOBuilder.attribute("contractType", contractType);
-                }
-                if (StringUtils.isNotBlank(balanceResponsableParty)) {
-                    deviceDTOBuilder.attribute("balanceResponsableParty", balanceResponsableParty);
-                }
-                if (StringUtils.isNotBlank(contractor)) {
-                    deviceDTOBuilder.attribute("contractor", contractor);
-                }
-                if (StringUtils.isNotBlank(contractStart)) {
-                    deviceDTOBuilder.attribute("contractStart", contractStart);
-                }
-                if (StringUtils.isNotBlank(distributionTariff)) {
-                    deviceDTOBuilder.attribute("distributionTariff", distributionTariff);
-                }
-                if (StringUtils.isNotBlank(distributionMobilePeak)) {
-                    deviceDTOBuilder.attribute("distributionMobilePeak", distributionMobilePeak);
-                }
-                if (StringUtils.isNotBlank(pricingStructure)) {
-                    deviceDTOBuilder.attribute("pricingStructure", pricingStructure);
-                }
-                if (StringUtils.isNotBlank(supplierMobilePeak)) {
-                    deviceDTOBuilder.attribute("supplierMobilePeak", supplierMobilePeak);
-                }
-                if (StringUtils.isNotBlank(subscribedPower)) {
-                    deviceDTOBuilder.attribute("subscribedPower", subscribedPower);
-                }
-                if (StringUtils.isNotBlank(distributionTariffProfiles)) {
-                    deviceDTOBuilder.attribute("distributionTariffProfiles", distributionTariffProfiles);
-                }
-
-            } catch (Exception e) {
-                throw new QProcessingException("Failed to parse Enedis contract data.", e);
-            }
+            String segmentType = applyContractAttributes(deviceDTOBuilder, enedisId);
+            applySynthContractAttributes(deviceDTOBuilder, enedisId, segmentType);
+            applyAlimentationAttributes(deviceDTOBuilder, enedisId);
+            applyGeneralDataAttributes(deviceDTOBuilder, enedisId);
 
             // Create the device.
             deviceDTOBuilder.tags(String.join(",", MODULE_NAME, EDGE));
             deviceService.createDevice(deviceDTOBuilder.build());
+        }
+    }
+
+    /**
+     * Fetch the contractual situation of the given PRM and populate the device configuration
+     * (consumer/producer) and the device attributes shared with esthesis CORE. The segment is
+     * required to schedule data fetching; every other field is optional (Enedis may omit any of
+     * them depending on the contract).
+     *
+     * @param deviceDTOBuilder The device builder to populate.
+     * @param enedisId         The PRM.
+     * @return The segment of the PRM (consumer or producer).
+     */
+    private String applyContractAttributes(DeviceDTOBuilder deviceDTOBuilder, String enedisId) {
+        perSecondLimiter.acquirePermission();
+        perHourLimiter.acquirePermission();
+        try {
+            List<EnedisSituationContractAutoDTO> contracts = enedisClient.getSituationContractAuto(
+                    "Bearer " + enedisAuthTokenDTO.getAccessToken(), enedisId);
+            if (contracts == null || contracts.isEmpty()) {
+                throw new QProcessingException(
+                        "No contract situation returned by Enedis for PRM '{}'.", enedisId);
+            }
+            EnedisSituationContractAutoDTO contractDTO = contracts.getFirst();
+
+            // Check if the PRM is for a producer or a consumer.
+            String segmentType = contractDTO.getSegment();
+            if (EnedisConstants.SEGMENT_TYPE_CONSUMER.equals(segmentType)) {
+                deviceDTOBuilder.config(EnedisConstants.CONFIG_CONSUMER, "true");
+            } else if (EnedisConstants.SEGMENT_TYPE_PRODUCER.equals(segmentType)) {
+                deviceDTOBuilder.config(EnedisConstants.CONFIG_PRODUCER, "true");
+            } else {
+                throw new QProcessingException("Unknown segment type '{}' for PRM '{}'.",
+                        segmentType, enedisId);
+            }
+            deviceDTOBuilder.attribute("segment", segmentType);
+
+            // Add Enedis device attributes for esthesis CORE.
+            String subscribedPower = contractDTO.getSubscribedPower() != null
+                    ? StringUtils.defaultString(contractDTO.getSubscribedPower().getValue())
+                    + StringUtils.defaultString(contractDTO.getSubscribedPower().getUnit()) : "";
+            String distributionTariffProfiles = contractDTO.getDistributionTariffProfile() == null
+                    ? "" : contractDTO.getDistributionTariffProfile().stream()
+                    .filter(tariffProfile -> tariffProfile.getPower() != null)
+                    .map(tariffProfile -> tariffProfile.getName() + " "
+                            + StringUtils.defaultString(tariffProfile.getPower().getValue())
+                            + StringUtils.defaultString(tariffProfile.getPower().getUnit()))
+                    .collect(Collectors.joining(","));
+
+            setAttributeIfNotBlank(deviceDTOBuilder, "contractType", contractDTO.getContractType());
+            setAttributeIfNotBlank(deviceDTOBuilder, "balanceResponsableParty",
+                    contractDTO.getBalanceResponsableParty());
+            setAttributeIfNotBlank(deviceDTOBuilder, "contractor", contractDTO.getContractor());
+            setAttributeIfNotBlank(deviceDTOBuilder, "contractStart", contractDTO.getContractStart());
+            setAttributeIfNotBlank(deviceDTOBuilder, "distributionTariff",
+                    contractDTO.getDistributionTariff());
+            setAttributeIfNotBlank(deviceDTOBuilder, "distributionMobilePeak",
+                    contractDTO.getDistributionMobilePeak());
+            setAttributeIfNotBlank(deviceDTOBuilder, "pricingStructure",
+                    contractDTO.getPricingStructure());
+            setAttributeIfNotBlank(deviceDTOBuilder, "supplierMobilePeak",
+                    contractDTO.getSupplierMobilePeak());
+            setAttributeIfNotBlank(deviceDTOBuilder, "subscribedPower", subscribedPower);
+            setAttributeIfNotBlank(deviceDTOBuilder, "distributionTariffProfiles",
+                    distributionTariffProfiles);
+
+            return segmentType;
+        } catch (QProcessingException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new QProcessingException(
+                    "Failed to parse Enedis contract data for PRM '" + enedisId + "'.", e);
+        }
+    }
+
+    /**
+     * Fetch the contractual summary of the given PRM and populate the meterType and
+     * lastActivationDate device attributes. Failures are logged and skipped, registration only
+     * requires the contractual situation.
+     *
+     * @param deviceDTOBuilder The device builder to populate.
+     * @param enedisId         The PRM.
+     * @param segmentType      The segment of the PRM, to pick the relevant activation date.
+     */
+    private void applySynthContractAttributes(DeviceDTOBuilder deviceDTOBuilder, String enedisId,
+            String segmentType) {
+        perSecondLimiter.acquirePermission();
+        perHourLimiter.acquirePermission();
+        try {
+            EnedisSynthContractAutoDTO synthContract = enedisClient.getSynthContractAuto(
+                    "Bearer " + enedisAuthTokenDTO.getAccessToken(), enedisId);
+            if (synthContract == null) {
+                return;
+            }
+            setAttributeIfNotBlank(deviceDTOBuilder, "meterType", synthContract.getServicesLevel());
+            String lastActivationDate =
+                    EnedisConstants.SEGMENT_TYPE_PRODUCER.equals(segmentType)
+                            && StringUtils.isNotBlank(synthContract.getGenerationLastActivationDate())
+                            ? synthContract.getGenerationLastActivationDate()
+                            : synthContract.getConsumptionLastActivationDate();
+            setAttributeIfNotBlank(deviceDTOBuilder, "lastActivationDate", lastActivationDate);
+            setAttributeIfNotBlank(deviceDTOBuilder, "lastSubscribedPowerChangeDate",
+                    synthContract.getLastSubscribedPowerChangeDate());
+        } catch (Exception e) {
+            log.warn("Could not fetch Enedis contractual summary for PRM '{}', skipping the "
+                    + "related device attributes.", enedisId, e);
+        }
+    }
+
+    /**
+     * Fetch the supply situation of the given PRM and populate the usagePointStatus and related
+     * device attributes. Failures are logged and skipped.
+     *
+     * @param deviceDTOBuilder The device builder to populate.
+     * @param enedisId         The PRM.
+     */
+    private void applyAlimentationAttributes(DeviceDTOBuilder deviceDTOBuilder, String enedisId) {
+        perSecondLimiter.acquirePermission();
+        perHourLimiter.acquirePermission();
+        try {
+            EnedisAlimentationAutoDTO alimentation = enedisClient.getAlimentationAuto(
+                    "Bearer " + enedisAuthTokenDTO.getAccessToken(), enedisId);
+            if (alimentation == null) {
+                return;
+            }
+            setAttributeIfNotBlank(deviceDTOBuilder, "usagePointStatus",
+                    alimentation.getConnectionState());
+            setAttributeIfNotBlank(deviceDTOBuilder, "voltageLevel", alimentation.getVoltageLevel());
+            setAttributeIfNotBlank(deviceDTOBuilder, "phaseCount", alimentation.getPhaseCount());
+            if (alimentation.getSerialNumber() != null) {
+                deviceDTOBuilder.attribute("serialNumber",
+                        String.valueOf(alimentation.getSerialNumber()));
+            }
+        } catch (Exception e) {
+            log.warn("Could not fetch Enedis supply situation for PRM '{}', skipping the related "
+                    + "device attributes.", enedisId, e);
+        }
+    }
+
+    /**
+     * Fetch the general data of the given PRM and populate the installation address device
+     * attribute. Failures are logged and skipped.
+     *
+     * @param deviceDTOBuilder The device builder to populate.
+     * @param enedisId         The PRM.
+     */
+    private void applyGeneralDataAttributes(DeviceDTOBuilder deviceDTOBuilder, String enedisId) {
+        perSecondLimiter.acquirePermission();
+        perHourLimiter.acquirePermission();
+        try {
+            EnedisDonneesGeneralesAutoDTO generalData = enedisClient.getDonneesGeneralesAuto(
+                    "Bearer " + enedisAuthTokenDTO.getAccessToken(), enedisId);
+            if (generalData == null || generalData.getAddress() == null) {
+                return;
+            }
+            EnedisDonneesGeneralesAutoDTO.Address address = generalData.getAddress();
+            String installationAddress = Stream.of(address.getStaircaseFloorApartment(),
+                            address.getBuilding(), address.getNumberStreetName(), address.getLocality(),
+                            address.getPostalCodeCity())
+                    .filter(StringUtils::isNotBlank)
+                    .collect(Collectors.joining(" "));
+            setAttributeIfNotBlank(deviceDTOBuilder, "installationAddress", installationAddress);
+            setAttributeIfNotBlank(deviceDTOBuilder, "inseeCode", address.getInseeCode());
+        } catch (Exception e) {
+            log.warn("Could not fetch Enedis general data for PRM '{}', skipping the related "
+                    + "device attributes.", enedisId, e);
+        }
+    }
+
+    private static void setAttributeIfNotBlank(DeviceDTOBuilder deviceDTOBuilder, String name,
+            String value) {
+        if (StringUtils.isNotBlank(value)) {
+            deviceDTOBuilder.attribute(name, value);
         }
     }
 
@@ -254,7 +345,7 @@ public class EnedisService {
                 .data("clientId", enedisProperties.clientId())
                 .data("message", enedisProperties.selfRegistration().page().registration().message())
                 .data("duration", enedisProperties.selfRegistration().duration())
-                .data("redirectUrl", enedisProperties.selfRegistration().redirectUrl())
+                .data("authorizationUrl", enedisProperties.selfRegistration().authorizationUrl())
                 .render();
     }
 
@@ -464,21 +555,39 @@ public class EnedisService {
     }
 
     /**
-     * Fetch the usage point ID (Enedis PRM) associated with the given authorization ID.
+     * Fetch the usage point ID (Enedis PRM) associated with the given authorization ID, by
+     * querying the Enedis subscribed services API.
      *
-     * @param authorizationId The authorization ID.
+     * @param authorizationId The authorization ID received on the redirect callback.
      * @return The usage point ID (PRM).
      */
     public String fetchUsagePointId(Long authorizationId) {
         refreshAuthToken();
 
+        // comptage must be false: true returns only the number of matching services, without the
+        // serviceSouscrit list carrying the PRM.
         EnedisSubscribedServicesRequestDTO request = new EnedisSubscribedServicesRequestDTO()
                 .setAutorisationId(authorizationId)
                 .setEtatCode(List.of("ACTIF"))
                 .setServiceType("ACCES")
-                .setComptage(true);
+                .setComptage(false);
 
-        return enedisClient.getSubscribedServices(request,
-                "Bearer " + enedisAuthTokenDTO.getAccessToken()).getServiceSouscrit().getFirst().getPointId();
+        perSecondLimiter.acquirePermission();
+        perHourLimiter.acquirePermission();
+        EnedisSubscribedServicesResponseDTO response = enedisClient.getSubscribedServices(request,
+                "Bearer " + enedisAuthTokenDTO.getAccessToken());
+
+        if (response == null || response.getServiceSouscrit() == null
+                || response.getServiceSouscrit().isEmpty()) {
+            throw new QProcessingException(
+                    "No active subscribed service found for authorization id '{}'.", authorizationId);
+        }
+        if (response.getServiceSouscrit().size() > 1) {
+            log.warn("Multiple subscribed services ('{}') returned for authorization id '{}', "
+                    + "using the first one (Enedis grants one consent per PRM).",
+                    response.getServiceSouscrit().size(), authorizationId);
+        }
+
+        return response.getServiceSouscrit().getFirst().getPointId();
     }
 }

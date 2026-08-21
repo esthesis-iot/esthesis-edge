@@ -159,8 +159,10 @@ public interface EnedisProperties {
     // The URL of the self-registration page. If left empty, a built-in page is used.
     Optional<String> welcomeUrl();
 
-    // The URL to redirect the user to ENEDIS for consent validation.
-    String redirectUrl();
+    // The Enedis authorize URL the self-registration page redirects the user to for consent
+    // validation. Enedis will communicate a new URL for the DataConnect cut-over; update this
+    // property when it is announced.
+    String authorizationUrl();
 
     // The duration for which data access is requested.
     String duration();

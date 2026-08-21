@@ -59,20 +59,37 @@ class EnedisELPMapperServiceTest {
     dto.setMeterReading(new EnedisDailyConsumptionMaxPowerDTO.MeterReading());
     EnedisDailyConsumptionMaxPowerDTO.IntervalReading intervalReading =
         new EnedisDailyConsumptionMaxPowerDTO.IntervalReading();
-    // The API returns arrays of values and dates
+    // With grandeurPhysique=TOUT the API returns arrays of values and dates.
     intervalReading.setValue(List.of("1", "2"));
-    intervalReading.setDate(List.of("2019-05-06", "2019-05-07"));
+    intervalReading.setDate(List.of("2019-05-06T04:12:00.000Z", "2019-05-07T11:38:00.000Z"));
     dto.getMeterReading().setIntervalReading(List.of(intervalReading));
 
     String elp = enedisELPMapperService.toELP(dto);
     assertNotNull(elp);
-    // Should produce two ELP entries, one for each value/date pair
+    // Should produce two ELP entries, one for each value/date pair, keeping the real timestamps.
     String expectedLine1 = enedisProperties.fetchTypes().dcmp().category() + " "
         + enedisProperties.fetchTypes().dcmp().measurement() + "=1i "
-        + "2019-05-06T23:59:59Z";
+        + "2019-05-06T04:12:00Z";
     String expectedLine2 = enedisProperties.fetchTypes().dcmp().category() + " "
         + enedisProperties.fetchTypes().dcmp().measurement() + "=2i "
-        + "2019-05-07T23:59:59Z";
+        + "2019-05-07T11:38:00Z";
     assertEquals(expectedLine1 + "\n" + expectedLine2, elp);
+  }
+
+  @Test
+  void toELPDCMPSkipsNullLiterals() {
+    EnedisDailyConsumptionMaxPowerDTO dto = new EnedisDailyConsumptionMaxPowerDTO();
+    dto.setMeterReading(new EnedisDailyConsumptionMaxPowerDTO.MeterReading());
+    EnedisDailyConsumptionMaxPowerDTO.IntervalReading intervalReading =
+        new EnedisDailyConsumptionMaxPowerDTO.IntervalReading();
+    // The Enedis sandbox returns the literal string "null" for some values.
+    intervalReading.setValue(List.of("null", "2"));
+    intervalReading.setDate(List.of("2019-05-06T04:12:00.000Z", "2019-05-07T11:38:00.000Z"));
+    dto.getMeterReading().setIntervalReading(List.of(intervalReading));
+
+    String elp = enedisELPMapperService.toELP(dto);
+    assertEquals(enedisProperties.fetchTypes().dcmp().category() + " "
+        + enedisProperties.fetchTypes().dcmp().measurement() + "=2i "
+        + "2019-05-07T11:38:00Z", elp);
   }
 }

@@ -1,0 +1,11 @@
+### Situation contractuelle — single-phase mock PRM (1-element array, segment C1 per mock).
+GET {{ENEDIS_API}}/situation_contrat_auto/v1/99999999999999
+Authorization: Bearer {{ENEDIS_TOKEN}}
+
+### Situation contractuelle — three-phase mock PRM (2-element array with varying fields).
+GET {{ENEDIS_API}}/situation_contrat_auto/v1/11111111111111
+Authorization: Bearer {{ENEDIS_TOKEN}}
+
+### Situation contractuelle — unknown PRM. Expect {"error": "Bad request", "error_description": ...}.
+GET {{ENEDIS_API}}/situation_contrat_auto/v1/12345678901234
+Authorization: Bearer {{ENEDIS_TOKEN}}

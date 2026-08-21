@@ -1,0 +1,21 @@
+### Daily consumption. Dates in interval_reading should be full ISO instants (…T00:00:00.000Z)
+### and may carry the new accumulation_kindd field.
+GET {{ENEDIS_API}}/mesure_synchrone_auto/v1/metering_data/daily_consumption
+    ?usage_point_id=99999999999999&start=2025-05-01&end=2025-07-14
+Authorization: Bearer {{ENEDIS_TOKEN}}
+
+### Daily production.
+GET {{ENEDIS_API}}/mesure_synchrone_auto/v1/metering_data/daily_production
+    ?usage_point_id=99999999999999&start=2025-05-01&end=2025-07-14
+Authorization: Bearer {{ENEDIS_TOKEN}}
+
+### Consumption load curve. NB: the real API limits requests to 7 consecutive days; the mock
+### does not enforce it.
+GET {{ENEDIS_API}}/mesure_synchrone_auto/v1/metering_data/consumption_load_curve
+    ?usage_point_id=99999999999999&start=2025-05-01&end=2025-05-07
+Authorization: Bearer {{ENEDIS_TOKEN}}
+
+### Production load curve.
+GET {{ENEDIS_API}}/mesure_synchrone_auto/v1/metering_data/production_load_curve
+    ?usage_point_id=99999999999999&start=2025-05-01&end=2025-05-07
+Authorization: Bearer {{ENEDIS_TOKEN}}

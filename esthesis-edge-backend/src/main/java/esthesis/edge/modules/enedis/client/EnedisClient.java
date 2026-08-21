@@ -1,7 +1,9 @@
 package esthesis.edge.modules.enedis.client;
 
+import esthesis.edge.modules.enedis.dto.datahub.EnedisAlimentationAutoDTO;
 import esthesis.edge.modules.enedis.dto.datahub.EnedisAuthTokenDTO;
 import esthesis.edge.modules.enedis.dto.datahub.EnedisConsumptionLoadCurveDTO;
+import esthesis.edge.modules.enedis.dto.datahub.EnedisDonneesGeneralesAutoDTO;
 import esthesis.edge.modules.enedis.dto.datahub.EnedisDailyConsumptionDTO;
 import esthesis.edge.modules.enedis.dto.datahub.EnedisDailyConsumptionMaxPowerDTO;
 import esthesis.edge.modules.enedis.dto.datahub.EnedisDailyProductionDTO;
@@ -9,9 +11,11 @@ import esthesis.edge.modules.enedis.dto.datahub.EnedisProductionLoadCurveDTO;
 import esthesis.edge.modules.enedis.dto.datahub.EnedisSituationContractAutoDTO;
 import esthesis.edge.modules.enedis.dto.datahub.EnedisSubscribedServicesRequestDTO;
 import esthesis.edge.modules.enedis.dto.datahub.EnedisSubscribedServicesResponseDTO;
+import esthesis.edge.modules.enedis.dto.datahub.EnedisSynthContractAutoDTO;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
+import org.eclipse.microprofile.rest.client.annotation.RegisterProvider;
 import org.eclipse.microprofile.rest.client.inject.RegisterRestClient;
 
 import java.util.List;
@@ -21,6 +25,7 @@ import java.util.List;
  */
 @ApplicationScoped
 @RegisterRestClient(configKey = "EnedisClient")
+@RegisterProvider(EnedisJsonResponseFilter.class)
 public interface EnedisClient {
 
     /**
@@ -104,7 +109,9 @@ public interface EnedisClient {
      * Get contract information available for a given usage point. Unfortunately, this endpoint returns
      * application/octet-stream or application/text, irrespectively of asking for JSON, so the user of
      * this client needs to manually parse the response to {@see EnedisContractDTO}.
-     * @deprecated since 2026-01, use {@link #getSituationContractAuto(String, String)} endpoint instead.
+     * @deprecated Use {@link #getSituationContractAuto(String, String)} instead. This endpoint is
+     * currently uncalled and only kept until the Enedis DataConnect cut-over decommissions it;
+     * remove it (and EnedisContractDTO) after the cut-over.
      * @param usagePointId The usage point ID (Enedis PRM).
      * @param bearerToken  The bearer token to authenticate with.
      * @return The contract information.
@@ -112,7 +119,7 @@ public interface EnedisClient {
     @GET
     @Path("customers_upc/v5/usage_points/contracts")
     @Produces(MediaType.APPLICATION_JSON)
-    @Deprecated(since = "2026-01", forRemoval = true)
+    @Deprecated(since = "2026-09", forRemoval = true)
     String getContracts(
             @QueryParam("usage_point_id") String usagePointId,
             @HeaderParam("Authorization") String bearerToken
@@ -184,6 +191,51 @@ public interface EnedisClient {
     @Path("situation_contrat_auto/v1/{usagePointId}")
     @Produces(MediaType.APPLICATION_JSON)
     List<EnedisSituationContractAutoDTO> getSituationContractAuto(
+            @HeaderParam("Authorization") String bearerToken,
+            @PathParam("usagePointId") String usagePointId
+    );
+
+    /**
+     * Get the contractual summary (synthese contractuelle) for a given usage point.
+     *
+     * @param bearerToken  The bearer token to authenticate with.
+     * @param usagePointId The usage point ID (Enedis PRM).
+     * @return The contractual summary.
+     */
+    @GET
+    @Path("synth_contrat_auto/v1/{usagePointId}")
+    @Produces(MediaType.APPLICATION_JSON)
+    EnedisSynthContractAutoDTO getSynthContractAuto(
+            @HeaderParam("Authorization") String bearerToken,
+            @PathParam("usagePointId") String usagePointId
+    );
+
+    /**
+     * Get the general data (installation address) for a given usage point.
+     *
+     * @param bearerToken  The bearer token to authenticate with.
+     * @param usagePointId The usage point ID (Enedis PRM).
+     * @return The general data.
+     */
+    @GET
+    @Path("donnees_generales_auto/v1/{usagePointId}")
+    @Produces(MediaType.APPLICATION_JSON)
+    EnedisDonneesGeneralesAutoDTO getDonneesGeneralesAuto(
+            @HeaderParam("Authorization") String bearerToken,
+            @PathParam("usagePointId") String usagePointId
+    );
+
+    /**
+     * Get the supply situation (situation d'alimentation) for a given usage point.
+     *
+     * @param bearerToken  The bearer token to authenticate with.
+     * @param usagePointId The usage point ID (Enedis PRM).
+     * @return The supply situation.
+     */
+    @GET
+    @Path("alimentation_auto/v1/{usagePointId}")
+    @Produces(MediaType.APPLICATION_JSON)
+    EnedisAlimentationAutoDTO getAlimentationAuto(
             @HeaderParam("Authorization") String bearerToken,
             @PathParam("usagePointId") String usagePointId
     );

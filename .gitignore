@@ -3,3 +3,4 @@
 local-env.sh
 helm/esthesis-edge-helm-*.tgz
 .idea
+http-client.private.env.json

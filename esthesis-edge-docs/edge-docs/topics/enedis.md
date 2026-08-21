@@ -25,6 +25,19 @@ a customised message; it may look similar to this:
 Alternatively, you can set up the Enedis module to redirect the user to a custom URL of your choice, where you can display
 the information and ask for the user's consent. The URL can be set in the Enedis module configuration.
 
+## Device attributes and the DataConnect API migration
+When a device is registered, the module collects contract and installation metadata from the four
+Enedis ITC APIs (`situation_contrat_auto`, `synth_contrat_auto`, `alimentation_auto`,
+`donnees_generales_auto`) and shares it with esthesis CORE as device attributes (segment, contract
+details, subscribed power, `meterType` — the Enedis meter services level, `lastActivationDate`,
+`usagePointStatus` — the connection state, voltage level, serial number, and installation
+address). Only the contractual situation (`situation_contrat_auto`) is required for registration;
+if any of the other ITC APIs fails, the related attributes are skipped with a warning.
+
+Note: the `contractStatus` and `offpeakHours` attributes provided by the decommissioned
+`customers_upc` API have no equivalent in the post-migration Enedis APIs (off-peak hour ranges are
+not exposed by any of the new endpoints) and are no longer available.
+
 ## Initial data fetch
 When a new user is giving its consent to the Enedis module of esthesis EDGE, during the next data fetch cycle, 
 the Enedis module will fetch the data for this user. How far back in time this initial data fetch goes can be configured

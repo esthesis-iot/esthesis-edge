@@ -1,0 +1,115 @@
+{
+  "nbTotalServices": 5,
+  "serviceSouscrit": [
+    {
+      "id": "80000001",
+      "injection": false,
+      "soutirage": true,
+      "serviceCode": "ACCES",
+      "dateDebut": "2025-01-01",
+      "dateFin": "2026-01-01",
+      "etatCode": "ACTIF",
+      "etatLibelle": "Actif",
+      "pointId": "14000000000001",
+      "mesuresTypeCode": "CDC",
+      "mesuresPas": "PT30M",
+      "mesuresCorrigees": false,
+      "espaceDynamique": true,
+      "publicationDonnees": false,
+      "autorisation": {
+        "autorisationId": 11,
+        "autorisationLibelle": "DATACONNECT_C5_ACTIF",
+        "autorisationType": "EXPLICITE",
+        "autorisationStatut": "ACTIVE"
+      }
+    },
+    {
+      "id": "80000002",
+      "injection": false,
+      "soutirage": true,
+      "serviceCode": "ACCES",
+      "dateDebut": "2025-01-01",
+      "dateFin": "2026-01-01",
+      "etatCode": "ACTIF",
+      "etatLibelle": "Actif",
+      "pointId": "14000000000001",
+      "mesuresTypeCode": "PMAX",
+      "mesuresPas": "P1D",
+      "mesuresCorrigees": false,
+      "espaceDynamique": true,
+      "publicationDonnees": false,
+      "autorisation": {
+        "autorisationId": 11,
+        "autorisationLibelle": "DATACONNECT_C5_ACTIF",
+        "autorisationType": "EXPLICITE",
+        "autorisationStatut": "ACTIVE"
+      }
+    },
+    {
+      "id": "80000003",
+      "injection": false,
+      "soutirage": true,
+      "serviceCode": "ACCES",
+      "dateDebut": "2025-01-01",
+      "dateFin": "2026-01-01",
+      "etatCode": "ACTIF",
+      "etatLibelle": "Actif",
+      "pointId": "14000000000001",
+      "mesuresTypeCode": "IDX",
+      "mesuresPas": "P1D",
+      "mesuresCorrigees": false,
+      "espaceDynamique": true,
+      "publicationDonnees": false,
+      "autorisation": {
+        "autorisationId": 11,
+        "autorisationLibelle": "DATACONNECT_C5_ACTIF",
+        "autorisationType": "EXPLICITE",
+        "autorisationStatut": "ACTIVE"
+      }
+    },
+    {
+      "id": "80000004",
+      "injection": false,
+      "soutirage": true,
+      "serviceCode": "ACCES",
+      "dateDebut": "2025-01-01",
+      "dateFin": "2026-01-01",
+      "etatCode": "ACTIF",
+      "etatLibelle": "Actif",
+      "pointId": "14000000000001",
+      "mesuresTypeCode": "ENERGIE",
+      "mesuresPas": "P1D",
+      "mesuresCorrigees": false,
+      "espaceDynamique": true,
+      "publicationDonnees": false,
+      "autorisation": {
+        "autorisationId": 11,
+        "autorisationLibelle": "DATACONNECT_C5_ACTIF",
+        "autorisationType": "EXPLICITE",
+        "autorisationStatut": "ACTIVE"
+      }
+    },
+    {
+      "id": "80000005",
+      "injection": false,
+      "soutirage": true,
+      "serviceCode": "ACCES",
+      "dateDebut": "2025-01-01",
+      "dateFin": "2026-01-01",
+      "etatCode": "ACTIF",
+      "etatLibelle": "Actif",
+      "pointId": "14000000000001",
+      "mesuresTypeCode": "ITC",
+      "mesuresPas": "NA",
+      "mesuresCorrigees": false,
+      "espaceDynamique": true,
+      "publicationDonnees": false,
+      "autorisation": {
+        "autorisationId": 11,
+        "autorisationLibelle": "DATACONNECT_C5_ACTIF",
+        "autorisationType": "EXPLICITE",
+        "autorisationStatut": "ACTIVE"
+      }
+    }
+  ]
+}

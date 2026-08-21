@@ -1,5 +1,6 @@
 package esthesis.edge.modules.enedis.resource;
 
+import esthesis.common.exception.QProcessingException;
 import esthesis.edge.modules.enedis.client.EnedisClient;
 import esthesis.edge.modules.enedis.config.EnedisProperties;
 import esthesis.edge.modules.enedis.dto.datahub.EnedisAuthTokenDTO;
@@ -26,7 +27,9 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -123,6 +126,27 @@ class EnedisPublicResourceTest {
                 .statusCode(200);
 
         verify(enedisService).createDevice("1");
+    }
+
+    @Test
+    void redirectHandlerMissingParams() {
+        given()
+                .when().get("/enedis/public/redirect-handler?State=1&code=1")
+                .then()
+                .statusCode(Status.BAD_REQUEST.getStatusCode())
+                .body(not(is(emptyOrNullString())));
+        verify(enedisService, never()).createDevice(any());
+    }
+
+    @Test
+    void redirectHandlerCreateDeviceFailure() {
+        doThrow(new QProcessingException("Failed to parse Enedis contract data."))
+                .when(enedisService).createDevice(any(String.class));
+        given()
+                .when().get("/enedis/public/redirect-handler?State=1&usage_point_id=1&code=1")
+                .then()
+                .statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode())
+                .body(not(is(emptyOrNullString())));
     }
 
     @Test

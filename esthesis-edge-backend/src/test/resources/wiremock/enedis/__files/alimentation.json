@@ -1,0 +1,8 @@
+{
+  "serial_number": 999999999,
+  "connection_state": "Alimenté",
+  "voltage_level": "HTA",
+  "consumption_connection_power": {"value": 1100.0, "unit": "kW"},
+  "generation_connection_power": {"value": 1000.0, "unit": "kW"},
+  "nominal_service_voltage": {"value": 20000.0, "unit": "V"}
+}

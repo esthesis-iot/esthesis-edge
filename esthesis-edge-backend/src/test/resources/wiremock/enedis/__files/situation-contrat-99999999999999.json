@@ -1,0 +1,35 @@
+[
+  {
+    "usage_point_id": "99999999999999",
+    "contract_start": "2021-01-01T00:00:00+0100",
+    "contract_type": "Contrat X",
+    "contractor": "TEST",
+    "balance_responsible_party": "ACM_X",
+    "pricing_structure": "Nouvelle Offre",
+    "distribution_tariff": "Tarif HTA Longue Utilisation",
+    "distribution_tariff_profile": [
+      {"name": "Pointe", "power": {"value": "850", "unit": "kW"}},
+      {"name": "Heures Pleines Hiver/Saison Haute", "power": {"value": "850", "unit": "kW"}},
+      {"name": "Heures Pleines Eté", "power": {"value": "850", "unit": "kW"}},
+      {"name": "Heures Creuses Eté", "power": {"value": "850", "unit": "kW"}},
+      {"name": "Heures Creuses Hiver/Saison Haute", "power": {"value": "850", "unit": "kW"}}
+    ],
+    "subscribed_power": {"unit": "kW", "value": "850"},
+    "segment": "C1",
+    "customer": {
+      "customer": {
+        "adress": {
+          "line4": "4 RUE HENRI FREVILLE",
+          "line6": "35207 RENNES",
+          "line7": "FR (France)"
+        }
+      }
+    },
+    "organization": {
+      "name": "TEST",
+      "business_code": "0000Z",
+      "siret_number": "00000000000000",
+      "siren_number": "000000000"
+    }
+  }
+]

@@ -1,9 +1,7 @@
 package esthesis.edge.modules.enedis;
 
 import java.time.Instant;
-import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
-import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import org.apache.commons.lang3.time.DateFormatUtils;
@@ -37,28 +35,27 @@ public class EnedisUtil {
   }
 
   /**
-   * Converts a YYYY-MM-DD HH:mm:ss string to an Instant.
-   *
-   * @param date The date to convert.
-   * @return The given date as an Instant.
-   */
-  @SuppressWarnings("java:S100")
-  public static Instant yyyyMMdd_HHmmssToInstant(String date) {
-    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-    LocalDateTime localDateTime = LocalDateTime.parse(date, formatter);
-
-    return localDateTime.toInstant(ZoneOffset.UTC);
-  }
-
-  /**
    * Converts a date string in ISO-8601 format with milliseconds (e.g. "2019-05-06T00:00:00.000Z") to an Instant.
    *
    * @param date The date string to convert.
    * @return The given date as an Instant.
    */
-  public static Instant yyyyMMddTHHmmssSSSZToInstantToInstant(String date) {
-      DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSX");
-      OffsetDateTime odt = OffsetDateTime.parse(date, formatter);
-      return odt.toInstant();
+  public static Instant isoInstantToInstant(String date) {
+    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSX");
+    OffsetDateTime odt = OffsetDateTime.parse(date, formatter);
+    return odt.toInstant();
+  }
+
+  /**
+   * Converts a date string as returned by the Enedis ITC APIs to an Instant. ITC dates carry an
+   * offset without a colon and may omit milliseconds (e.g. "2022-01-02T00:00:00+0100" or
+   * "2019-05-06T00:00:00.000Z").
+   *
+   * @param date The date string to convert.
+   * @return The given date as an Instant.
+   */
+  public static Instant itcDateToInstant(String date) {
+    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss[.SSS]X");
+    return OffsetDateTime.parse(date, formatter).toInstant();
   }
 }

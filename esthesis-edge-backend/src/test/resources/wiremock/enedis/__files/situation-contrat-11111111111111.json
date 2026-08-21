@@ -1,0 +1,30 @@
+[
+  {
+    "usage_point_id": "11111111111111",
+    "contract_start": "2020-06-01T00:00:00+0200",
+    "contract_type": "Contrat X",
+    "distribution_tariff": "Tarif HTA Courte Utilisation",
+    "distribution_tariff_profile": [
+      {"name": "Pointe", "power": {"value": "47", "unit": "kW"}},
+      {"name": "Heures Pleines Hiver/Saison Haute", "power": {"value": "47", "unit": "kW"}},
+      {"name": "Heures Pleines Eté", "power": {"value": "47", "unit": "kW"}},
+      {"name": "Heures Creuses Eté", "power": {"value": "47", "unit": "kW"}},
+      {"name": "Heures Creuses Hiver/Saison Haute", "power": {"value": "47", "unit": "kW"}}
+    ],
+    "segment": "C2"
+  },
+  {
+    "usage_point_id": "4444444444",
+    "contract_start": "2019-03-15T00:00:00+0100",
+    "segment": "P1",
+    "customer": {
+      "customer": {
+        "adress": {
+          "line4": "4 RUE HENRI FREVILLE",
+          "line6": "35207 RENNES",
+          "line7": "FR (France)"
+        }
+      }
+    }
+  }
+]

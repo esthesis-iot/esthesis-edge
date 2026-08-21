@@ -1,0 +1,21 @@
+### New-flow registration against a LOCAL esthesis EDGE pointed at the Enedis sandbox:
+### autorisation_id=11 resolves to PRM 14000000000001 via subscribed_services. Expect the
+### registration-successful page IF the ITC mocks accept that PRM (see RUNBOOK.md — the sandbox
+### ITC mocks only answer for 11111111111111/99999999999999, so this may fail at
+### situation_contrat_auto with a 500 + error page; that failure still validates the exchange).
+GET localhost:{{API_PORT}}/enedis/public/redirect-handler?code=123&State=1&autorisation_id=11
+
+### autorisation_id=10 — no subscribed services. Expect 400 "Invalid autorisation_id.".
+GET localhost:{{API_PORT}}/enedis/public/redirect-handler?code=123&State=1&autorisation_id=10
+
+### autorisation_id=13 — services all TERMINE; our ACTIF filter finds none. Expect 400.
+GET localhost:{{API_PORT}}/enedis/public/redirect-handler?code=123&State=1&autorisation_id=13
+
+### Non-numeric autorisation_id. Expect 400.
+GET localhost:{{API_PORT}}/enedis/public/redirect-handler?code=123&State=1&autorisation_id=abc
+
+### Neither usage_point_id nor autorisation_id. Expect 400 "Missing usage_point_id or autorisation_id.".
+GET localhost:{{API_PORT}}/enedis/public/redirect-handler?code=123&State=1
+
+### Legacy flow with a mock PRM the ITC mocks accept — full happy path against the sandbox.
+GET localhost:{{API_PORT}}/enedis/public/redirect-handler?code=123&State=1&usage_point_id=99999999999999

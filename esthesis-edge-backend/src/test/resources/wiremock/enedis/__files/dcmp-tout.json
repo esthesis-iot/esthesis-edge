@@ -1,0 +1,26 @@
+{
+  "meter_reading": {
+    "usage_point_id": "11111111111111",
+    "start": "2025-05-01T00:00:00.000Z",
+    "end": "2025-07-14T00:00:00.000Z",
+    "quality": "BRUT",
+    "reading_type": {
+      "flow_direction": ["forward", "forward", "forward", "forward"],
+      "measurement_kind": "power",
+      "measuring_period": "P1D",
+      "unit": ["VA", "VA", "VA", "VA"],
+      "aggregate": "maximum"
+    },
+    "interval_reading": [
+      {
+        "value": ["9656", "9724", "9298", "9904"],
+        "date": [
+          "2025-05-01T04:12:00.000Z",
+          "2025-05-01T04:12:00.000Z",
+          "2025-05-01T04:12:00.000Z",
+          "2025-05-01T04:12:00.000Z"
+        ]
+      }
+    ]
+  }
+}

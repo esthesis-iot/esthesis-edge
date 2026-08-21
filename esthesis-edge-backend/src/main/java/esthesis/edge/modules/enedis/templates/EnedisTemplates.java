@@ -232,7 +232,7 @@ public class EnedisTemplates {
       
           <script>
             function redirect() {
-              window.location.href = "{redirectUrl}?client_id={clientId}&duration={duration}&response_type=code&state={state}";
+              window.location.href = "{authorizationUrl}?client_id={clientId}&duration={duration}&response_type=code&state={state}";
             }
           </script>
       </head>

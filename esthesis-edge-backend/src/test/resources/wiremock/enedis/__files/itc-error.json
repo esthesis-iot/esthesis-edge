@@ -1,0 +1,4 @@
+{
+  "error": "Bad request",
+  "error_description": "Pas de services souscrits, le flux est stoppé."
+}

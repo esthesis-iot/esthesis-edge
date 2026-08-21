@@ -132,6 +132,10 @@ esthesis:
             measurement: "dcmp"
             # -- The number of errors after which the fetching of Data Consumption Max Power data is stopped.
             errorsThreshold: 10
+            # -- The measuring period requested from Enedis for Data Consumption Max Power (P1D or P1M).
+            measuringPeriod: "P1D"
+            # -- The physical quantity requested from Enedis for Data Consumption Max Power (PMA, or TOUT for per-phase details on three-phase meters).
+            physicalQuantity: "PMA"
           dp:
             # -- Whether Data Production data is fetched from Enedis.
             enabled: true
@@ -167,7 +171,7 @@ esthesis:
           # -- The URL of the self-registration welcome page. If left empty, a default page is provided by the Enedis module.
           welcomeUrl:
           # -- The URL to redirect the user to Enedis for authorisation and consent.
-          redirectUrl: "https://mon-compte-particulier.enedis.fr/dataconnect/v1/oauth2/authorize"
+          authorizationUrl: "https://mon-compte-particulier.enedis.fr/dataconnect/v1/oauth2/authorize"
           # -- The duration for which the Enedis data access token is requested for (see Enedis API for details).
           duration: P1Y
           page:

@@ -11,6 +11,7 @@ import esthesis.edge.modules.enedis.dto.datahub.EnedisProductionLoadCurveDTO;
 import jakarta.enterprise.context.ApplicationScoped;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import lombok.RequiredArgsConstructor;
 
 /**
@@ -32,7 +33,7 @@ public class EnedisELPMapperService {
     return dto.getMeterReading().getIntervalReading().stream()
         .map(interval -> ELPEntry.builder()
             .category(enedisProperties.fetchTypes().dc().category())
-            .date(EnedisUtil.yyyyMMddTHHmmssSSSZToInstantToInstant(interval.getDate()))
+            .date(EnedisUtil.isoInstantToInstant(interval.getDate()))
             .measurement(enedisProperties.fetchTypes().dc().measurement(),
                 interval.getValue() + "i")
             .build().toString())
@@ -49,7 +50,7 @@ public class EnedisELPMapperService {
     return dto.getMeterReading().getIntervalReading().stream()
         .map(interval -> ELPEntry.builder()
             .category(enedisProperties.fetchTypes().dp().category())
-            .date(EnedisUtil.yyyyMMddTHHmmssSSSZToInstantToInstant(interval.getDate()))
+            .date(EnedisUtil.isoInstantToInstant(interval.getDate()))
             .measurement(enedisProperties.fetchTypes().dp().measurement(),
                 interval.getValue() + "i")
             .build().toString())
@@ -58,8 +59,10 @@ public class EnedisELPMapperService {
 
   /**
    * Map EnedisDailyConsumptionMaxPowerDTO to ELP format.
-   * Note: The API returns arrays of values and dates within each interval_reading.
-   * Each value[i] corresponds to date[i].
+   * Note: With grandeurPhysique=TOUT the API returns arrays of values and dates within each
+   * interval_reading (one entry per phase), where each value[i] corresponds to date[i]. With
+   * PMA the same fields arrive as single-element lists. Entries with a missing or literal
+   * "null" value/date are skipped (the Enedis sandbox returns such entries).
    *
    * @param dto The DTO to map.
    * @return The ELP formatted string.
@@ -69,16 +72,21 @@ public class EnedisELPMapperService {
         .flatMap(interval -> {
           List<String> values = interval.getValue();
           List<String> dates = interval.getDate();
-          // Pair each value with its corresponding date
-          return java.util.stream.IntStream.range(0, Math.min(values.size(), dates.size()))
+          // Pair each value with its corresponding date.
+          return IntStream.range(0, Math.min(values.size(), dates.size()))
+              .filter(i -> isUsable(values.get(i)) && isUsable(dates.get(i)))
               .mapToObj(i -> ELPEntry.builder()
                   .category(enedisProperties.fetchTypes().dcmp().category())
-                  .date(EnedisUtil.ymdToInstant(dates.get(i)))
+                  .date(EnedisUtil.isoInstantToInstant(dates.get(i)))
                   .measurement(enedisProperties.fetchTypes().dcmp().measurement(),
                       values.get(i) + "i")
                   .build().toString());
         })
         .collect(Collectors.joining("\n"));
+  }
+
+  private static boolean isUsable(String value) {
+    return value != null && !value.isBlank() && !"null".equals(value);
   }
 
   /**
@@ -91,7 +99,7 @@ public class EnedisELPMapperService {
     return dto.getMeterReading().getIntervalReading().stream()
             .map(interval -> ELPEntry.builder()
                     .category(enedisProperties.fetchTypes().clc().category())
-                    .date(EnedisUtil.yyyyMMddTHHmmssSSSZToInstantToInstant(interval.getDate()))
+                    .date(EnedisUtil.isoInstantToInstant(interval.getDate()))
                     .measurement(enedisProperties.fetchTypes().clc().measurement(),
                             interval.getValue() + "i")
                     .build().toString())
@@ -108,7 +116,7 @@ public class EnedisELPMapperService {
     return dto.getMeterReading().getIntervalReading().stream()
             .map(interval -> ELPEntry.builder()
                     .category(enedisProperties.fetchTypes().plc().category())
-                    .date(EnedisUtil.yyyyMMddTHHmmssSSSZToInstantToInstant(interval.getDate()))
+                    .date(EnedisUtil.isoInstantToInstant(interval.getDate()))
                     .measurement(enedisProperties.fetchTypes().plc().measurement(),
                             interval.getValue() + "i")
                     .build().toString())

@@ -1,0 +1,17 @@
+### Get an Enedis sandbox access token — variant A: credentials as form params.
+# This is what EnedisClient.getAuthToken currently does.
+// @no-log
+POST {{ENEDIS_API}}/oauth2/v3/token
+Content-Type: application/x-www-form-urlencoded
+
+grant_type=client_credentials&client_id={{ENEDIS_CLIENT_ID}}&client_secret={{ENEDIS_CLIENT_SECRET}}
+
+### Get an Enedis sandbox access token — variant B: HTTP Basic (consumer key/secret).
+# This is what the Enedis "Guide d'utilisation des mocks" describes. If only this variant works,
+# EnedisClient.getAuthToken must be changed to send Basic credentials.
+// @no-log
+POST {{ENEDIS_API}}/oauth2/v3/token
+Content-Type: application/x-www-form-urlencoded
+Authorization: Basic {{ENEDIS_BASIC_AUTH}}
+
+grant_type=client_credentials

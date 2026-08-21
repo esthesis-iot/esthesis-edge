@@ -76,25 +76,26 @@ class EnedisFetchServiceTest {
         String hardwareId = "test2";
         testUtils.createDevice(hardwareId);
 
-        // The new Enedis API returns arrays for value and date fields
+        // With grandeurPhysique=PMA the API returns scalar value/date fields, which must
+        // deserialize into single-element lists (ACCEPT_SINGLE_VALUE_AS_ARRAY).
         EnedisDailyConsumptionMaxPowerDTO dto = objectMapper.readValue("""
                 {
                   "meter_reading": {
                     "usage_point_id": "14901220101758",
-                    "start": "2019-05-06",
-                    "end": "2019-05-12",
+                    "start": "2019-05-06T00:00:00.000Z",
+                    "end": "2019-05-12T00:00:00.000Z",
                     "quality": "BRUT",
                     "reading_type": {
-                      "flow_direction": ["forward"],
+                      "flow_direction": "forward",
                       "measurement_kind": "power",
                       "measuring_period": "P1D",
-                      "unit": ["VA"],
+                      "unit": "VA",
                       "aggregate": "maximum"
                     },
                     "interval_reading": [
                       {
-                        "value": ["540"],
-                        "date": ["2019-05-06"]
+                        "value": "540",
+                        "date": "2019-05-06T04:12:00.000Z"
                       }
                     ]
                   }
