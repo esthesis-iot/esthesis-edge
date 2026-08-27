@@ -87,9 +87,16 @@ public class EnedisPublicResource {
    * Handles the redirection from the Enedis self-registration page. This endpoint will create the
    * device in the database and present the user with a success page.
    *
-   * @param state        The state received from Enedis.
-   * @param usagePointId The usage point ID received from Enedis.
-   * @param code         The code received from Enedis (not used by Enedis, nor EDGE).
+   * <p>Until the Enedis DataConnect cut-over, both redirect flows are supported: the legacy flow
+   * passing usage_point_id directly (preferred when present), and the new flow passing
+   * autorisation_id, which is exchanged for the usage point ID via the Enedis subscribed services
+   * API. The legacy flow can be removed once Enedis decommissions it.
+   *
+   * @param state          The state received from Enedis.
+   * @param usagePointId   The usage point ID received from Enedis (legacy flow).
+   * @param autorisationId The authorization ID received from Enedis (new flow; wire name is the
+   *                       French "autorisation_id").
+   * @param code           The code received from Enedis (not used by Enedis, nor EDGE).
    * @return a response containing the success page.
    */
   @GET
@@ -100,9 +107,13 @@ public class EnedisPublicResource {
       summary = "Handles the redirection from Enedis.",
       description = "This endpoint will create the device in the database and present the user "
           + "with a success page, after the user has provided consent in the Enedis DataHub "
-          + "application.")
+          + "application. The device is identified either by the usage_point_id parameter "
+          + "(legacy flow) or by the autorisation_id parameter (new flow), which is exchanged "
+          + "for the usage point ID via the Enedis subscribed services API.")
   public Response redirectHandler(@QueryParam("State") String state,
-      @QueryParam("usage_point_id") String usagePointId, @QueryParam("code") String code) {
+      @QueryParam("usage_point_id") String usagePointId,
+      @QueryParam("autorisation_id") String autorisationId,
+      @QueryParam("code") String code) {
     // Check the state received is one we have previously created, if not return an error.
     if (cfg.selfRegistration().stateChecking() && (StringUtils.isEmpty(state) || !isKnownState(
         state))) {
@@ -116,13 +127,31 @@ public class EnedisPublicResource {
           .entity("No more Enedis devices allowed.").build();
     }
 
+    // At least one of usage_point_id (legacy flow) and autorisation_id (new flow) is required.
+    if (StringUtils.isEmpty(usagePointId) && StringUtils.isEmpty(autorisationId)) {
+      log.error("Redirect received without a usage_point_id nor an autorisation_id.");
+      return Response.status(Response.Status.BAD_REQUEST)
+          .entity("Missing usage_point_id or autorisation_id.").build();
+    }
+
+    // Determine usagePointId from either parameter or by fetching it using the autorisationId.
+    String resolvedUsagePointId = usagePointId;
+    if (StringUtils.isEmpty(resolvedUsagePointId)) {
+      try {
+        resolvedUsagePointId = enedisService.fetchUsagePointId(Long.parseLong(autorisationId));
+      } catch (Exception ex) {
+        log.error("Error fetching usagePointId for autorisation_id '{}'.", autorisationId, ex);
+        return Response.status(Response.Status.BAD_REQUEST).entity("Invalid autorisation_id.").build();
+      }
+    }
+
     // Create the device.
     try {
-      enedisService.createDevice(usagePointId);
+      enedisService.createDevice(resolvedUsagePointId);
       return Response.ok(enedisService.getRegistrationSuccessfulPage()).build();
     } catch (Exception ex) {
       log.error("Error while creating device(s).", ex);
-      return Response.ok(enedisService.getRegistrationSuccessfulPage()).build();
+      return Response.serverError().entity(enedisService.getErrorPage()).build();
     }
   }
 }

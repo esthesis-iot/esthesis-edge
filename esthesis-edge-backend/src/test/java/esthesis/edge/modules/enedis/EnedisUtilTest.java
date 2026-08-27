@@ -23,10 +23,31 @@ class EnedisUtilTest {
     }
 
     @Test
-    void testYyyyMMdd_HHmmssToInstant() {
-        String date = "2023-10-05 12:34:56";
-        Instant result = EnedisUtil.yyyyMMdd_HHmmssToInstant(date);
+    void testIsoInstantToInstant() {
+        String date = "2023-10-05T12:34:56.789Z";
+        Instant result = EnedisUtil.isoInstantToInstant(date);
+        assertEquals(Instant.parse("2023-10-05T12:34:56.789Z"), result);
+    }
+
+    @Test
+    void testItcDateToInstantPlusHHMM() {
+        String date = "2022-01-02T00:00:00+0100";
+        Instant result = EnedisUtil.itcDateToInstant(date);
+        assertEquals(Instant.parse("2022-01-01T23:00:00Z"), result);
+    }
+
+    @Test
+    void testItcDateToInstantZulu() {
+        String date = "2023-10-05T12:34:56Z";
+        Instant result = EnedisUtil.itcDateToInstant(date);
         assertEquals(Instant.parse("2023-10-05T12:34:56Z"), result);
+    }
+
+    @Test
+    void testItcDateToInstantWithMillis() {
+        String date = "2019-05-06T00:00:00.000Z";
+        Instant result = EnedisUtil.itcDateToInstant(date);
+        assertEquals(Instant.parse("2019-05-06T00:00:00Z"), result);
     }
 
 }

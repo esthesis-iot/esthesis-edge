@@ -27,7 +27,7 @@ class EnedisELPMapperServiceTest {
     dto.setMeterReading(new EnedisDailyConsumptionDTO.MeterReading());
     dto.getMeterReading()
         .setIntervalReading(List.of(new EnedisDailyConsumptionDTO.IntervalReading()));
-    dto.getMeterReading().getIntervalReading().get(0).setDate("2021-01-01");
+    dto.getMeterReading().getIntervalReading().get(0).setDate("2021-01-01T23:59:59.000Z");
     dto.getMeterReading().getIntervalReading().get(0).setValue("1");
 
     String elp = enedisELPMapperService.toELP(dto);
@@ -43,7 +43,7 @@ class EnedisELPMapperServiceTest {
     dto.setMeterReading(new EnedisDailyProductionDTO.MeterReading());
     dto.getMeterReading()
         .setIntervalReading(List.of(new EnedisDailyProductionDTO.IntervalReading()));
-    dto.getMeterReading().getIntervalReading().get(0).setDate("2021-01-01");
+    dto.getMeterReading().getIntervalReading().get(0).setDate("2021-01-01T23:59:59.000Z");
     dto.getMeterReading().getIntervalReading().get(0).setValue("1");
 
     String elp = enedisELPMapperService.toELP(dto);
@@ -57,18 +57,39 @@ class EnedisELPMapperServiceTest {
   void toELPDCMP() {
     EnedisDailyConsumptionMaxPowerDTO dto = new EnedisDailyConsumptionMaxPowerDTO();
     dto.setMeterReading(new EnedisDailyConsumptionMaxPowerDTO.MeterReading());
-    dto.getMeterReading()
-        .setIntervalReading(List.of(new EnedisDailyConsumptionMaxPowerDTO.IntervalReading()));
-    // Note, ENEDIS official API docs show this date as being in the format
-    // of "2019-05-06T03:00:00+02:00", however the actual API response uses
-    // "2019-05-06 03:00:00", which is the format used here.
-    dto.getMeterReading().getIntervalReading().get(0).setDate("2019-05-06 23:59:59");
-    dto.getMeterReading().getIntervalReading().get(0).setValue("1");
+    EnedisDailyConsumptionMaxPowerDTO.IntervalReading intervalReading =
+        new EnedisDailyConsumptionMaxPowerDTO.IntervalReading();
+    // With grandeurPhysique=TOUT the API returns arrays of values and dates.
+    intervalReading.setValue(List.of("1", "2"));
+    intervalReading.setDate(List.of("2019-05-06T04:12:00.000Z", "2019-05-07T11:38:00.000Z"));
+    dto.getMeterReading().setIntervalReading(List.of(intervalReading));
 
     String elp = enedisELPMapperService.toELP(dto);
     assertNotNull(elp);
-    assertEquals(enedisProperties.fetchTypes().dcmp().category() + " "
+    // Should produce two ELP entries, one for each value/date pair, keeping the real timestamps.
+    String expectedLine1 = enedisProperties.fetchTypes().dcmp().category() + " "
         + enedisProperties.fetchTypes().dcmp().measurement() + "=1i "
-        + "2019-05-06T23:59:59Z", elp);
+        + "2019-05-06T04:12:00Z";
+    String expectedLine2 = enedisProperties.fetchTypes().dcmp().category() + " "
+        + enedisProperties.fetchTypes().dcmp().measurement() + "=2i "
+        + "2019-05-07T11:38:00Z";
+    assertEquals(expectedLine1 + "\n" + expectedLine2, elp);
+  }
+
+  @Test
+  void toELPDCMPSkipsNullLiterals() {
+    EnedisDailyConsumptionMaxPowerDTO dto = new EnedisDailyConsumptionMaxPowerDTO();
+    dto.setMeterReading(new EnedisDailyConsumptionMaxPowerDTO.MeterReading());
+    EnedisDailyConsumptionMaxPowerDTO.IntervalReading intervalReading =
+        new EnedisDailyConsumptionMaxPowerDTO.IntervalReading();
+    // The Enedis sandbox returns the literal string "null" for some values.
+    intervalReading.setValue(List.of("null", "2"));
+    intervalReading.setDate(List.of("2019-05-06T04:12:00.000Z", "2019-05-07T11:38:00.000Z"));
+    dto.getMeterReading().setIntervalReading(List.of(intervalReading));
+
+    String elp = enedisELPMapperService.toELP(dto);
+    assertEquals(enedisProperties.fetchTypes().dcmp().category() + " "
+        + enedisProperties.fetchTypes().dcmp().measurement() + "=2i "
+        + "2019-05-07T11:38:00Z", elp);
   }
 }

@@ -134,7 +134,7 @@ pipeline {
                 container (name: 'esthesis-edge-builder') {
                     sh '''
                         DT_BRANCH=$(echo "${BRANCH_NAME:-unknown}" | tr "/ " "__")
-                
+
                         curl -sS -X POST "${DEPENDENCY_TRACK_URL}" \
                           -H "X-Api-Key: ${DEPENDENCY_TRACK_API_KEY}" \
                           -F "autoCreate=true" \

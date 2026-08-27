@@ -1,0 +1,48 @@
+### Sandbox mock: autorisationId=10 — no subscribed services. Expect {"nbTotalServices": 0}.
+POST {{ENEDIS_API}}/subscribed_services/v1
+Content-Type: application/json
+Authorization: Bearer {{ENEDIS_TOKEN}}
+
+{
+  "comptage": false,
+  "autorisationId": 10,
+  "etatCode": ["ACTIF"],
+  "serviceType": "ACCES"
+}
+
+### Sandbox mock: autorisationId=11 — 5 active services on C5 PRM 14000000000001.
+POST {{ENEDIS_API}}/subscribed_services/v1
+Content-Type: application/json
+Authorization: Bearer {{ENEDIS_TOKEN}}
+
+{
+  "comptage": false,
+  "autorisationId": 11,
+  "etatCode": ["ACTIF"],
+  "serviceType": "ACCES"
+}
+
+### Sandbox mock: autorisationId=12 — 15 active services on C5/P4 PRMs.
+POST {{ENEDIS_API}}/subscribed_services/v1
+Content-Type: application/json
+Authorization: Bearer {{ENEDIS_TOKEN}}
+
+{
+  "comptage": false,
+  "autorisationId": 12,
+  "etatCode": ["ACTIF"],
+  "serviceType": "ACCES"
+}
+
+### Sandbox mock: autorisationId=13 — terminated services (etatCode TERMINE). With our
+### etatCode=["ACTIF"] filter this should behave like the no-services case.
+POST {{ENEDIS_API}}/subscribed_services/v1
+Content-Type: application/json
+Authorization: Bearer {{ENEDIS_TOKEN}}
+
+{
+  "comptage": false,
+  "autorisationId": 13,
+  "etatCode": ["ACTIF"],
+  "serviceType": "ACCES"
+}

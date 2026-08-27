@@ -1,0 +1,9 @@
+{
+  "segments": [
+    {"segment": "C2"},
+    {"segment": "P1"}
+  ],
+  "generation_last_activation_date": "2020-06-01T00:00:00+0200",
+  "consumption_last_activation_date": "2021-03-01T00:00:00+0100",
+  "last_subscribed_power_change_date": "2022-01-02T00:00:00+0100"
+}

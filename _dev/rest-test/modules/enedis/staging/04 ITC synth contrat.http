@@ -1,0 +1,11 @@
+### Synthese contractuelle — same payload returned for both mock PRMs.
+GET {{ENEDIS_API}}/synth_contrat_auto/v1/99999999999999
+Authorization: Bearer {{ENEDIS_TOKEN}}
+
+### Synthese contractuelle — three-phase mock PRM.
+GET {{ENEDIS_API}}/synth_contrat_auto/v1/11111111111111
+Authorization: Bearer {{ENEDIS_TOKEN}}
+
+### Synthese contractuelle — unknown PRM. Expect the ITC error payload.
+GET {{ENEDIS_API}}/synth_contrat_auto/v1/12345678901234
+Authorization: Bearer {{ENEDIS_TOKEN}}

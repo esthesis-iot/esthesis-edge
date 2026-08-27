@@ -2,3 +2,5 @@
 /esthesis-edge-backend/esthesis-edge-backend-impl/edgedb.mv.db
 local-env.sh
 helm/esthesis-edge-helm-*.tgz
+.idea
+http-client.private.env.json

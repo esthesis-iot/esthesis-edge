@@ -1,9 +1,8 @@
 package esthesis.edge.modules.enedis.dto.datahub;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import esthesis.edge.modules.enedis.EnedisUtil;
 import io.quarkus.runtime.annotations.RegisterForReflection;
-import java.time.Instant;
 import java.util.List;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -12,6 +11,11 @@ import lombok.experimental.Accessors;
 
 /**
  * A DTO representing the daily consumption data maximum power received from Enedis.
+ *
+ * <p>The response shape depends on the grandeurPhysique request parameter: with PMA the
+ * flow_direction/unit/value/date fields are scalars, with TOUT (three-phase meters) they are
+ * arrays holding PMA, PMA1, PMA2 and PMA3. ACCEPT_SINGLE_VALUE_AS_ARRAY lets both shapes
+ * deserialize into lists.
  */
 @Data
 @ToString
@@ -49,18 +53,22 @@ public class EnedisDailyConsumptionMaxPowerDTO {
     @JsonProperty("measuring_period")
     private String measuringPeriod;
 
-    private String unit;
+    @JsonProperty("flow_direction")
+    @JsonFormat(with = JsonFormat.Feature.ACCEPT_SINGLE_VALUE_AS_ARRAY)
+    private List<String> flowDirection;
+
+    @JsonFormat(with = JsonFormat.Feature.ACCEPT_SINGLE_VALUE_AS_ARRAY)
+    private List<String> unit;
     private String aggregate;
   }
 
   @Data
   public static class IntervalReading {
 
-    private String value;
-    private Instant date;
+    @JsonFormat(with = JsonFormat.Feature.ACCEPT_SINGLE_VALUE_AS_ARRAY)
+    private List<String> value;
 
-    public void setDate(String date) {
-      this.date = EnedisUtil.yyyyMMdd_HHmmssToInstant(date);
-    }
+    @JsonFormat(with = JsonFormat.Feature.ACCEPT_SINGLE_VALUE_AS_ARRAY)
+    private List<String> date;
   }
 }

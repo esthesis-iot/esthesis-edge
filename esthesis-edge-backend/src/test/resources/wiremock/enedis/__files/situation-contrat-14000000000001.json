@@ -1,0 +1,11 @@
+[
+  {
+    "usage_point_id": "14000000000001",
+    "contract_start": "2023-09-01T00:00:00+0200",
+    "contract_type": "Contrat unique",
+    "pricing_structure": "Nouvelle Offre",
+    "distribution_tariff": "Tarif Bleu",
+    "subscribed_power": {"unit": "kVA", "value": "9"},
+    "segment": "C5"
+  }
+]

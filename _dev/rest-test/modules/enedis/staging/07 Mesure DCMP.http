@@ -1,0 +1,19 @@
+### Daily consumption max power — PMA on the single-phase mock PRM. Expect SCALAR
+### flow_direction/unit/value/date fields.
+GET {{ENEDIS_API}}/mesure_synchrone_auto/v1/metering_data/daily_consumption_max_power
+    ?usage_point_id=99999999999999&start=2025-05-01&end=2025-07-14
+    &measuring_period=P1D&grandeurPhysique=PMA
+Authorization: Bearer {{ENEDIS_TOKEN}}
+
+### Daily consumption max power — TOUT on the three-phase mock PRM. Expect 4-element ARRAYS
+### (PMA, PMA1, PMA2, PMA3) for flow_direction/unit/value/date.
+GET {{ENEDIS_API}}/mesure_synchrone_auto/v1/metering_data/daily_consumption_max_power
+    ?usage_point_id=11111111111111&start=2025-05-01&end=2025-07-14
+    &measuring_period=P1D&grandeurPhysique=TOUT
+Authorization: Bearer {{ENEDIS_TOKEN}}
+
+### Daily consumption max power — unknown PRM. Expect {"code": "403", "message": ...}.
+GET {{ENEDIS_API}}/mesure_synchrone_auto/v1/metering_data/daily_consumption_max_power
+    ?usage_point_id=12345678901234&start=2025-05-01&end=2025-07-14
+    &measuring_period=P1D&grandeurPhysique=PMA
+Authorization: Bearer {{ENEDIS_TOKEN}}
