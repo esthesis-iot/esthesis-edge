@@ -3,6 +3,7 @@ package esthesis.edge.modules.enedis;
 import org.junit.jupiter.api.Test;
 
 import java.time.Instant;
+import java.time.format.DateTimeParseException;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -23,31 +24,18 @@ class EnedisUtilTest {
     }
 
     @Test
-    void testIsoInstantToInstant() {
-        String date = "2023-10-05T12:34:56.789Z";
-        Instant result = EnedisUtil.isoInstantToInstant(date);
-        assertEquals(Instant.parse("2023-10-05T12:34:56.789Z"), result);
+    void mesureDateDateOnlyIsEndOfDayUtc() {
+        assertEquals(Instant.parse("2026-09-25T23:59:59Z"), EnedisUtil.mesureDateToInstant("2026-09-25"));
     }
 
     @Test
-    void testItcDateToInstantPlusHHMM() {
-        String date = "2022-01-02T00:00:00+0100";
-        Instant result = EnedisUtil.itcDateToInstant(date);
-        assertEquals(Instant.parse("2022-01-01T23:00:00Z"), result);
+    void mesureDateDateTimeIsUtc() {
+        assertEquals(Instant.parse("2026-09-25T08:44:22Z"), EnedisUtil.mesureDateToInstant("2026-09-25 08:44:22"));
     }
 
     @Test
-    void testItcDateToInstantZulu() {
-        String date = "2023-10-05T12:34:56Z";
-        Instant result = EnedisUtil.itcDateToInstant(date);
-        assertEquals(Instant.parse("2023-10-05T12:34:56Z"), result);
-    }
-
-    @Test
-    void testItcDateToInstantWithMillis() {
-        String date = "2019-05-06T00:00:00.000Z";
-        Instant result = EnedisUtil.itcDateToInstant(date);
-        assertEquals(Instant.parse("2019-05-06T00:00:00Z"), result);
+    void mesureDateRejectsPlaceholder() {
+        assertThrows(DateTimeParseException.class, () -> EnedisUtil.mesureDateToInstant("20XX-XX-XX"));
     }
 
 }

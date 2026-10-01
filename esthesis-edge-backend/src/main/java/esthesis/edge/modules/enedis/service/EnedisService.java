@@ -33,8 +33,11 @@ import java.time.Instant;
 import java.time.Period;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -60,19 +63,84 @@ public class EnedisService {
     private final EnedisProperties enedisProperties;
     private final EnedisFetchService enedisFetchService;
 
+    private static final String RATE_LIMIT_REACHED = "Enedis rate limit reached, stopping this "
+            + "fetch run at device '{}'; the remaining data is fetched on the next run.";
+
     // A local reference of the access token, to not keep refreshing when not needed.
     private EnedisAuthTokenDTO enedisAuthTokenDTO;
     // Rate limiters for Enedis API.
-    private final RateLimiter perSecondLimiter = RateLimiter.of("perSecondLimiter",
-            RateLimiterConfig.custom()
-                    .limitForPeriod(EnedisConstants.REQUESTS_PER_SECOND)
-                    .limitRefreshPeriod(Duration.ofSeconds(1))
-                    .build());
-    private final RateLimiter perHourLimiter = RateLimiter.of("perHourLimiter",
-            RateLimiterConfig.custom()
-                    .limitForPeriod(EnedisConstants.REQUESTS_PER_HOUR)
-                    .limitRefreshPeriod(Duration.ofHours(1))
-                    .build());
+    private RateLimiter perSecondLimiter = createPerSecondLimiter();
+    private RateLimiter perHourLimiter = createPerHourLimiter();
+
+    /**
+     * Create the per-second Enedis rate limiter. A caller waits at most 2 seconds for a permit.
+     *
+     * @return The rate limiter.
+     */
+    static RateLimiter createPerSecondLimiter() {
+        return RateLimiter.of("perSecondLimiter",
+                RateLimiterConfig.custom()
+                        .limitForPeriod(EnedisConstants.REQUESTS_PER_SECOND)
+                        .limitRefreshPeriod(Duration.ofSeconds(1))
+                        .timeoutDuration(Duration.ofSeconds(2))
+                        .build());
+    }
+
+    /**
+     * Create the per-hour Enedis rate limiter. A caller waits up to the next refresh (1 hour) for
+     * a permit once the hourly quota is used up.
+     *
+     * @return The rate limiter.
+     */
+    static RateLimiter createPerHourLimiter() {
+        return RateLimiter.of("perHourLimiter",
+                RateLimiterConfig.custom()
+                        .limitForPeriod(EnedisConstants.REQUESTS_PER_HOUR)
+                        .limitRefreshPeriod(Duration.ofHours(1))
+                        .timeoutDuration(Duration.ofHours(1))
+                        .build());
+    }
+
+    /**
+     * Replace the rate limiters. Only meant for tests.
+     *
+     * @param perSecondLimiter The per-second rate limiter.
+     * @param perHourLimiter   The per-hour rate limiter.
+     */
+    void setRateLimiters(RateLimiter perSecondLimiter, RateLimiter perHourLimiter) {
+        this.perSecondLimiter = perSecondLimiter;
+        this.perHourLimiter = perHourLimiter;
+    }
+
+    /**
+     * Acquire a permit for one Enedis API call from both the per-hour and the per-second rate
+     * limiters. The per-hour permit is requested first (it may involve a long wait), so that the
+     * per-second limit is enforced at call time, even after waiting for the hourly refresh. The
+     * per-second permit is only requested once the per-hour one is granted, so a per-second
+     * denial after the hourly acquire costs one hourly permit.
+     *
+     * @return True if both permits were granted, false if either was denied.
+     */
+    private boolean acquireEnedisPermit() {
+        return perHourLimiter.acquirePermission() && perSecondLimiter.acquirePermission();
+    }
+
+    /**
+     * Acquire a permit for one Enedis API call on the registration path, failing the current
+     * operation if it is denied. Registration runs on a request thread (inside a transaction), so
+     * it never waits for the hourly quota to refresh: when no per-hour permit is available right
+     * now, it fails immediately.
+     */
+    private void requireEnedisPermit() {
+        // Check-then-acquire race: another thread may take the last permit in between, in which
+        // case acquireEnedisPermit() waits; reservePermission() would close this gap.
+        if (perHourLimiter.getMetrics().getAvailablePermissions() <= 0) {
+            throw new QProcessingException("Enedis hourly request quota reached, try again later.");
+        }
+        if (!acquireEnedisPermit()) {
+            throw new QProcessingException("Enedis rate limit reached, please try again later.");
+        }
+    }
 
     /**
      * Calculate the expiration time for the PMR token.
@@ -141,8 +209,10 @@ public class EnedisService {
                     .config(EnedisConstants.CONFIG_PMR_EXPIRES_AT, calculatePMRExpiration(now).toString());
 
             refreshAuthToken();
-            String segmentType = applyContractAttributes(deviceDTOBuilder, enedisId);
-            applySynthContractAttributes(deviceDTOBuilder, enedisId, segmentType);
+            Set<String> segments = applyContractAttributes(deviceDTOBuilder, enedisId);
+            applySynthContractAttributes(deviceDTOBuilder, enedisId,
+                    segments.contains(EnedisConstants.SEGMENT_TYPE_CONSUMER),
+                    segments.contains(EnedisConstants.SEGMENT_TYPE_PRODUCER));
             applyAlimentationAttributes(deviceDTOBuilder, enedisId);
             applyGeneralDataAttributes(deviceDTOBuilder, enedisId);
 
@@ -154,17 +224,18 @@ public class EnedisService {
 
     /**
      * Fetch the contractual situation of the given PRM and populate the device configuration
-     * (consumer/producer) and the device attributes shared with esthesis CORE. The segment is
+     * (consumer/producer) and the device attributes shared with esthesis CORE. A PRM that both
+     * consumes and injects is returned with one contract per segment (e.g. C5 and P4), in which
+     * case it is registered as both a consumer and a producer. At least one supported segment is
      * required to schedule data fetching; every other field is optional (Enedis may omit any of
      * them depending on the contract).
      *
      * @param deviceDTOBuilder The device builder to populate.
      * @param enedisId         The PRM.
-     * @return The segment of the PRM (consumer or producer).
+     * @return The supported segments found for the PRM, in the order consumer, producer.
      */
-    private String applyContractAttributes(DeviceDTOBuilder deviceDTOBuilder, String enedisId) {
-        perSecondLimiter.acquirePermission();
-        perHourLimiter.acquirePermission();
+    private Set<String> applyContractAttributes(DeviceDTOBuilder deviceDTOBuilder, String enedisId) {
+        requireEnedisPermit();
         try {
             List<EnedisSituationContractAutoDTO> contracts = enedisClient.getSituationContractAuto(
                     "Bearer " + enedisAuthTokenDTO.getAccessToken(), enedisId);
@@ -172,19 +243,31 @@ public class EnedisService {
                 throw new QProcessingException(
                         "No contract situation returned by Enedis for PRM '{}'.", enedisId);
             }
-            EnedisSituationContractAutoDTO contractDTO = contracts.getFirst();
 
-            // Check if the PRM is for a producer or a consumer.
-            String segmentType = contractDTO.getSegment();
-            if (EnedisConstants.SEGMENT_TYPE_CONSUMER.equals(segmentType)) {
-                deviceDTOBuilder.config(EnedisConstants.CONFIG_CONSUMER, "true");
-            } else if (EnedisConstants.SEGMENT_TYPE_PRODUCER.equals(segmentType)) {
-                deviceDTOBuilder.config(EnedisConstants.CONFIG_PRODUCER, "true");
-            } else {
+            // Check if the PRM is for a producer, a consumer, or both (one contract per segment).
+            Optional<EnedisSituationContractAutoDTO> consumerContract = findContractBySegment(
+                    contracts, EnedisConstants.SEGMENT_TYPE_CONSUMER);
+            Optional<EnedisSituationContractAutoDTO> producerContract = findContractBySegment(
+                    contracts, EnedisConstants.SEGMENT_TYPE_PRODUCER);
+            if (consumerContract.isEmpty() && producerContract.isEmpty()) {
                 throw new QProcessingException("Unknown segment type '{}' for PRM '{}'.",
-                        segmentType, enedisId);
+                        contracts.stream().map(EnedisSituationContractAutoDTO::getSegment)
+                                .filter(Objects::nonNull).collect(Collectors.joining(",")), enedisId);
             }
-            deviceDTOBuilder.attribute("segment", segmentType);
+            Set<String> segments = new LinkedHashSet<>();
+            if (consumerContract.isPresent()) {
+                deviceDTOBuilder.config(EnedisConstants.CONFIG_CONSUMER, "true");
+                segments.add(EnedisConstants.SEGMENT_TYPE_CONSUMER);
+            }
+            if (producerContract.isPresent()) {
+                deviceDTOBuilder.config(EnedisConstants.CONFIG_PRODUCER, "true");
+                segments.add(EnedisConstants.SEGMENT_TYPE_PRODUCER);
+            }
+            deviceDTOBuilder.attribute("segment", String.join("/", segments));
+
+            // The general contract attributes come from the consumer contract, if any.
+            EnedisSituationContractAutoDTO contractDTO = consumerContract
+                    .orElseGet(producerContract::orElseThrow);
 
             // Add Enedis device attributes for esthesis CORE.
             String subscribedPower = contractDTO.getSubscribedPower() != null
@@ -215,7 +298,7 @@ public class EnedisService {
             setAttributeIfNotBlank(deviceDTOBuilder, "distributionTariffProfiles",
                     distributionTariffProfiles);
 
-            return segmentType;
+            return segments;
         } catch (QProcessingException e) {
             throw e;
         } catch (Exception e) {
@@ -225,31 +308,48 @@ public class EnedisService {
     }
 
     /**
-     * Fetch the contractual summary of the given PRM and populate the meterType and
-     * lastActivationDate device attributes. Failures are logged and skipped, registration only
-     * requires the contractual situation.
+     * Find the first contract of the given segment.
+     *
+     * @param contracts The contracts returned by Enedis for a PRM.
+     * @param segment   The segment to look for.
+     * @return The contract of the given segment, if any.
+     */
+    private static Optional<EnedisSituationContractAutoDTO> findContractBySegment(
+            List<EnedisSituationContractAutoDTO> contracts, String segment) {
+        return contracts.stream().filter(contract -> segment.equals(contract.getSegment()))
+                .findFirst();
+    }
+
+    /**
+     * Fetch the contractual summary of the given PRM and populate the meterType,
+     * lastActivationDate and (for PRMs that both consume and inject) generationLastActivationDate
+     * device attributes. Failures are logged and skipped, registration only requires the
+     * contractual situation.
      *
      * @param deviceDTOBuilder The device builder to populate.
      * @param enedisId         The PRM.
-     * @param segmentType      The segment of the PRM, to pick the relevant activation date.
+     * @param consumer         Whether the PRM is a consumer, to pick the relevant activation date.
+     * @param producer         Whether the PRM is a producer.
      */
     private void applySynthContractAttributes(DeviceDTOBuilder deviceDTOBuilder, String enedisId,
-            String segmentType) {
-        perSecondLimiter.acquirePermission();
-        perHourLimiter.acquirePermission();
+            boolean consumer, boolean producer) {
         try {
+            // Inside the try: a denied permit (e.g. hourly quota reached) skips this optional step.
+            requireEnedisPermit();
             EnedisSynthContractAutoDTO synthContract = enedisClient.getSynthContractAuto(
                     "Bearer " + enedisAuthTokenDTO.getAccessToken(), enedisId);
             if (synthContract == null) {
                 return;
             }
             setAttributeIfNotBlank(deviceDTOBuilder, "meterType", synthContract.getServicesLevel());
-            String lastActivationDate =
-                    EnedisConstants.SEGMENT_TYPE_PRODUCER.equals(segmentType)
-                            && StringUtils.isNotBlank(synthContract.getGenerationLastActivationDate())
-                            ? synthContract.getGenerationLastActivationDate()
-                            : synthContract.getConsumptionLastActivationDate();
+            String lastActivationDate = consumer
+                    ? synthContract.getConsumptionLastActivationDate()
+                    : synthContract.getGenerationLastActivationDate();
             setAttributeIfNotBlank(deviceDTOBuilder, "lastActivationDate", lastActivationDate);
+            if (consumer && producer) {
+                setAttributeIfNotBlank(deviceDTOBuilder, "generationLastActivationDate",
+                        synthContract.getGenerationLastActivationDate());
+            }
             setAttributeIfNotBlank(deviceDTOBuilder, "lastSubscribedPowerChangeDate",
                     synthContract.getLastSubscribedPowerChangeDate());
         } catch (Exception e) {
@@ -266,9 +366,9 @@ public class EnedisService {
      * @param enedisId         The PRM.
      */
     private void applyAlimentationAttributes(DeviceDTOBuilder deviceDTOBuilder, String enedisId) {
-        perSecondLimiter.acquirePermission();
-        perHourLimiter.acquirePermission();
         try {
+            // Inside the try: a denied permit (e.g. hourly quota reached) skips this optional step.
+            requireEnedisPermit();
             EnedisAlimentationAutoDTO alimentation = enedisClient.getAlimentationAuto(
                     "Bearer " + enedisAuthTokenDTO.getAccessToken(), enedisId);
             if (alimentation == null) {
@@ -296,9 +396,9 @@ public class EnedisService {
      * @param enedisId         The PRM.
      */
     private void applyGeneralDataAttributes(DeviceDTOBuilder deviceDTOBuilder, String enedisId) {
-        perSecondLimiter.acquirePermission();
-        perHourLimiter.acquirePermission();
         try {
+            // Inside the try: a denied permit (e.g. hourly quota reached) skips this optional step.
+            requireEnedisPermit();
             EnedisDonneesGeneralesAutoDTO generalData = enedisClient.getDonneesGeneralesAuto(
                     "Bearer " + enedisAuthTokenDTO.getAccessToken(), enedisId);
             if (generalData == null || generalData.getAddress() == null) {
@@ -395,9 +495,12 @@ public class EnedisService {
     }
 
     /**
-     * Fetches new data from Enedis API.
+     * Fetches new data from Enedis API. When a rate limit permit is denied, the run stops without
+     * touching the error counters nor the last fetch timestamps; the remaining devices are fetched
+     * on the next run.
      */
-    @Scheduled(cron = "{esthesis.edge.modules.enedis.cron}")
+    @Scheduled(cron = "{esthesis.edge.modules.enedis.cron}",
+            concurrentExecution = Scheduled.ConcurrentExecution.SKIP)
     public void fetchData() {
         if (!enedisProperties.enabled()) {
             return;
@@ -448,8 +551,12 @@ public class EnedisService {
                         EnedisConstants.CONFIG_DC_ERRORS).map(Integer::parseInt).orElse(0);
                 if (enedisProperties.fetchTypes().dc().enabled() &&
                         dcErrors < enedisProperties.fetchTypes().dc().errorsThreshold()) {
-                    perSecondLimiter.acquirePermission();
-                    perHourLimiter.acquirePermission();
+                    if (!acquireEnedisPermit()) {
+                        log.warn(RATE_LIMIT_REACHED, hardwareId);
+                        return;
+                    }
+                    // Waiting for the permit may have outlived the access token.
+                    refreshAuthToken();
                     int itemsQueued = enedisFetchService.fetchDailyConsumption(hardwareId, enedisPrm,
                             enedisAuthTokenDTO.getAccessToken());
                     log.debug("Queued '{}' items from Daily Consumption API.", itemsQueued);
@@ -460,8 +567,12 @@ public class EnedisService {
                         EnedisConstants.CONFIG_DCMP_ERRORS).map(Integer::parseInt).orElse(0);
                 if (enedisProperties.fetchTypes().dcmp().enabled()
                         && dcmpErrors < enedisProperties.fetchTypes().dcmp().errorsThreshold()) {
-                    perSecondLimiter.acquirePermission();
-                    perHourLimiter.acquirePermission();
+                    if (!acquireEnedisPermit()) {
+                        log.warn(RATE_LIMIT_REACHED, hardwareId);
+                        return;
+                    }
+                    // Waiting for the permit may have outlived the access token.
+                    refreshAuthToken();
                     int itemsQueued = enedisFetchService.fetchDailyConsumptionMaxPower(hardwareId, enedisPrm,
                             enedisAuthTokenDTO.getAccessToken());
                     log.debug("Queued '{}' items from Daily Consumption Max Power API.", itemsQueued);
@@ -472,8 +583,12 @@ public class EnedisService {
                         EnedisConstants.CONFIG_CLC_ERRORS).map(Integer::parseInt).orElse(0);
                 if (enedisProperties.fetchTypes().clc().enabled() &&
                         clcErrors < enedisProperties.fetchTypes().clc().errorsThreshold()) {
-                    perSecondLimiter.acquirePermission();
-                    perHourLimiter.acquirePermission();
+                    if (!acquireEnedisPermit()) {
+                        log.warn(RATE_LIMIT_REACHED, hardwareId);
+                        return;
+                    }
+                    // Waiting for the permit may have outlived the access token.
+                    refreshAuthToken();
                     int itemsQueued = enedisFetchService.fetchConsumptionLoadCurve(hardwareId, enedisPrm,
                             enedisAuthTokenDTO.getAccessToken());
                     log.debug("Queued '{}' items from Consumption Load Curve API.", itemsQueued);
@@ -491,8 +606,12 @@ public class EnedisService {
                         EnedisConstants.CONFIG_DP_ERRORS).map(Integer::parseInt).orElse(0);
                 if (enedisProperties.fetchTypes().dp().enabled() &&
                         dpErrors < enedisProperties.fetchTypes().dp().errorsThreshold()) {
-                    perSecondLimiter.acquirePermission();
-                    perHourLimiter.acquirePermission();
+                    if (!acquireEnedisPermit()) {
+                        log.warn(RATE_LIMIT_REACHED, hardwareId);
+                        return;
+                    }
+                    // Waiting for the permit may have outlived the access token.
+                    refreshAuthToken();
                     int itemsQueued = enedisFetchService.fetchDailyProduction(hardwareId, enedisPrm,
                             enedisAuthTokenDTO.getAccessToken());
                     log.debug("Queued '{}' items from Daily Production API.", itemsQueued);
@@ -503,8 +622,12 @@ public class EnedisService {
                         EnedisConstants.CONFIG_PLC_ERRORS).map(Integer::parseInt).orElse(0);
                 if (enedisProperties.fetchTypes().plc().enabled() &&
                         plcErrors < enedisProperties.fetchTypes().plc().errorsThreshold()) {
-                    perSecondLimiter.acquirePermission();
-                    perHourLimiter.acquirePermission();
+                    if (!acquireEnedisPermit()) {
+                        log.warn(RATE_LIMIT_REACHED, hardwareId);
+                        return;
+                    }
+                    // Waiting for the permit may have outlived the access token.
+                    refreshAuthToken();
                     int itemsQueued = enedisFetchService.fetchProductionLoadCurve(hardwareId, enedisPrm,
                             enedisAuthTokenDTO.getAccessToken());
                     log.debug("Queued '{}' items from Production Load Curve API.", itemsQueued);
@@ -527,10 +650,14 @@ public class EnedisService {
         return DeviceModuleConfigEntity
                 .find("(configKey = 'dc_errors' and CAST(configValue AS INTEGER) >= ?1) or " +
                                 "(configKey = 'dcmp_errors' and CAST(configValue AS INTEGER) >= ?2) or " +
-                                "(configKey = 'dp_errors' and CAST(configValue AS INTEGER) >= ?3)",
+                                "(configKey = 'dp_errors' and CAST(configValue AS INTEGER) >= ?3) or " +
+                                "(configKey = 'clc_errors' and CAST(configValue AS INTEGER) >= ?4) or " +
+                                "(configKey = 'plc_errors' and CAST(configValue AS INTEGER) >= ?5)",
                         enedisProperties.fetchTypes().dc().errorsThreshold(),
                         enedisProperties.fetchTypes().dcmp().errorsThreshold(),
-                        enedisProperties.fetchTypes().dp().errorsThreshold())
+                        enedisProperties.fetchTypes().dp().errorsThreshold(),
+                        enedisProperties.fetchTypes().clc().errorsThreshold(),
+                        enedisProperties.fetchTypes().plc().errorsThreshold())
                 .list()
                 .stream()
                 .map(entity -> ((DeviceModuleConfigEntity) entity).getDevice())
@@ -550,6 +677,8 @@ public class EnedisService {
         DeviceModuleConfigEntity.updateConfigValue(hardwareId, EnedisConstants.CONFIG_DC_ERRORS, "0");
         DeviceModuleConfigEntity.updateConfigValue(hardwareId, EnedisConstants.CONFIG_DCMP_ERRORS, "0");
         DeviceModuleConfigEntity.updateConfigValue(hardwareId, EnedisConstants.CONFIG_DP_ERRORS, "0");
+        DeviceModuleConfigEntity.updateConfigValue(hardwareId, EnedisConstants.CONFIG_CLC_ERRORS, "0");
+        DeviceModuleConfigEntity.updateConfigValue(hardwareId, EnedisConstants.CONFIG_PLC_ERRORS, "0");
 
         return DeviceEntity.findByHardwareId(hardwareId).orElseThrow();
     }
@@ -572,8 +701,7 @@ public class EnedisService {
                 .setServiceType("ACCES")
                 .setComptage(false);
 
-        perSecondLimiter.acquirePermission();
-        perHourLimiter.acquirePermission();
+        requireEnedisPermit();
         EnedisSubscribedServicesResponseDTO response = enedisClient.getSubscribedServices(request,
                 "Bearer " + enedisAuthTokenDTO.getAccessToken());
 
@@ -582,10 +710,14 @@ public class EnedisService {
             throw new QProcessingException(
                     "No active subscribed service found for authorization id '{}'.", authorizationId);
         }
-        if (response.getServiceSouscrit().size() > 1) {
-            log.warn("Multiple subscribed services ('{}') returned for authorization id '{}', "
-                    + "using the first one (Enedis grants one consent per PRM).",
-                    response.getServiceSouscrit().size(), authorizationId);
+        // Several services for one PRM are normal (one per measure type), several PRMs are not.
+        long distinctPointIds = response.getServiceSouscrit().stream()
+                .map(EnedisSubscribedServicesResponseDTO.ServiceSouscritDTO::getPointId)
+                .distinct().count();
+        if (distinctPointIds > 1) {
+            log.warn("Subscribed services for '{}' distinct usage points returned for "
+                    + "authorization id '{}', using the first one.",
+                    distinctPointIds, authorizationId);
         }
 
         return response.getServiceSouscrit().getFirst().getPointId();

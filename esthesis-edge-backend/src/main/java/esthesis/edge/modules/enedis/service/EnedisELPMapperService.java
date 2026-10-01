@@ -2,124 +2,92 @@ package esthesis.edge.modules.enedis.service;
 
 import esthesis.common.avro.ELPEntry;
 import esthesis.edge.modules.enedis.EnedisUtil;
-import esthesis.edge.modules.enedis.config.EnedisProperties;
-import esthesis.edge.modules.enedis.dto.datahub.EnedisConsumptionLoadCurveDTO;
-import esthesis.edge.modules.enedis.dto.datahub.EnedisDailyConsumptionDTO;
-import esthesis.edge.modules.enedis.dto.datahub.EnedisDailyConsumptionMaxPowerDTO;
-import esthesis.edge.modules.enedis.dto.datahub.EnedisDailyProductionDTO;
-import esthesis.edge.modules.enedis.dto.datahub.EnedisProductionLoadCurveDTO;
+import esthesis.edge.modules.enedis.dto.datahub.EnedisMesureDTO;
 import jakarta.enterprise.context.ApplicationScoped;
+import java.time.Instant;
+import java.time.format.DateTimeParseException;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
+import java.util.regex.Pattern;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Service to map Enedis DTOs to ELP format.
  */
+@Slf4j
 @ApplicationScoped
 @RequiredArgsConstructor
 public class EnedisELPMapperService {
 
-  private final EnedisProperties enedisProperties;
+  // Per-phase maximum power grandeurs (PMA1, PMA2, PMA3) returned for grandeurPhysique=TOUT.
+  private static final Pattern PER_PHASE_PMA = Pattern.compile("PMA\\d");
 
   /**
-   * Map EnedisDailyConsumptionDTO to ELP format.
+   * Map an Enedis mesure_synchrone_auto v2 response to ELP format. All five sub-resources
+   * share the same response shape, so a single mapper serves them all.
+   * <p>
+   * Each grandeur maps to the given measurement, except per-phase grandeurs (grandeurPhysique
+   * matching PMA followed by a digit) which map to measurement_pmaN. Points with a missing,
+   * literal "null" or unparseable value/date are skipped (the Enedis sandbox returns such
+   * points), logging a single warning per response.
    *
-   * @param dto The DTO to map.
-   * @return The ELP formatted string.
+   * @param dto         The DTO to map.
+   * @param category    The ELP category.
+   * @param measurement The ELP measurement (field) name.
+   * @return The ELP formatted string, or an empty string when there are no usable points.
    */
-  public String toELP(EnedisDailyConsumptionDTO dto) {
-    return dto.getMeterReading().getIntervalReading().stream()
-        .map(interval -> ELPEntry.builder()
-            .category(enedisProperties.fetchTypes().dc().category())
-            .date(EnedisUtil.isoInstantToInstant(interval.getDate()))
-            .measurement(enedisProperties.fetchTypes().dc().measurement(),
-                interval.getValue() + "i")
-            .build().toString())
-        .collect(Collectors.joining("\n"));
-  }
+  public String toELP(EnedisMesureDTO dto, String category, String measurement) {
+    if (dto == null || dto.getGrandeur() == null) {
+      return "";
+    }
 
-  /**
-   * Map EnedisDailyProductionDTO to ELP format.
-   *
-   * @param dto The DTO to map.
-   * @return The ELP formatted string.
-   */
-  public String toELP(EnedisDailyProductionDTO dto) {
-    return dto.getMeterReading().getIntervalReading().stream()
-        .map(interval -> ELPEntry.builder()
-            .category(enedisProperties.fetchTypes().dp().category())
-            .date(EnedisUtil.isoInstantToInstant(interval.getDate()))
-            .measurement(enedisProperties.fetchTypes().dp().measurement(),
-                interval.getValue() + "i")
-            .build().toString())
-        .collect(Collectors.joining("\n"));
-  }
+    List<String> lines = new ArrayList<>();
+    int skipped = 0;
+    for (EnedisMesureDTO.Grandeur grandeur : dto.getGrandeur()) {
+      if (grandeur == null || grandeur.getPoints() == null) {
+        continue;
+      }
+      String field = fieldName(grandeur, measurement);
+      for (EnedisMesureDTO.Point point : grandeur.getPoints()) {
+        Instant date = point != null && isUsable(point.getV()) && isUsable(point.getD())
+            ? parseDate(point.getD()) : null;
+        if (date == null) {
+          skipped++;
+          continue;
+        }
+        lines.add(ELPEntry.builder()
+            .category(category)
+            .date(date)
+            .measurement(field, point.getV() + "i")
+            .build().toString());
+      }
+    }
+    if (skipped > 0) {
+      log.warn("Skipped {} Enedis mesure point(s) with a missing, null or unparseable "
+          + "value/date for measurement '{}'.", skipped, measurement);
+    }
 
-  /**
-   * Map EnedisDailyConsumptionMaxPowerDTO to ELP format.
-   * Note: With grandeurPhysique=TOUT the API returns arrays of values and dates within each
-   * interval_reading (one entry per phase), where each value[i] corresponds to date[i]. With
-   * PMA the same fields arrive as single-element lists. Entries with a missing or literal
-   * "null" value/date are skipped (the Enedis sandbox returns such entries).
-   *
-   * @param dto The DTO to map.
-   * @return The ELP formatted string.
-   */
-  public String toELP(EnedisDailyConsumptionMaxPowerDTO dto) {
-    return dto.getMeterReading().getIntervalReading().stream()
-        .flatMap(interval -> {
-          List<String> values = interval.getValue();
-          List<String> dates = interval.getDate();
-          // Pair each value with its corresponding date.
-          return IntStream.range(0, Math.min(values.size(), dates.size()))
-              .filter(i -> isUsable(values.get(i)) && isUsable(dates.get(i)))
-              .mapToObj(i -> ELPEntry.builder()
-                  .category(enedisProperties.fetchTypes().dcmp().category())
-                  .date(EnedisUtil.isoInstantToInstant(dates.get(i)))
-                  .measurement(enedisProperties.fetchTypes().dcmp().measurement(),
-                      values.get(i) + "i")
-                  .build().toString());
-        })
-        .collect(Collectors.joining("\n"));
+    return String.join("\n", lines);
   }
 
   private static boolean isUsable(String value) {
     return value != null && !value.isBlank() && !"null".equals(value);
   }
 
-  /**
-   * Map EnedisConsumptionLoadCurveDTO to ELP format.
-   *
-   * @param dto The DTO to map.
-   * @return The ELP formatted string.
-   */
-  public String toELP(EnedisConsumptionLoadCurveDTO dto) {
-    return dto.getMeterReading().getIntervalReading().stream()
-            .map(interval -> ELPEntry.builder()
-                    .category(enedisProperties.fetchTypes().clc().category())
-                    .date(EnedisUtil.isoInstantToInstant(interval.getDate()))
-                    .measurement(enedisProperties.fetchTypes().clc().measurement(),
-                            interval.getValue() + "i")
-                    .build().toString())
-            .collect(Collectors.joining("\n"));
+  private static String fieldName(EnedisMesureDTO.Grandeur grandeur, String measurement) {
+    String physique = grandeur.getGrandeurPhysique();
+    if (physique != null && PER_PHASE_PMA.matcher(physique).matches()) {
+      return measurement + "_" + physique.toLowerCase();
+    }
+    return measurement;
   }
 
-  /**
-   * Map EnedisProductionLoadCurveDTO to ELP format.
-   *
-   * @param dto The DTO to map.
-   * @return The ELP formatted string.
-   */
-  public String toELP(EnedisProductionLoadCurveDTO dto) {
-    return dto.getMeterReading().getIntervalReading().stream()
-            .map(interval -> ELPEntry.builder()
-                    .category(enedisProperties.fetchTypes().plc().category())
-                    .date(EnedisUtil.isoInstantToInstant(interval.getDate()))
-                    .measurement(enedisProperties.fetchTypes().plc().measurement(),
-                            interval.getValue() + "i")
-                    .build().toString())
-            .collect(Collectors.joining("\n"));
+  private static Instant parseDate(String date) {
+    try {
+      return EnedisUtil.mesureDateToInstant(date);
+    } catch (DateTimeParseException e) {
+      return null;
+    }
   }
 }

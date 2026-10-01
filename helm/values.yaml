@@ -171,7 +171,7 @@ esthesis:
           # -- The URL of the self-registration welcome page. If left empty, a default page is provided by the Enedis module.
           welcomeUrl:
           # -- The URL to redirect the user to Enedis for authorisation and consent.
-          authorizationUrl: "https://mon-compte-particulier.enedis.fr/dataconnect/v1/oauth2/authorize"
+          authorizationUrl: "https://mon-compte-particulier.enedis.fr/dataconnect/v2/oauth2/authorize"
           # -- The duration for which the Enedis data access token is requested for (see Enedis API for details).
           duration: P1Y
           page:

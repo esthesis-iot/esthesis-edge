@@ -2,12 +2,8 @@ package esthesis.edge.modules.enedis.client;
 
 import esthesis.edge.modules.enedis.dto.datahub.EnedisAlimentationAutoDTO;
 import esthesis.edge.modules.enedis.dto.datahub.EnedisAuthTokenDTO;
-import esthesis.edge.modules.enedis.dto.datahub.EnedisConsumptionLoadCurveDTO;
 import esthesis.edge.modules.enedis.dto.datahub.EnedisDonneesGeneralesAutoDTO;
-import esthesis.edge.modules.enedis.dto.datahub.EnedisDailyConsumptionDTO;
-import esthesis.edge.modules.enedis.dto.datahub.EnedisDailyConsumptionMaxPowerDTO;
-import esthesis.edge.modules.enedis.dto.datahub.EnedisDailyProductionDTO;
-import esthesis.edge.modules.enedis.dto.datahub.EnedisProductionLoadCurveDTO;
+import esthesis.edge.modules.enedis.dto.datahub.EnedisMesureDTO;
 import esthesis.edge.modules.enedis.dto.datahub.EnedisSituationContractAutoDTO;
 import esthesis.edge.modules.enedis.dto.datahub.EnedisSubscribedServicesRequestDTO;
 import esthesis.edge.modules.enedis.dto.datahub.EnedisSubscribedServicesResponseDTO;
@@ -56,12 +52,12 @@ public interface EnedisClient {
      * @return The daily consumption data.
      */
     @GET
-    @Path("mesure_synchrone_auto/v1/metering_data/daily_consumption")
+    @Path("mesure_synchrone_auto/v2/consommation_quotidienne")
     @Produces(MediaType.APPLICATION_JSON)
-    EnedisDailyConsumptionDTO getDailyConsumption(
-            @QueryParam("start") String startDate,
-            @QueryParam("end") String endDate,
-            @QueryParam("usage_point_id") String usagePointId,
+    EnedisMesureDTO getDailyConsumption(
+            @QueryParam("dateDebut") String startDate,
+            @QueryParam("dateFin") String endDate,
+            @QueryParam("pointId") String usagePointId,
             @HeaderParam("Authorization") String bearerToken
     );
 
@@ -75,13 +71,13 @@ public interface EnedisClient {
      * @return The daily consumption max power data.
      */
     @GET
-    @Path("mesure_synchrone_auto/v1/metering_data/daily_consumption_max_power")
+    @Path("mesure_synchrone_auto/v2/puissance_conso_max_quotidienne")
     @Produces(MediaType.APPLICATION_JSON)
-    EnedisDailyConsumptionMaxPowerDTO getDailyConsumptionMaxPower(
-            @QueryParam("start") String startDate,
-            @QueryParam("end") String endDate,
-            @QueryParam("usage_point_id") String usagePointId,
-            @QueryParam("measuring_period") String measuringPeriod,
+    EnedisMesureDTO getDailyConsumptionMaxPower(
+            @QueryParam("dateDebut") String startDate,
+            @QueryParam("dateFin") String endDate,
+            @QueryParam("pointId") String usagePointId,
+            @QueryParam("mesuresPas") String measuringPeriod,
             @QueryParam("grandeurPhysique") String grandeurPhysique,
             @HeaderParam("Authorization") String bearerToken
     );
@@ -96,32 +92,12 @@ public interface EnedisClient {
      * @return The daily consumption data.
      */
     @GET
-    @Path("mesure_synchrone_auto/v1/metering_data/daily_production")
+    @Path("mesure_synchrone_auto/v2/production_quotidienne")
     @Produces(MediaType.APPLICATION_JSON)
-    EnedisDailyProductionDTO getDailyProduction(
-            @QueryParam("start") String startDate,
-            @QueryParam("end") String endDate,
-            @QueryParam("usage_point_id") String usagePointId,
-            @HeaderParam("Authorization") String bearerToken
-    );
-
-    /**
-     * Get contract information available for a given usage point. Unfortunately, this endpoint returns
-     * application/octet-stream or application/text, irrespectively of asking for JSON, so the user of
-     * this client needs to manually parse the response to {@see EnedisContractDTO}.
-     * @deprecated Use {@link #getSituationContractAuto(String, String)} instead. This endpoint is
-     * currently uncalled and only kept until the Enedis DataConnect cut-over decommissions it;
-     * remove it (and EnedisContractDTO) after the cut-over.
-     * @param usagePointId The usage point ID (Enedis PRM).
-     * @param bearerToken  The bearer token to authenticate with.
-     * @return The contract information.
-     */
-    @GET
-    @Path("customers_upc/v5/usage_points/contracts")
-    @Produces(MediaType.APPLICATION_JSON)
-    @Deprecated(since = "2026-09", forRemoval = true)
-    String getContracts(
-            @QueryParam("usage_point_id") String usagePointId,
+    EnedisMesureDTO getDailyProduction(
+            @QueryParam("dateDebut") String startDate,
+            @QueryParam("dateFin") String endDate,
+            @QueryParam("pointId") String usagePointId,
             @HeaderParam("Authorization") String bearerToken
     );
 
@@ -135,12 +111,12 @@ public interface EnedisClient {
      * @return The average load curve consumption data for the given period.
      */
     @GET
-    @Path("mesure_synchrone_auto/v1/metering_data/consumption_load_curve")
+    @Path("mesure_synchrone_auto/v2/courbe_de_charge_consommation")
     @Produces(MediaType.APPLICATION_JSON)
-    EnedisConsumptionLoadCurveDTO getConsumptionLoadCurve(
-            @QueryParam("start") String startDate,
-            @QueryParam("end") String endDate,
-            @QueryParam("usage_point_id") String usagePointId,
+    EnedisMesureDTO getConsumptionLoadCurve(
+            @QueryParam("dateDebut") String startDate,
+            @QueryParam("dateFin") String endDate,
+            @QueryParam("pointId") String usagePointId,
             @HeaderParam("Authorization") String bearerToken
     );
 
@@ -154,12 +130,12 @@ public interface EnedisClient {
      * @return The average load curve production data for the given period.
      */
     @GET
-    @Path("mesure_synchrone_auto/v1/metering_data/production_load_curve")
+    @Path("mesure_synchrone_auto/v2/courbe_de_charge_production")
     @Produces(MediaType.APPLICATION_JSON)
-    EnedisProductionLoadCurveDTO getProductionLoadCurve(
-            @QueryParam("start") String startDate,
-            @QueryParam("end") String endDate,
-            @QueryParam("usage_point_id") String usagePointId,
+    EnedisMesureDTO getProductionLoadCurve(
+            @QueryParam("dateDebut") String startDate,
+            @QueryParam("dateFin") String endDate,
+            @QueryParam("pointId") String usagePointId,
             @HeaderParam("Authorization") String bearerToken
     );
 

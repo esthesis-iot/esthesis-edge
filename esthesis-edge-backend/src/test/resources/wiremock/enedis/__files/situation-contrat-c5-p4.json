@@ -1,0 +1,22 @@
+[
+  {
+    "usage_point_id": "99999999999999",
+    "contract_start": "2022-03-15T00:00:00+0100",
+    "contract_type": "Contrat Protocole501",
+    "contractor": "FOURNISSEUR TEST",
+    "balance_responsible_party": "ACM_TEST",
+    "pricing_structure": "Offre Test",
+    "distribution_tariff": "Tarif BT <= 36 kVA Base",
+    "subscribed_power": {"unit": "kVA", "value": "6"},
+    "segment": "C5"
+  },
+  {
+    "usage_point_id": "99999999999999",
+    "contract_start": "2023-06-01T00:00:00+0200",
+    "contract_type": "Contrat CRAE",
+    "contractor": "FOURNISSEUR TEST",
+    "distribution_tariff": "Tarif BT Injection",
+    "subscribed_power": {"unit": "kVA", "value": "9"},
+    "segment": "P4"
+  }
+]

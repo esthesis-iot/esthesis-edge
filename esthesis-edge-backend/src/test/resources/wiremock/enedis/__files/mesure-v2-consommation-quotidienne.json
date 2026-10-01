@@ -1,0 +1,42 @@
+{
+  "idPrm": "99999999999999",
+  "etapeMetier": "BRUT",
+  "periode": {
+    "dateDebut": "2026-09-25",
+    "dateFin": "2026-09-30"
+  },
+  "typeValeur": "GLOBALE",
+  "modeCalcul": "DIFF.INDEX",
+  "pas": "P1D",
+  "grandeur": [
+    {
+      "grandeurMetier": "CONS",
+      "grandeurPhysique": "EA",
+      "unite": "Wh",
+      "points": [
+        {
+          "v": "10000",
+          "d": "2026-09-25"
+        },
+        {
+          "v": "9000",
+          "d": "2026-09-26"
+        },
+        {
+          "v": "11000",
+          "d": "2026-09-27"
+        },
+        {
+          "v": "9500",
+          "d": "2026-09-28"
+        },
+        {
+          "v": "10500",
+          "d": "2026-09-29"
+        }
+      ],
+      "calendrier": []
+    }
+  ],
+  "contexte": []
+}

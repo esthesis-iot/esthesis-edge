@@ -1,0 +1,9 @@
+{
+  "segments": [
+    {"segment": "C5"},
+    {"segment": "P4"}
+  ],
+  "generation_last_activation_date": "2023-06-01T00:00:00+0200",
+  "consumption_last_activation_date": "2022-03-15T00:00:00+0100",
+  "services_level": "Communicant (ouvert aux services)"
+}
