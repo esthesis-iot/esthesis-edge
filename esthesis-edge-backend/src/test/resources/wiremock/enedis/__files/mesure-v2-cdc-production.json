@@ -1,0 +1,44 @@
+{
+  "idPrm": "99999999999999",
+  "etapeMetier": "BRUT",
+  "periode": {
+    "dateDebut": "2026-09-28",
+    "dateFin": "2026-09-29"
+  },
+  "modeCalcul": "MESURE",
+  "grandeur": [
+    {
+      "grandeurMetier": "PROD",
+      "grandeurPhysique": "PA",
+      "unite": "W",
+      "points": [
+        {
+          "v": "60",
+          "d": "2026-09-28 00:30:00",
+          "p": "PT30M",
+          "n": "B",
+          "iv": "0",
+          "ec": "0"
+        },
+        {
+          "v": "80",
+          "d": "2026-09-28 01:00:00",
+          "p": "PT30M",
+          "n": "B",
+          "iv": "0",
+          "ec": "0"
+        },
+        {
+          "v": "0",
+          "d": "2026-09-29 00:00:00",
+          "p": "PT30M",
+          "n": "B",
+          "iv": "0",
+          "ec": "0"
+        }
+      ],
+      "calendrier": []
+    }
+  ],
+  "contexte": []
+}

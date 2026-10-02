@@ -57,10 +57,10 @@ public class EnedisConstants {
   public static final String CONFIG_PLC_ERRORS = "plc_errors";
 
   // The maximum number of requests per seconds Enedis API allows.
-  public static final int REQUESTS_PER_SECOND = 10;
+  public static final int REQUESTS_PER_SECOND = 5;
 
   // The maximum number of requests per hour Enedis API allows.
-  public static final int REQUESTS_PER_HOUR = 10000;
+  public static final int REQUESTS_PER_HOUR = 1000;
 
   // Producer and Consumer segment types.
   public static final String SEGMENT_TYPE_CONSUMER = "C5";

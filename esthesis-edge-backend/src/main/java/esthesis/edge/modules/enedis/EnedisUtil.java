@@ -1,7 +1,8 @@
 package esthesis.edge.modules.enedis;
 
 import java.time.Instant;
-import java.time.OffsetDateTime;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import org.apache.commons.lang3.time.DateFormatUtils;
@@ -10,6 +11,9 @@ import org.apache.commons.lang3.time.DateFormatUtils;
  * Utility class for Enedis-related data manipulation.
  */
 public class EnedisUtil {
+
+  private static final DateTimeFormatter MESURE_DATE_TIME =
+      DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
   private EnedisUtil() {
   }
@@ -35,27 +39,18 @@ public class EnedisUtil {
   }
 
   /**
-   * Converts a date string in ISO-8601 format with milliseconds (e.g. "2019-05-06T00:00:00.000Z") to an Instant.
+   * Converts a point date as returned by the Enedis mesure_synchrone_auto v2 API to an Instant. A
+   * date-only value (YYYY-MM-DD) is converted like {@link #ymdToInstant(String)}, whereas a value
+   * with a time ("YYYY-MM-DD HH:mm:ss") is read as UTC.
    *
-   * @param date The date string to convert.
+   * @param d The date string to convert.
    * @return The given date as an Instant.
+   * @throws java.time.format.DateTimeParseException If the date is in neither format.
    */
-  public static Instant isoInstantToInstant(String date) {
-    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSX");
-    OffsetDateTime odt = OffsetDateTime.parse(date, formatter);
-    return odt.toInstant();
-  }
-
-  /**
-   * Converts a date string as returned by the Enedis ITC APIs to an Instant. ITC dates carry an
-   * offset without a colon and may omit milliseconds (e.g. "2022-01-02T00:00:00+0100" or
-   * "2019-05-06T00:00:00.000Z").
-   *
-   * @param date The date string to convert.
-   * @return The given date as an Instant.
-   */
-  public static Instant itcDateToInstant(String date) {
-    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss[.SSS]X");
-    return OffsetDateTime.parse(date, formatter).toInstant();
+  public static Instant mesureDateToInstant(String d) {
+    if (d.length() == 10) {
+      return ymdToInstant(d);
+    }
+    return LocalDateTime.parse(d, MESURE_DATE_TIME).toInstant(ZoneOffset.UTC);
   }
 }

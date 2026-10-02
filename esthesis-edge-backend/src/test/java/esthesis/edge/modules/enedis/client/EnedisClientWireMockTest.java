@@ -3,6 +3,7 @@ package esthesis.edge.modules.enedis.client;
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.containing;
 import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.equalToJson;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.matchingJsonPath;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
@@ -20,12 +21,15 @@ import esthesis.common.agent.dto.AgentRegistrationRequest;
 import esthesis.common.agent.dto.AgentRegistrationResponse;
 import esthesis.edge.clients.EsthesisAgentServiceClient;
 import esthesis.edge.model.DeviceEntity;
+import esthesis.edge.modules.enedis.config.EnedisConstants;
 import esthesis.edge.modules.enedis.dto.datahub.EnedisAlimentationAutoDTO;
 import esthesis.edge.modules.enedis.dto.datahub.EnedisAuthTokenDTO;
-import esthesis.edge.modules.enedis.dto.datahub.EnedisDailyConsumptionMaxPowerDTO;
 import esthesis.edge.modules.enedis.dto.datahub.EnedisDonneesGeneralesAutoDTO;
+import esthesis.edge.modules.enedis.dto.datahub.EnedisMesureDTO;
 import esthesis.edge.modules.enedis.dto.datahub.EnedisSituationContractAutoDTO;
 import esthesis.edge.modules.enedis.dto.datahub.EnedisSynthContractAutoDTO;
+import esthesis.edge.modules.enedis.service.EnedisService;
+import esthesis.edge.services.DeviceService;
 import esthesis.edge.testcontainers.EnedisWireMockResource;
 import io.quarkus.test.InjectMock;
 import io.quarkus.test.common.QuarkusTestResource;
@@ -33,6 +37,7 @@ import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.core.Response.Status;
 import java.util.List;
+import java.util.Optional;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -52,6 +57,12 @@ class EnedisClientWireMockTest {
   @Inject
   @RestClient
   EnedisClient enedisClient;
+
+  @Inject
+  EnedisService enedisService;
+
+  @Inject
+  DeviceService deviceService;
 
   @InjectMock
   @RestClient
@@ -100,6 +111,18 @@ class EnedisClientWireMockTest {
   }
 
   @Test
+  void subscribedServicesRequestSendsOnlySetFields() {
+    wireMock.stubFor(post(urlPathEqualTo("/subscribed_services/v1"))
+        .withRequestBody(equalToJson(
+            "{\"autorisationId\":11,\"etatCode\":[\"ACTIF\"],\"serviceType\":\"ACCES\","
+                + "\"comptage\":false}"))
+        .willReturn(aResponse().withHeader("Content-Type", "application/json")
+            .withBodyFile("subscribed-services-11.json")));
+
+    assertEquals("14000000000001", enedisService.fetchUsagePointId(11L));
+  }
+
+  @Test
   void getSituationContractAutoParsesVaryingElements() {
     stubItcGet("situation_contrat_auto", "99999999999999", "situation-contrat-99999999999999.json");
     stubItcGet("situation_contrat_auto", "11111111111111", "situation-contrat-11111111111111.json");
@@ -139,19 +162,6 @@ class EnedisClientWireMockTest {
   }
 
   @Test
-  void getDailyConsumptionMaxPowerParsesWithProperJsonContentType() {
-    wireMock.stubFor(
-        get(urlPathEqualTo("/mesure_synchrone_auto/v1/metering_data/daily_consumption_max_power"))
-            .withQueryParam("grandeurPhysique", equalTo("PMA"))
-            .willReturn(aResponse().withHeader("Content-Type", "application/json")
-                .withBodyFile("dcmp-pma.json")));
-
-    EnedisDailyConsumptionMaxPowerDTO dto = enedisClient.getDailyConsumptionMaxPower(
-        "2025-05-01", "2025-07-14", "99999999999999", "P1D", "PMA", BEARER);
-    assertEquals(List.of("9656"), dto.getMeterReading().getIntervalReading().getFirst().getValue());
-  }
-
-  @Test
   void getSynthContractAutoParses() {
     stubItcGet("synth_contrat_auto", "99999999999999", "synth-contrat.json");
 
@@ -180,39 +190,96 @@ class EnedisClientWireMockTest {
   }
 
   @Test
-  void getDailyConsumptionMaxPowerPmaScalars() {
-    wireMock.stubFor(
-        get(urlPathEqualTo("/mesure_synchrone_auto/v1/metering_data/daily_consumption_max_power"))
-            .withQueryParam("usage_point_id", equalTo("99999999999999"))
-            .withQueryParam("measuring_period", equalTo("P1D"))
-            .withQueryParam("grandeurPhysique", equalTo("PMA"))
-            .willReturn(aResponse().withHeader("Content-Type", "application/octet-stream")
-                .withBodyFile("dcmp-pma.json")));
+  void getDailyConsumptionV2() {
+    wireMock.stubFor(get(urlPathEqualTo("/mesure_synchrone_auto/v2/consommation_quotidienne"))
+        .withQueryParam("pointId", equalTo("99999999999999"))
+        .withQueryParam("dateDebut", equalTo("2026-09-25"))
+        .withQueryParam("dateFin", equalTo("2026-09-30"))
+        .willReturn(aResponse().withHeader("Content-Type", "application/octet-stream")
+            .withBodyFile("mesure-v2-consommation-quotidienne.json")));
 
-    EnedisDailyConsumptionMaxPowerDTO dto = enedisClient.getDailyConsumptionMaxPower(
-        "2025-05-01", "2025-07-14", "99999999999999", "P1D", "PMA", BEARER);
+    EnedisMesureDTO dto = enedisClient.getDailyConsumption(
+        "2026-09-25", "2026-09-30", "99999999999999", BEARER);
 
-    assertEquals(List.of("VA"), dto.getMeterReading().getReadingType().getUnit());
-    assertEquals(3, dto.getMeterReading().getIntervalReading().size());
-    assertEquals(List.of("9656"), dto.getMeterReading().getIntervalReading().getFirst().getValue());
+    assertEquals(5, dto.getGrandeur().getFirst().getPoints().size());
+    assertEquals("10000", dto.getGrandeur().getFirst().getPoints().getFirst().getV());
   }
 
   @Test
-  void getDailyConsumptionMaxPowerToutArrays() {
+  void getDailyProductionV2() {
+    wireMock.stubFor(get(urlPathEqualTo("/mesure_synchrone_auto/v2/production_quotidienne"))
+        .withQueryParam("pointId", equalTo("99999999999999"))
+        .willReturn(aResponse().withHeader("Content-Type", "application/octet-stream")
+            .withBodyFile("mesure-v2-production-quotidienne.json")));
+
+    EnedisMesureDTO dto = enedisClient.getDailyProduction(
+        "2026-09-25", "2026-09-30", "99999999999999", BEARER);
+
+    assertEquals(5, dto.getGrandeur().getFirst().getPoints().size());
+  }
+
+  @Test
+  void getDailyConsumptionMaxPowerV2Pma() {
     wireMock.stubFor(
-        get(urlPathEqualTo("/mesure_synchrone_auto/v1/metering_data/daily_consumption_max_power"))
-            .withQueryParam("usage_point_id", equalTo("11111111111111"))
-            .withQueryParam("measuring_period", equalTo("P1D"))
+        get(urlPathEqualTo("/mesure_synchrone_auto/v2/puissance_conso_max_quotidienne"))
+            .withQueryParam("pointId", equalTo("99999999999999"))
+            .withQueryParam("mesuresPas", equalTo("P1D"))
+            .withQueryParam("grandeurPhysique", equalTo("PMA"))
+            .willReturn(aResponse().withHeader("Content-Type", "application/octet-stream")
+                .withBodyFile("mesure-v2-pmax-pma.json")));
+
+    EnedisMesureDTO dto = enedisClient.getDailyConsumptionMaxPower(
+        "2026-09-25", "2026-09-30", "99999999999999", "P1D", "PMA", BEARER);
+
+    assertEquals(1, dto.getGrandeur().size());
+    assertEquals(5, dto.getGrandeur().getFirst().getPoints().size());
+  }
+
+  @Test
+  void getDailyConsumptionMaxPowerV2Tout() {
+    wireMock.stubFor(
+        get(urlPathEqualTo("/mesure_synchrone_auto/v2/puissance_conso_max_quotidienne"))
+            .withQueryParam("pointId", equalTo("99999999999999"))
+            .withQueryParam("mesuresPas", equalTo("P1D"))
             .withQueryParam("grandeurPhysique", equalTo("TOUT"))
             .willReturn(aResponse().withHeader("Content-Type", "application/octet-stream")
-                .withBodyFile("dcmp-tout.json")));
+                .withBodyFile("mesure-v2-pmax-tout.json")));
 
-    EnedisDailyConsumptionMaxPowerDTO dto = enedisClient.getDailyConsumptionMaxPower(
-        "2025-05-01", "2025-07-14", "11111111111111", "P1D", "TOUT", BEARER);
+    EnedisMesureDTO dto = enedisClient.getDailyConsumptionMaxPower(
+        "2026-09-25", "2026-09-30", "99999999999999", "P1D", "TOUT", BEARER);
 
-    assertEquals(4, dto.getMeterReading().getReadingType().getUnit().size());
-    assertEquals(List.of("9656", "9724", "9298", "9904"),
-        dto.getMeterReading().getIntervalReading().getFirst().getValue());
+    assertEquals(4, dto.getGrandeur().size());
+  }
+
+  @Test
+  void getConsumptionLoadCurveV2() {
+    wireMock.stubFor(
+        get(urlPathEqualTo("/mesure_synchrone_auto/v2/courbe_de_charge_consommation"))
+            .withQueryParam("pointId", equalTo("99999999999999"))
+            .withQueryParam("dateDebut", equalTo("2026-09-29"))
+            .withQueryParam("dateFin", equalTo("2026-09-30"))
+            .willReturn(aResponse().withHeader("Content-Type", "application/octet-stream")
+                .withBodyFile("mesure-v2-cdc-consommation.json")));
+
+    EnedisMesureDTO dto = enedisClient.getConsumptionLoadCurve(
+        "2026-09-29", "2026-09-30", "99999999999999", BEARER);
+
+    assertEquals(3, dto.getGrandeur().getFirst().getPoints().size());
+    assertEquals("PT30M", dto.getGrandeur().getFirst().getPoints().getFirst().getP());
+  }
+
+  @Test
+  void getProductionLoadCurveV2() {
+    wireMock.stubFor(
+        get(urlPathEqualTo("/mesure_synchrone_auto/v2/courbe_de_charge_production"))
+            .withQueryParam("pointId", equalTo("99999999999999"))
+            .willReturn(aResponse().withHeader("Content-Type", "application/octet-stream")
+                .withBodyFile("mesure-v2-cdc-production.json")));
+
+    EnedisMesureDTO dto = enedisClient.getProductionLoadCurve(
+        "2026-09-29", "2026-09-30", "99999999999999", BEARER);
+
+    assertEquals(3, dto.getGrandeur().getFirst().getPoints().size());
   }
 
   @Test
@@ -238,6 +305,29 @@ class EnedisClientWireMockTest {
     assertNotNull(device.getAttributes());
     assertTrue(device.getAttributes().contains("segment=C5"));
     assertTrue(device.getAttributes().contains("usagePointStatus=Alimenté"));
+  }
+
+  @Test
+  void redirectHandlerRegistersConsumerAndProducerPrm() {
+    // A PRM with a C5 (consumption) and a P4 (production) contract, through the real client.
+    stubItcGet("situation_contrat_auto", "99999999999999", "situation-contrat-c5-p4.json");
+    stubItcGet("synth_contrat_auto", "99999999999999", "synth-contrat-c5-p4.json");
+    stubItcGet("alimentation_auto", "99999999999999", "alimentation.json");
+    stubItcGet("donnees_generales_auto", "99999999999999", "donnees-generales.json");
+
+    given()
+        .when().get("/enedis/public/redirect-handler?State=1&usage_point_id=99999999999999&code=1")
+        .then()
+        .statusCode(200);
+
+    DeviceEntity device = DeviceEntity.findByHardwareId("enedis-99999999999999").orElseThrow();
+    assertTrue(device.getAttributes().contains("segment=C5/P4"));
+    assertTrue(device.getAttributes()
+        .contains("generationLastActivationDate=2023-06-01T00:00:00+0200"));
+    assertEquals(Optional.of(true), deviceService.getDeviceConfigValueAsBoolean(
+        "enedis-99999999999999", EnedisConstants.CONFIG_CONSUMER));
+    assertEquals(Optional.of(true), deviceService.getDeviceConfigValueAsBoolean(
+        "enedis-99999999999999", EnedisConstants.CONFIG_PRODUCER));
   }
 
   @Test

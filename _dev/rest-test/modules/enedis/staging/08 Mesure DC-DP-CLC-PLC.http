@@ -1,21 +1,27 @@
-### Daily consumption. Dates in interval_reading should be full ISO instants (…T00:00:00.000Z)
-### and may carry the new accumulation_kindd field.
-GET {{ENEDIS_API}}/mesure_synchrone_auto/v1/metering_data/daily_consumption
-    ?usage_point_id=99999999999999&start=2025-05-01&end=2025-07-14
+### Metering requests (mesure_synchrone_auto/v2). Per Enedis, the metering APIs cannot be tested in
+### the sandbox (it returns placeholder dates such as 20XX-XX-XX), so these requests target PROD
+### ({{ENEDIS_API_PROD}}). 99999999999999 is a placeholder: replace it with a real PRM whose holder
+### has consented to your application, and set a real PROD token in http-client.private.env.json
+### (ENEDIS_TOKEN).
+### dateDebut is inclusive; dateFin is exclusive and cannot equal dateDebut.
+
+### Daily consumption.
+GET {{ENEDIS_API_PROD}}/mesure_synchrone_auto/v2/consommation_quotidienne
+    ?pointId=99999999999999&dateDebut=2025-05-01&dateFin=2025-07-14
 Authorization: Bearer {{ENEDIS_TOKEN}}
 
 ### Daily production.
-GET {{ENEDIS_API}}/mesure_synchrone_auto/v1/metering_data/daily_production
-    ?usage_point_id=99999999999999&start=2025-05-01&end=2025-07-14
+GET {{ENEDIS_API_PROD}}/mesure_synchrone_auto/v2/production_quotidienne
+    ?pointId=99999999999999&dateDebut=2025-05-01&dateFin=2025-07-14
 Authorization: Bearer {{ENEDIS_TOKEN}}
 
-### Consumption load curve. NB: the real API limits requests to 7 consecutive days; the mock
-### does not enforce it.
-GET {{ENEDIS_API}}/mesure_synchrone_auto/v1/metering_data/consumption_load_curve
-    ?usage_point_id=99999999999999&start=2025-05-01&end=2025-05-07
+### Consumption load curve. Limited to 7 consecutive days (dateFin exclusive, so 2025-05-01 to
+### 2025-05-08 is the maximum window).
+GET {{ENEDIS_API_PROD}}/mesure_synchrone_auto/v2/courbe_de_charge_consommation
+    ?pointId=99999999999999&dateDebut=2025-05-01&dateFin=2025-05-08
 Authorization: Bearer {{ENEDIS_TOKEN}}
 
-### Production load curve.
-GET {{ENEDIS_API}}/mesure_synchrone_auto/v1/metering_data/production_load_curve
-    ?usage_point_id=99999999999999&start=2025-05-01&end=2025-05-07
+### Production load curve. Same 7-day limit.
+GET {{ENEDIS_API_PROD}}/mesure_synchrone_auto/v2/courbe_de_charge_production
+    ?pointId=99999999999999&dateDebut=2025-05-01&dateFin=2025-05-08
 Authorization: Bearer {{ENEDIS_TOKEN}}

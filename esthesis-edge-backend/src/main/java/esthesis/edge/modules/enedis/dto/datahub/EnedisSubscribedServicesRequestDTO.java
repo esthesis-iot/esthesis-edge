@@ -1,4 +1,5 @@
 package esthesis.edge.modules.enedis.dto.datahub;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -13,6 +14,7 @@ import java.util.List;
 
 @Data
 @ToString
+@JsonInclude(JsonInclude.Include.NON_NULL)
 @NoArgsConstructor
 @RegisterForReflection
 @Accessors(chain = true)
@@ -24,11 +26,11 @@ public class EnedisSubscribedServicesRequestDTO {
     private List<String> etatCode;
     private String serviceType;
     private List<String> mesureTypeCode;
-    private boolean soutirage;
-    private boolean injection;
-    private int page;
-    private boolean comptage;
-    private long autorisationId;
-    private boolean autorisation;
+    private Boolean soutirage;
+    private Boolean injection;
+    private Integer page;
+    private Boolean comptage;
+    private Long autorisationId;
+    private Boolean autorisation;
 }
 

@@ -1,0 +1,400 @@
+{
+	"info": {
+		"_postman_id": "b2c3d4e5-f6a7-8901-bcde-f12345678901",
+		"name": "mesure_synchrone_auto_v2",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "mesure_synchrone_auto - APMSYC2",
+			"item": [
+				{
+					"name": "consommation_quotidienne",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "Copier-coller le token générer avec l'api Authorization",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://gw.ext.prod.api.enedis.fr/mesure_synchrone_auto/v2/consommation_quotidienne?pointId=Numéro du compteur à 14 chiffres&dateDebut=Date en AAAA-MM-JJ&dateFin=Date en AAAA-MM-JJ",
+							"protocol": "https",
+							"host": [
+								"gw",
+								"ext",
+								"prod",
+								"api",
+								"enedis",
+								"fr"
+							],
+							"path": [
+								"mesure_synchrone_auto",
+								"v2",
+								"consommation_quotidienne"
+							],
+							"query": [
+								{
+									"key": "pointId",
+									"value": "Numéro du compteur à 14 chiffres",
+									"description": "Numéro du compteur à 14 chiffres"
+								},
+								{
+									"key": "dateDebut",
+									"value": "Date en AAAA-MM-JJ",
+									"description": "Date en AAAA-MM-JJ (2025-05-01)"
+								},
+								{
+									"key": "dateFin",
+									"value": "Date en AAAA-MM-JJ",
+									"description": "Date en AAAA-MM-JJ (2025-05-02)"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "production_quotidienne",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "Copier-coller le token générer avec l'api Authorization",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "https://gw.ext.prod.api.enedis.fr/mesure_synchrone_auto/v2/production_quotidienne?pointId=Numéro du compteur à 14 chiffres&dateDebut=Date en AAAA-MM-JJ&dateFin=Date en AAAA-MM-JJ",
+							"protocol": "https",
+							"host": [
+								"gw",
+								"ext",
+								"prod",
+								"api",
+								"enedis",
+								"fr"
+							],
+							"path": [
+								"mesure_synchrone_auto",
+								"v2",
+								"production_quotidienne"
+							],
+							"query": [
+								{
+									"key": "pointId",
+									"value": "Numéro du compteur à 14 chiffres",
+									"description": "Numéro du compteur à 14 chiffres"
+								},
+								{
+									"key": "dateDebut",
+									"value": "Date en AAAA-MM-JJ",
+									"description": "Date en AAAA-MM-JJ (2025-05-01)"
+								},
+								{
+									"key": "dateFin",
+									"value": "Date en AAAA-MM-JJ",
+									"description": "Date en AAAA-MM-JJ (2025-05-02)"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "puissance_conso_max_quotidienne",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "Copier-coller le token générer avec l'api Authorization",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "https://gw.ext.prod.api.enedis.fr/mesure_synchrone_auto/v2/puissance_conso_max_quotidienne?pointId=Numéro du compteur à 14 chiffres&dateDebut=Date en AAAA-MM-JJ&dateFin=Date en AAAA-MM-JJ&mesuresPas=P1D ou P1M&grandeurPhysique=PMA ou TOUT",
+							"protocol": "https",
+							"host": [
+								"gw",
+								"ext",
+								"prod",
+								"api",
+								"enedis",
+								"fr"
+							],
+							"path": [
+								"mesure_synchrone_auto",
+								"v2",
+								"puissance_conso_max_quotidienne"
+							],
+							"query": [
+								{
+									"key": "pointId",
+									"value": "Numéro du compteur à 14 chiffres",
+									"description": "Numéro du compteur à 14 chiffres"
+								},
+								{
+									"key": "dateDebut",
+									"value": "Date en AAAA-MM-JJ",
+									"description": "Date en AAAA-MM-JJ (2025-05-01)"
+								},
+								{
+									"key": "dateFin",
+									"value": "Date en AAAA-MM-JJ",
+									"description": "Date en AAAA-MM-JJ (2025-05-02)"
+								},
+								{
+									"key": "mesuresPas",
+									"value": "P1D ou P1M",
+									"description": "Le pas peut être quotidien (P1D) ou mensuel (P1M)"
+								},
+								{
+									"key": "grandeurPhysique",
+									"value": "PMA ou TOUT",
+									"description": "PMA pour ne récupérer que la Puissance Maximale \"équivalent monophasé\"\nTOUT pour récupérer sur la base d'un PRM triphasé le détail de l'ensemble des phases et la Puissance Maximale (représente la somme des trois phases)"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "courbe_de_charge_consommation",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "Copier-coller le token générer avec l'api Authorization",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "https://gw.ext.prod.api.enedis.fr/mesure_synchrone_auto/v2/courbe_de_charge_consommation?pointId=Numéro du compteur à 14 chiffres&dateDebut=Date en AAAA-MM-JJ&dateFin=Date en AAAA-MM-JJ",
+							"protocol": "https",
+							"host": [
+								"gw",
+								"ext",
+								"prod",
+								"api",
+								"enedis",
+								"fr"
+							],
+							"path": [
+								"mesure_synchrone_auto",
+								"v2",
+								"courbe_de_charge_consommation"
+							],
+							"query": [
+								{
+									"key": "pointId",
+									"value": "Numéro du compteur à 14 chiffres",
+									"description": "Numéro du compteur à 14 chiffres"
+								},
+								{
+									"key": "dateDebut",
+									"value": "Date en AAAA-MM-JJ",
+									"description": "Date en AAAA-MM-JJ (2025-05-01)"
+								},
+								{
+									"key": "dateFin",
+									"value": "Date en AAAA-MM-JJ",
+									"description": "Date en AAAA-MM-JJ (2025-05-02)"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "courbe_de_charge_production",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "Copier-coller le token générer avec l'api Authorization",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "https://gw.ext.prod.api.enedis.fr/mesure_synchrone_auto/v2/courbe_de_charge_production?pointId=Numéro du compteur à 14 chiffres&dateDebut=Date en AAAA-MM-JJ&dateFin=Date en AAAA-MM-JJ",
+							"protocol": "https",
+							"host": [
+								"gw",
+								"ext",
+								"prod",
+								"api",
+								"enedis",
+								"fr"
+							],
+							"path": [
+								"mesure_synchrone_auto",
+								"v2",
+								"courbe_de_charge_production"
+							],
+							"query": [
+								{
+									"key": "pointId",
+									"value": "Numéro du compteur à 14 chiffres",
+									"description": "Numéro du compteur à 14 chiffres"
+								},
+								{
+									"key": "dateDebut",
+									"value": "Date en AAAA-MM-JJ",
+									"description": "Date en AAAA-MM-JJ (2025-05-01)"
+								},
+								{
+									"key": "dateFin",
+									"value": "Date en AAAA-MM-JJ",
+									"description": "Date en AAAA-MM-JJ (2025-05-02)"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "index_consommation",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "Copier-coller le token générer avec l'api Authorization",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "https://gw.ext.prod.api.enedis.fr/mesure_synchrone_auto/v2/index_consommation?pointId=Numéro du compteur à 14 chiffres&dateDebut=Date en AAAA-MM-JJ&dateFin=Date en AAAA-MM-JJ",
+							"protocol": "https",
+							"host": [
+								"gw",
+								"ext",
+								"prod",
+								"api",
+								"enedis",
+								"fr"
+							],
+							"path": [
+								"mesure_synchrone_auto",
+								"v2",
+								"index_consommation"
+							],
+							"query": [
+								{
+									"key": "pointId",
+									"value": "Numéro du compteur à 14 chiffres",
+									"description": "Numéro du compteur à 14 chiffres"
+								},
+								{
+									"key": "dateDebut",
+									"value": "Date en AAAA-MM-JJ",
+									"description": "Date en AAAA-MM-JJ (2025-05-01)"
+								},
+								{
+									"key": "dateFin",
+									"value": "Date en AAAA-MM-JJ",
+									"description": "Date en AAAA-MM-JJ (2025-05-02)"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "index_production",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "Copier-coller le token générer avec l'api Authorization",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "https://gw.ext.prod.api.enedis.fr/mesure_synchrone_auto/v2/index_production?pointId=Numéro du compteur à 14 chiffres&dateDebut=Date en AAAA-MM-JJ&dateFin=Date en AAAA-MM-JJ",
+							"protocol": "https",
+							"host": [
+								"gw",
+								"ext",
+								"prod",
+								"api",
+								"enedis",
+								"fr"
+							],
+							"path": [
+								"mesure_synchrone_auto",
+								"v2",
+								"index_production"
+							],
+							"query": [
+								{
+									"key": "pointId",
+									"value": "Numéro du compteur à 14 chiffres",
+									"description": "Numéro du compteur à 14 chiffres"
+								},
+								{
+									"key": "dateDebut",
+									"value": "Date en AAAA-MM-JJ",
+									"description": "Date en AAAA-MM-JJ (2025-05-01)"
+								},
+								{
+									"key": "dateFin",
+									"value": "Date en AAAA-MM-JJ",
+									"description": "Date en AAAA-MM-JJ (2025-05-02)"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}

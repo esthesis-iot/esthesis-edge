@@ -20,16 +20,22 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static io.restassured.RestAssured.given;
+import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.emptyOrNullString;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.AdditionalAnswers.delegatesTo;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -160,6 +166,61 @@ class EnedisPublicResourceTest {
                 .then()
                 .statusCode(Status.BAD_REQUEST.getStatusCode())
                 .body(not(is(emptyOrNullString())));
+    }
+
+    @Test
+    void redirectHandlerLowercaseStateWithStateChecking() {
+        doNothing().when(enedisService).createDevice(any(String.class));
+        when(enedisClient.getAuthToken(any(String.class), any(String.class), any(String.class)))
+                .thenReturn(new EnedisAuthTokenDTO().setAccessToken("test").setScope("test").setTokenType("test"));
+        when(enedisClient.getSubscribedServices(any(EnedisSubscribedServicesRequestDTO.class), any(String.class)))
+                .thenReturn(new EnedisSubscribedServicesResponseDTO().setServiceSouscrit(List.of(
+                        new EnedisSubscribedServicesResponseDTO.ServiceSouscritDTO().setPointId("1")
+                )));
+
+        // Render the self-registration page (state checking is off in the test profile) to
+        // generate a known state.
+        String page = given()
+                .when().get("/enedis/public/self-registration")
+                .then()
+                .statusCode(200)
+                .extract().asString();
+        Matcher matcher = Pattern.compile("state=([0-9a-f-]+)").matcher(page);
+        assertTrue(matcher.find(), "The self-registration page must embed the generated state.");
+        String state = matcher.group(1);
+
+        // Enable state checking, the way redirectHandlerInvalidState does, but delegating to the
+        // real configuration so that the success page can still be rendered.
+        EnedisProperties.SelfRegistration selfRegistration = mock(
+                EnedisProperties.SelfRegistration.class,
+                delegatesTo(enedisProperties.selfRegistration()));
+        when(enedisProperties.selfRegistration()).thenReturn(selfRegistration);
+        when(selfRegistration.stateChecking()).thenReturn(true);
+
+        given()
+                .when().get("/enedis/public/redirect-handler?autorisation_id=1&state=" + state)
+                .then()
+                .statusCode(200);
+        verify(enedisService).createDevice("1");
+
+        // State checking really is active: an unknown state is still rejected.
+        given()
+                .when().get("/enedis/public/redirect-handler?autorisation_id=1&state=unknown")
+                .then()
+                .statusCode(Status.BAD_REQUEST.getStatusCode());
+        verify(enedisService, times(1)).createDevice(any());
+    }
+
+    @Test
+    void redirectHandlerConsentRefused() {
+        doNothing().when(enedisService).createDevice(any(String.class));
+        given()
+                .when().get("/enedis/public/redirect-handler"
+                        + "?error=invalid_request&error_description=demande_non_aboutie&state=1")
+                .then()
+                .statusCode(Status.BAD_REQUEST.getStatusCode())
+                .body(containsString("Error connecting account"));
+        verify(enedisService, never()).createDevice(any());
     }
 
     @Test

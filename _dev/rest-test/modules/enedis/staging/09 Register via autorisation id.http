@@ -1,8 +1,10 @@
 ### New-flow registration against a LOCAL esthesis EDGE pointed at the Enedis sandbox:
 ### autorisation_id=11 resolves to PRM 14000000000001 via subscribed_services. Expect the
-### registration-successful page IF the ITC mocks accept that PRM (see RUNBOOK.md — the sandbox
-### ITC mocks only answer for 11111111111111/99999999999999, so this may fail at
-### situation_contrat_auto with a 500 + error page; that failure still validates the exchange).
+### registration-successful page only if the sandbox ITC mocks answer for that PRM with a supported
+### segment (C5 or P4); if situation_contrat_auto fails for it, expect a 500 + error page, which still
+### validates the autorisation_id exchange. The mock PRMs 11111111111111 and 99999999999999 do NOT
+### register successfully: they are segments C2 and C1, which the module does not support (only C5
+### and P4), so they always end with a 500 + error page.
 GET localhost:{{API_PORT}}/enedis/public/redirect-handler?code=123&State=1&autorisation_id=11
 
 ### autorisation_id=10 — no subscribed services. Expect 400 "Invalid autorisation_id.".
@@ -17,5 +19,6 @@ GET localhost:{{API_PORT}}/enedis/public/redirect-handler?code=123&State=1&autor
 ### Neither usage_point_id nor autorisation_id. Expect 400 "Missing usage_point_id or autorisation_id.".
 GET localhost:{{API_PORT}}/enedis/public/redirect-handler?code=123&State=1
 
-### Legacy flow with a mock PRM the ITC mocks accept — full happy path against the sandbox.
+### Legacy flow with the sandbox mock PRM 99999999999999. Its segment is C1, which the module does
+### not support (only C5 and P4), so expect 500 with "Unknown segment type 'C1'".
 GET localhost:{{API_PORT}}/enedis/public/redirect-handler?code=123&State=1&usage_point_id=99999999999999

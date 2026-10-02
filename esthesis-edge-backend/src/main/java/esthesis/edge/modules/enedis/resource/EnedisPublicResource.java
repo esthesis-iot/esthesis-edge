@@ -46,6 +46,17 @@ public class EnedisPublicResource {
   }
 
   /**
+   * Make a caller-controlled value safe to log: strip CR/LF characters (log forging) and truncate
+   * it to 200 characters.
+   *
+   * @param value The value to log.
+   * @return The sanitised value, or null if the value is null.
+   */
+  private static String forLog(String value) {
+    return value == null ? null : StringUtils.truncate(value.replaceAll("[\\r\\n]", ""), 200);
+  }
+
+  /**
    * Handles the self-registration of Enedis devices. This endpoint will present the user with a
    * welcome page and a button to redirect to the Enedis self-registration page. Alternatively, if a
    * welcome URL is configured, the user will be redirected to that URL.
@@ -92,11 +103,16 @@ public class EnedisPublicResource {
    * autorisation_id, which is exchanged for the usage point ID via the Enedis subscribed services
    * API. The legacy flow can be removed once Enedis decommissions it.
    *
-   * @param state          The state received from Enedis.
+   * @param stateLower     The state received from Enedis (new flow, lowercase "state").
+   * @param stateLegacy    The state received from Enedis (legacy flow, capitalised "State").
    * @param usagePointId   The usage point ID received from Enedis (legacy flow).
    * @param autorisationId The authorization ID received from Enedis (new flow; wire name is the
    *                       French "autorisation_id").
    * @param code           The code received from Enedis (not used by Enedis, nor EDGE).
+   * @param error          The error code received from Enedis when the consent was refused or
+   *                       failed (e.g. "invalid_request").
+   * @param errorDescription The error description received from Enedis (e.g.
+   *                       "demande_non_aboutie").
    * @return a response containing the success page.
    */
   @GET
@@ -110,15 +126,32 @@ public class EnedisPublicResource {
           + "application. The device is identified either by the usage_point_id parameter "
           + "(legacy flow) or by the autorisation_id parameter (new flow), which is exchanged "
           + "for the usage point ID via the Enedis subscribed services API.")
-  public Response redirectHandler(@QueryParam("State") String state,
+  public Response redirectHandler(
+      // Enedis v2 sends "state", "State" is kept for the legacy flow (query binding may already
+      // be case-insensitive, in which case both receive the same value).
+      @QueryParam("state") String stateLower,
+      @QueryParam("State") String stateLegacy,
       @QueryParam("usage_point_id") String usagePointId,
       @QueryParam("autorisation_id") String autorisationId,
-      @QueryParam("code") String code) {
+      @QueryParam("code") String code,
+      @QueryParam("error") String error,
+      @QueryParam("error_description") String errorDescription) {
+    // Enedis DataConnect sends a lowercase "state", the legacy flow a capitalised "State".
+    String state = StringUtils.isNotEmpty(stateLower) ? stateLower : stateLegacy;
+
     // Check the state received is one we have previously created, if not return an error.
     if (cfg.selfRegistration().stateChecking() && (StringUtils.isEmpty(state) || !isKnownState(
         state))) {
-      log.error("Received invalid state '{}'.", state);
+      log.error("Received invalid state '{}'.", forLog(state));
       return Response.status(Response.Status.BAD_REQUEST).entity("Invalid state.").build();
+    }
+
+    // The user refused the consent, or Enedis could not complete it.
+    if (StringUtils.isNotEmpty(error)) {
+      log.warn("Enedis consent was not granted, error '{}', description '{}'.", forLog(error),
+          forLog(errorDescription));
+      return Response.status(Response.Status.BAD_REQUEST).entity(enedisService.getErrorPage())
+          .build();
     }
 
     // Check if the maximum allowed number of devices has been reached.
@@ -140,7 +173,8 @@ public class EnedisPublicResource {
       try {
         resolvedUsagePointId = enedisService.fetchUsagePointId(Long.parseLong(autorisationId));
       } catch (Exception ex) {
-        log.error("Error fetching usagePointId for autorisation_id '{}'.", autorisationId, ex);
+        log.error("Error fetching usagePointId for autorisation_id '{}'.", forLog(autorisationId),
+            ex);
         return Response.status(Response.Status.BAD_REQUEST).entity("Invalid autorisation_id.").build();
       }
     }

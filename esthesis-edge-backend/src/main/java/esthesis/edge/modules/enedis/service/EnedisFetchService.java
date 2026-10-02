@@ -1,15 +1,10 @@
 package esthesis.edge.modules.enedis.service;
 
 import esthesis.edge.dto.QueueItemDTO;
-import esthesis.edge.modules.enedis.EnedisUtil;
 import esthesis.edge.modules.enedis.client.EnedisClient;
 import esthesis.edge.modules.enedis.config.EnedisConstants;
 import esthesis.edge.modules.enedis.config.EnedisProperties;
-import esthesis.edge.modules.enedis.dto.datahub.EnedisConsumptionLoadCurveDTO;
-import esthesis.edge.modules.enedis.dto.datahub.EnedisDailyConsumptionDTO;
-import esthesis.edge.modules.enedis.dto.datahub.EnedisDailyConsumptionMaxPowerDTO;
-import esthesis.edge.modules.enedis.dto.datahub.EnedisDailyProductionDTO;
-import esthesis.edge.modules.enedis.dto.datahub.EnedisProductionLoadCurveDTO;
+import esthesis.edge.modules.enedis.dto.datahub.EnedisMesureDTO;
 import esthesis.edge.services.DeviceService;
 import esthesis.edge.services.FetchHelperService;
 import esthesis.edge.services.QueueService;
@@ -22,6 +17,8 @@ import org.eclipse.microprofile.rest.client.inject.RestClient;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneOffset;
 import java.util.UUID;
 
 import static esthesis.edge.modules.enedis.config.EnedisConstants.MAX_PAST_DAYS_LOAD_CURVE;
@@ -34,6 +31,9 @@ import static esthesis.edge.modules.enedis.config.EnedisConstants.MAX_PAST_DAYS_
 @RequiredArgsConstructor
 public class EnedisFetchService {
 
+  // The maximum number of days a single load curve request may span, as per the Enedis API.
+  private static final int MAX_LOAD_CURVE_WINDOW_DAYS = 7;
+
   @Inject
   @RestClient
   @SuppressWarnings("java:S6813")
@@ -45,6 +45,14 @@ public class EnedisFetchService {
   private final EnedisELPMapperService enedisELPMapperService;
   private final FetchHelperService fetchHelperService;
 
+  /**
+   * A call to one of the Enedis mesure_synchrone_auto sub-resources for a date window.
+   */
+  @FunctionalInterface
+  private interface MesureCall {
+
+    EnedisMesureDTO fetch(String startDate, String endDate);
+  }
 
   /**
    * Fetch daily consumption data from Enedis API.
@@ -52,53 +60,17 @@ public class EnedisFetchService {
    * @param hardwareId  The hardware ID of the device.
    * @param enedisPrm   The Enedis PRM.
    * @param accessToken The access token.
-   * @return
+   * @return The number of items queued.
    */
   @Transactional(Transactional.TxType.REQUIRES_NEW)
   public int fetchDailyConsumption(String hardwareId, String enedisPrm, String accessToken) {
-    // Fetch data.
-    String lastFetch = EnedisUtil.instantToYmd(deviceService
-        .getDeviceConfigValueAsInstant(hardwareId, EnedisConstants.CONFIG_DC_LAST_FETCHED_AT)
-        .orElse(Instant.now().minus(Duration.ofDays(enedisProperties.pastDaysInit()))));
-    log.debug("Fetching Daily Consumption for device '{}', from '{}'.", hardwareId, lastFetch);
-    EnedisDailyConsumptionDTO dailyConsumptionDTO = null;
-    try {
-      dailyConsumptionDTO = enedisClient.getDailyConsumption(
-          lastFetch, EnedisUtil.instantToYmd(Instant.now()),
-          enedisPrm, "Bearer " + accessToken);
-      fetchHelperService.resetErrors(hardwareId, EnedisConstants.CONFIG_DC_ERRORS);
-      log.debug("Fetched Daily Consumption '{}'.", dailyConsumptionDTO);
-    } catch (Exception e) {
-      log.warn("Failed to fetch Daily Consumption for device '{}'.", hardwareId, e);
-      fetchHelperService.increaseErrors(hardwareId, EnedisConstants.CONFIG_DC_ERRORS);
-    }
-
-    // Queue data for processing.
-    int itemsQueued = 0;
-    if (dailyConsumptionDTO != null) {
-      if (!dailyConsumptionDTO.getMeterReading().getIntervalReading().isEmpty()) {
-        log.debug("Queuing Daily Consumption:\n{}",
-            enedisELPMapperService.toELP(dailyConsumptionDTO));
-        dataService.queue(
-            QueueItemDTO.builder()
-                .id(UUID.randomUUID().toString())
-                .createdAt(Instant.now())
-                .hardwareId(hardwareId)
-                .dataObject(enedisELPMapperService.toELP(dailyConsumptionDTO))
-                .build());
-
-        // Update last fetched at, only if data was fetched. This is due to the fact that data might
-        // not be available at the time of fetching, however it may become available later on.
-        deviceService.updateDeviceConfig(hardwareId, EnedisConstants.CONFIG_DC_LAST_FETCHED_AT,
-            Instant.now().toString());
-
-        itemsQueued++;
-      } else {
-        log.debug("No Daily Consumption data to queue.");
-      }
-    }
-
-    return itemsQueued;
+    return fetchAndQueue("Daily Consumption", hardwareId,
+        EnedisConstants.CONFIG_DC_LAST_FETCHED_AT, EnedisConstants.CONFIG_DC_ERRORS,
+        enedisProperties.pastDaysInit(), false,
+        (start, end) -> enedisClient.getDailyConsumption(start, end, enedisPrm,
+            "Bearer " + accessToken),
+        enedisProperties.fetchTypes().dc().category(),
+        enedisProperties.fetchTypes().dc().measurement());
   }
 
   /**
@@ -107,57 +79,19 @@ public class EnedisFetchService {
    * @param hardwareId  The hardware ID of the device.
    * @param enedisPrm   The Enedis PRM.
    * @param accessToken The access token.
-   * @return
+   * @return The number of items queued.
    */
   @Transactional(Transactional.TxType.REQUIRES_NEW)
   public int fetchDailyConsumptionMaxPower(String hardwareId, String enedisPrm,
       String accessToken) {
-    // Fetch data.
-    String lastFetch = EnedisUtil.instantToYmd(deviceService
-        .getDeviceConfigValueAsInstant(hardwareId, EnedisConstants.CONFIG_DCMP_LAST_FETCHED_AT)
-        .orElse(Instant.now().minus(Duration.ofDays(enedisProperties.pastDaysInit()))));
-    log.debug("Fetching Daily Consumption Max Power for device '{}', from '{}'.", hardwareId,
-        lastFetch);
-    EnedisDailyConsumptionMaxPowerDTO dailyConsumptionMaxPowerDTO = null;
-    try {
-      dailyConsumptionMaxPowerDTO =
-          enedisClient.getDailyConsumptionMaxPower(
-              lastFetch, EnedisUtil.instantToYmd(Instant.now()),
-              enedisPrm, enedisProperties.fetchTypes().dcmp().measuringPeriod(),
-                enedisProperties.fetchTypes().dcmp().physicalQuantity(),"Bearer " + accessToken);
-      log.debug("Fetched Daily Consumption Max Power '{}'.", dailyConsumptionMaxPowerDTO);
-      fetchHelperService.resetErrors(hardwareId, EnedisConstants.CONFIG_DCMP_ERRORS);
-    } catch (Exception e) {
-      log.warn("Failed to fetch Daily Consumption Max Power for device '{}'.", hardwareId, e);
-      fetchHelperService.increaseErrors(hardwareId, EnedisConstants.CONFIG_DCMP_ERRORS);
-    }
-
-    int itemsQueued = 0;
-    if (dailyConsumptionMaxPowerDTO != null) {
-      // Queue data for processing.
-      if (!dailyConsumptionMaxPowerDTO.getMeterReading().getIntervalReading().isEmpty()) {
-        log.debug("Queuing Daily Consumption Max Power:\n{}",
-            enedisELPMapperService.toELP(dailyConsumptionMaxPowerDTO));
-        dataService.queue(
-            QueueItemDTO.builder()
-                .id(UUID.randomUUID().toString())
-                .createdAt(Instant.now())
-                .hardwareId(hardwareId)
-                .dataObject(enedisELPMapperService.toELP(dailyConsumptionMaxPowerDTO))
-                .build());
-
-        // Update last fetched at, only if data was fetched. This is due to the fact that data might
-        // not be available at the time of fetching, however it may become available later on.
-        deviceService.updateDeviceConfig(hardwareId, EnedisConstants.CONFIG_DCMP_LAST_FETCHED_AT,
-            Instant.now().toString());
-
-        itemsQueued++;
-      }
-    } else {
-      log.debug("No Daily Consumption Max Power data to queue.");
-    }
-
-    return itemsQueued;
+    return fetchAndQueue("Daily Consumption Max Power", hardwareId,
+        EnedisConstants.CONFIG_DCMP_LAST_FETCHED_AT, EnedisConstants.CONFIG_DCMP_ERRORS,
+        enedisProperties.pastDaysInit(), false,
+        (start, end) -> enedisClient.getDailyConsumptionMaxPower(start, end, enedisPrm,
+            enedisProperties.fetchTypes().dcmp().measuringPeriod(),
+            enedisProperties.fetchTypes().dcmp().physicalQuantity(), "Bearer " + accessToken),
+        enedisProperties.fetchTypes().dcmp().category(),
+        enedisProperties.fetchTypes().dcmp().measurement());
   }
 
   /**
@@ -166,53 +100,17 @@ public class EnedisFetchService {
    * @param hardwareId  The hardware ID of the device.
    * @param enedisPrm   The Enedis PRM.
    * @param accessToken The access token.
-   * @return
+   * @return The number of items queued.
    */
   @Transactional(Transactional.TxType.REQUIRES_NEW)
   public int fetchDailyProduction(String hardwareId, String enedisPrm, String accessToken) {
-    // Fetch data.
-    String lastFetch = EnedisUtil.instantToYmd(deviceService
-        .getDeviceConfigValueAsInstant(hardwareId, EnedisConstants.CONFIG_DP_LAST_FETCHED_AT)
-        .orElse(Instant.now().minus(Duration.ofDays(enedisProperties.pastDaysInit()))));
-    log.debug("Fetching Daily Production for device '{}', from '{}'.", hardwareId, lastFetch);
-    EnedisDailyProductionDTO dailyProductionDTO = null;
-    try {
-      dailyProductionDTO = enedisClient.getDailyProduction(
-          lastFetch, EnedisUtil.instantToYmd(Instant.now()),
-          enedisPrm, "Bearer " + accessToken);
-      log.debug("Fetched Daily Production '{}'.", dailyProductionDTO);
-      fetchHelperService.resetErrors(hardwareId, EnedisConstants.CONFIG_DP_ERRORS);
-    } catch (Exception e) {
-      log.warn("Failed to fetch Daily Production for device '{}'.", hardwareId, e);
-      fetchHelperService.increaseErrors(hardwareId, EnedisConstants.CONFIG_DP_ERRORS);
-    }
-
-    int itemsQueued = 0;
-    if (dailyProductionDTO != null) {
-      // Queue data for processing.
-      if (!dailyProductionDTO.getMeterReading().getIntervalReading().isEmpty()) {
-        log.debug("Queuing Daily Production:\n{}",
-            enedisELPMapperService.toELP(dailyProductionDTO));
-        dataService.queue(
-            QueueItemDTO.builder()
-                .id(UUID.randomUUID().toString())
-                .createdAt(Instant.now())
-                .hardwareId(hardwareId)
-                .dataObject(enedisELPMapperService.toELP(dailyProductionDTO))
-                .build());
-
-        // Update last fetched at, only if data was fetched. This is due to the fact that data might
-        // not be available at the time of fetching, however it may become available later on.
-        deviceService.updateDeviceConfig(hardwareId, EnedisConstants.CONFIG_DP_LAST_FETCHED_AT,
-            Instant.now().toString());
-
-        itemsQueued++;
-      }
-    } else {
-      log.debug("No Daily Production data to queue.");
-    }
-
-    return itemsQueued;
+    return fetchAndQueue("Daily Production", hardwareId,
+        EnedisConstants.CONFIG_DP_LAST_FETCHED_AT, EnedisConstants.CONFIG_DP_ERRORS,
+        enedisProperties.pastDaysInit(), false,
+        (start, end) -> enedisClient.getDailyProduction(start, end, enedisPrm,
+            "Bearer " + accessToken),
+        enedisProperties.fetchTypes().dp().category(),
+        enedisProperties.fetchTypes().dp().measurement());
   }
 
   /**
@@ -221,54 +119,17 @@ public class EnedisFetchService {
    * @param hardwareId  The hardware ID of the device.
    * @param enedisPrm   The Enedis PRM.
    * @param accessToken The access token.
-   * @return
+   * @return The number of items queued.
    */
   @Transactional(Transactional.TxType.REQUIRES_NEW)
   public int fetchConsumptionLoadCurve(String hardwareId, String enedisPrm, String accessToken) {
-    // Fetch data.
-    String lastFetch = EnedisUtil.instantToYmd(deviceService
-            .getDeviceConfigValueAsInstant(hardwareId, EnedisConstants.CONFIG_CLC_LAST_FETCHED_AT)
-            .orElse(Instant.now().minus(Duration.ofDays(
-                    Math.min(enedisProperties.pastDaysInit(), MAX_PAST_DAYS_LOAD_CURVE)))));
-    log.debug("Fetching Consumption Load Curve for device '{}', from '{}'.", hardwareId, lastFetch);
-    EnedisConsumptionLoadCurveDTO consumptionLoadCurveDTO = null;
-    try {
-      consumptionLoadCurveDTO = enedisClient.getConsumptionLoadCurve(
-              lastFetch, EnedisUtil.instantToYmd(Instant.now()),
-              enedisPrm, "Bearer " + accessToken);
-      fetchHelperService.resetErrors(hardwareId, EnedisConstants.CONFIG_CLC_ERRORS);
-      log.debug("Fetched Consumption Load Curve '{}'.", consumptionLoadCurveDTO);
-    } catch (Exception e) {
-      log.warn("Failed to fetch Consumption Load Curve for device '{}'.", hardwareId, e);
-      fetchHelperService.increaseErrors(hardwareId, EnedisConstants.CONFIG_CLC_ERRORS);
-    }
-
-    // Queue data for processing.
-    int itemsQueued = 0;
-    if (consumptionLoadCurveDTO != null) {
-      if (!consumptionLoadCurveDTO.getMeterReading().getIntervalReading().isEmpty()) {
-        log.debug("Queuing Consumption Load Curve:\n{}",
-                enedisELPMapperService.toELP(consumptionLoadCurveDTO));
-        dataService.queue(
-                QueueItemDTO.builder()
-                        .id(UUID.randomUUID().toString())
-                        .createdAt(Instant.now())
-                        .hardwareId(hardwareId)
-                        .dataObject(enedisELPMapperService.toELP(consumptionLoadCurveDTO))
-                        .build());
-
-        // Update last fetched at, only if data was fetched. This is due to the fact that data might
-        // not be available at the time of fetching, however it may become available later on.
-        deviceService.updateDeviceConfig(hardwareId, EnedisConstants.CONFIG_CLC_LAST_FETCHED_AT,
-                Instant.now().toString());
-
-        itemsQueued++;
-      } else {
-        log.debug("No Consumption Load Curve data to queue.");
-      }
-    }
-
-    return itemsQueued;
+    return fetchAndQueue("Consumption Load Curve", hardwareId,
+        EnedisConstants.CONFIG_CLC_LAST_FETCHED_AT, EnedisConstants.CONFIG_CLC_ERRORS,
+        Math.min(enedisProperties.pastDaysInit(), MAX_PAST_DAYS_LOAD_CURVE), true,
+        (start, end) -> enedisClient.getConsumptionLoadCurve(start, end, enedisPrm,
+            "Bearer " + accessToken),
+        enedisProperties.fetchTypes().clc().category(),
+        enedisProperties.fetchTypes().clc().measurement());
   }
 
   /**
@@ -277,53 +138,98 @@ public class EnedisFetchService {
    * @param hardwareId  The hardware ID of the device.
    * @param enedisPrm   The Enedis PRM.
    * @param accessToken The access token.
-   * @return
+   * @return The number of items queued.
    */
   @Transactional(Transactional.TxType.REQUIRES_NEW)
   public int fetchProductionLoadCurve(String hardwareId, String enedisPrm, String accessToken) {
-    // Fetch data.
-    String lastFetch = EnedisUtil.instantToYmd(deviceService
-            .getDeviceConfigValueAsInstant(hardwareId, EnedisConstants.CONFIG_PLC_LAST_FETCHED_AT)
-            .orElse(Instant.now().minus(Duration.ofDays(
-                    Math.min(enedisProperties.pastDaysInit(), MAX_PAST_DAYS_LOAD_CURVE)))));
-    log.debug("Fetching Production Load Curve for device '{}', from '{}'.", hardwareId, lastFetch);
-    EnedisProductionLoadCurveDTO productionLoadCurveDTO = null;
+    return fetchAndQueue("Production Load Curve", hardwareId,
+        EnedisConstants.CONFIG_PLC_LAST_FETCHED_AT, EnedisConstants.CONFIG_PLC_ERRORS,
+        Math.min(enedisProperties.pastDaysInit(), MAX_PAST_DAYS_LOAD_CURVE), true,
+        (start, end) -> enedisClient.getProductionLoadCurve(start, end, enedisPrm,
+            "Bearer " + accessToken),
+        enedisProperties.fetchTypes().plc().category(),
+        enedisProperties.fetchTypes().plc().measurement());
+  }
+
+  /**
+   * Fetches one Enedis sub-resource for a device, maps the response to eLP and queues it. A failure
+   * of either the client call or the mapping is counted as an error against the given errors key
+   * and never propagates, so that the error counter is committed with the surrounding transaction.
+   *
+   * @param label          A description of the data fetched, used in logs.
+   * @param hardwareId     The hardware ID of the device.
+   * @param lastFetchedKey The device configuration key holding the last fetched at timestamp.
+   * @param errorsKey      The device configuration key holding the errors counter.
+   * @param pastDaysInit   The number of days in the past to fetch from, when never fetched before.
+   * @param loadCurve      Whether the request window is limited to the maximum window of a load
+   *                       curve request. In that case, the last fetched timestamp becomes the end
+   *                       of the window, so that a longer gap is caught up over multiple runs.
+   * @param call           The call to the Enedis API.
+   * @param category       The eLP category.
+   * @param measurement    The eLP measurement.
+   * @return The number of items queued.
+   */
+  private int fetchAndQueue(String label, String hardwareId, String lastFetchedKey,
+      String errorsKey, int pastDaysInit, boolean loadCurve, MesureCall call, String category,
+      String measurement) {
+    Instant now = Instant.now();
+    // Dates are taken in UTC, as the stored load curve last fetched at is UTC midnight and would
+    // otherwise read back as the previous day on a JVM with a negative time zone offset.
+    LocalDate start = deviceService
+        .getDeviceConfigValueAsInstant(hardwareId, lastFetchedKey)
+        .orElse(now.minus(Duration.ofDays(pastDaysInit)))
+        .atZone(ZoneOffset.UTC).toLocalDate();
+    LocalDate today = now.atZone(ZoneOffset.UTC).toLocalDate();
+    LocalDate end = loadCurve ? min(today, start.plusDays(MAX_LOAD_CURVE_WINDOW_DAYS)) : today;
+    // Enedis rejects a request whose end date is not after its start date.
+    if (!start.isBefore(end)) {
+      log.debug("Nothing to fetch yet for {} of device '{}', last fetched on '{}'.", label,
+          hardwareId, start);
+      return 0;
+    }
+    log.debug("Fetching {} for device '{}', from '{}' to '{}'.", label, hardwareId, start, end);
+
+    String elp;
     try {
-      productionLoadCurveDTO = enedisClient.getProductionLoadCurve(
-              lastFetch, EnedisUtil.instantToYmd(Instant.now()),
-              enedisPrm, "Bearer " + accessToken);
-      fetchHelperService.resetErrors(hardwareId, EnedisConstants.CONFIG_PLC_ERRORS);
-      log.debug("Fetched Production Load Curve '{}'.", productionLoadCurveDTO);
+      EnedisMesureDTO dto = call.fetch(start.toString(), end.toString());
+      log.debug("Fetched {} '{}'.", label, dto);
+      elp = enedisELPMapperService.toELP(dto, category, measurement);
     } catch (Exception e) {
-      log.warn("Failed to fetch Production Load Curve for device '{}'.", hardwareId, e);
-      fetchHelperService.increaseErrors(hardwareId, EnedisConstants.CONFIG_PLC_ERRORS);
+      log.warn("Failed to fetch {} for device '{}'.", label, hardwareId, e);
+      fetchHelperService.increaseErrors(hardwareId, errorsKey);
+      return 0;
     }
+    fetchHelperService.resetErrors(hardwareId, errorsKey);
 
-    // Queue data for processing.
-    int itemsQueued = 0;
-    if (productionLoadCurveDTO != null) {
-      if (!productionLoadCurveDTO.getMeterReading().getIntervalReading().isEmpty()) {
-        log.debug("Queuing Production Load Curve:\n{}",
-                enedisELPMapperService.toELP(productionLoadCurveDTO));
-        dataService.queue(
-                QueueItemDTO.builder()
-                        .id(UUID.randomUUID().toString())
-                        .createdAt(Instant.now())
-                        .hardwareId(hardwareId)
-                        .dataObject(enedisELPMapperService.toELP(productionLoadCurveDTO))
-                        .build());
-
-        // Update last fetched at, only if data was fetched. This is due to the fact that data might
-        // not be available at the time of fetching, however it may become available later on.
-        deviceService.updateDeviceConfig(hardwareId, EnedisConstants.CONFIG_PLC_LAST_FETCHED_AT,
-                Instant.now().toString());
-
-        itemsQueued++;
-      } else {
-        log.debug("No Production Load Curve data to queue.");
+    // Update last fetched at only if data was fetched. This is due to the fact that data might
+    // not be available at the time of fetching, however it may become available later on. The
+    // exception is a load curve window that ended before today: it is final, so an empty one
+    // is skipped, otherwise it would be requested forever and block the catch-up.
+    if (elp == null || elp.isBlank()) {
+      log.debug("No {} data to queue.", label);
+      if (loadCurve && end.isBefore(today)) {
+        deviceService.updateDeviceConfig(hardwareId, lastFetchedKey,
+            end.atStartOfDay(ZoneOffset.UTC).toInstant().toString());
       }
+      return 0;
     }
 
-    return itemsQueued;
+    log.debug("Queuing {}:\n{}", label, elp);
+    dataService.queue(
+        QueueItemDTO.builder()
+            .id(UUID.randomUUID().toString())
+            .createdAt(Instant.now())
+            .hardwareId(hardwareId)
+            .dataObject(elp)
+            .build());
+    deviceService.updateDeviceConfig(hardwareId, lastFetchedKey,
+        loadCurve ? end.atStartOfDay(ZoneOffset.UTC).toInstant().toString()
+            : Instant.now().toString());
+
+    return 1;
+  }
+
+  private static LocalDate min(LocalDate a, LocalDate b) {
+    return a.isBefore(b) ? a : b;
   }
 }
