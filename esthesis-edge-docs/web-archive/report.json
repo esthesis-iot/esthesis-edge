@@ -15,10 +15,10 @@
       "name" : "Dark version of image or video file cannot be found",
       "description" : "\"\"deddie-self-registration-page_dark.png\"\" in Deddie.md:27:1"
     }, {
-      "id" : "VIS011---enedis-welcome-page_dark-png---in-enedis-md-23-1",
+      "id" : "VIS011---enedis-welcome-page_dark-png---in-enedis-md-29-1",
       "problemId" : "VIS011",
       "name" : "Dark version of image or video file cannot be found",
-      "description" : "\"\"enedis-welcome-page_dark.png\"\" in enedis.md:23:1"
+      "description" : "\"\"enedis-welcome-page_dark.png\"\" in enedis.md:29:1"
     } ]
   },
   "testsErrors" : {
