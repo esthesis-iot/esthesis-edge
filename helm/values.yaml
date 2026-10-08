@@ -98,7 +98,8 @@ esthesis:
       # -- The algorithm used to generate keys for devices in esthesis CORE.
       keyAlgorithm: "RSA"
       # -- The certificate used by esthesis CORE MQTT server.
-      cert: "<base64 cert>"
+      mqtt:
+        cert: "<base64 cert>"
     modules:
       enedis:
         # -- Whether the Enedis module is enabled.
